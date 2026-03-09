@@ -39,16 +39,13 @@ export function Navbar() {
         {/* Logo */}
         <Link href="/" className="group flex items-center gap-3">
           <Image
-            src="/proposar-new-logo.svg"
+            src="/landscape.svg"
             alt="Proposar Professional Services"
-            width={40}
-            height={48}
+            width={120}
+            height={40}
             className="group-hover:opacity-80 transition-opacity"
             unoptimized
           />
-          <span className="text-xl font-serif font-bold bg-gradient-to-r from-gold via-gold-light to-gold bg-clip-text text-transparent group-hover:opacity-80 transition-opacity hidden lg:inline">
-            Proposar
-          </span>
         </Link>
 
         {/* Desktop Navigation */}

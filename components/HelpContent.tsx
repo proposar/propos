@@ -172,6 +172,15 @@ export function HelpContent() {
 
   return (
     <div className="min-h-screen bg-[#0a0a14] text-[#c4c4cc]">
+      {/* Breadcrumb Navigation */}
+      <div className="border-b border-[#1e1e2e] bg-[#0a0a14] px-4 py-3 sm:px-6">
+        <div className="mx-auto max-w-4xl">
+          <Link href="/" className="flex items-center gap-2 text-sm text-[#888890] hover:text-gold transition-colors w-fit">
+            <span>← Home</span>
+          </Link>
+        </div>
+      </div>
+
       {/* Hero Section */}
       <div className="border-b border-[#1e1e2e] bg-gradient-to-b from-[#0a0a14] via-[#12121e] to-[#0a0a14] px-4 py-12 sm:px-6 sm:py-16">
         <div className="mx-auto max-w-4xl">

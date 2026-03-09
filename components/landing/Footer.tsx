@@ -9,10 +9,10 @@ export function Footer() {
           <div>
             <div className="flex items-center gap-2 mb-3">
               <Image
-                src="/proposar-new-logo.svg"
+                src="/landscape.svg"
                 alt="Proposar Professional Services"
-                width={32}
-                height={40}
+                width={100}
+                height={32}
                 unoptimized
               />
               <span className="font-serif text-xl font-bold text-[#faf8f4]">Proposar</span>

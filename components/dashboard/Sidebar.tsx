@@ -85,10 +85,10 @@ export function Sidebar() {
           ) : (
             <>
               <Image
-                src="/proposar-new-logo.svg"
+                src="/landscape.svg"
                 alt="Proposar Professional Services"
-                width={40}
-                height={48}
+                width={120}
+                height={40}
                 className="h-8 w-auto"
                 unoptimized
               />
