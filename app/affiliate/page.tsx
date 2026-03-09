@@ -1,6 +1,21 @@
 import { StaticPageLayout } from "@/components/landing/StaticPageLayout";
 
-export const metadata = { title: "Affiliate Program", description: "Earn by referring Proposar." };
+import { Metadata } from "next";
+import { generateMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = generateMetadata(
+  "Affiliate Program — Earn with Proposar",
+  "Join our affiliate program and earn up to 30% recurring commission. Get paid every month for referrals.",
+  [
+    "proposar affiliate program",
+    "affiliate marketing",
+    "referral program",
+    "earn money",
+    "commission program",
+    "proposar partner",
+  ],
+  "/affiliate"
+);
 
 export default function AffiliatePage() {
   return (

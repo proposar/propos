@@ -1,7 +1,20 @@
 import { StaticPageLayout } from "@/components/landing/StaticPageLayout";
 import Link from "next/link";
 
-export const metadata = { title: "Terms of Service", description: "Proposar terms of service." };
+import { Metadata } from "next";
+import { generateMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = generateMetadata(
+  "Terms of Service — Proposar",
+  "Read our terms of service. Understand the rules and policies that govern your use of Proposar.",
+  [
+    "proposar terms of service",
+    "terms and conditions",
+    "user agreement",
+    "proposar terms",
+  ],
+  "/terms"
+);
 
 export default function TermsPage() {
   return (

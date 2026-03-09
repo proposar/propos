@@ -1,7 +1,23 @@
 import { StaticPageLayout } from "@/components/landing/StaticPageLayout";
 import Link from "next/link";
 
-export const metadata = { title: "API Docs", description: "Proposar API and webhook documentation." };
+import { Metadata } from "next";
+import { generateMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = generateMetadata(
+  "API Documentation — Proposar Developer Docs",
+  "Integrate Proposar into your app. Complete API reference, webhooks, authentication, and code examples.",
+  [
+    "proposar api",
+    "api documentation",
+    "developer api",
+    "webhook",
+    "integration",
+    "api reference",
+    "proposar developers",
+  ],
+  "/api-docs"
+);
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://proposar.io";
 

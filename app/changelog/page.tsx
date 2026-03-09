@@ -1,6 +1,20 @@
+import { Metadata } from "next";
+import { generateMetadata } from "@/lib/seo";
 import { StaticPageLayout } from "@/components/landing/StaticPageLayout";
 
-export const metadata = { title: "Changelog", description: "What&apos;s new in Proposar." };
+export const metadata: Metadata = generateMetadata(
+  "Changelog — Proposar Updates & Improvements",
+  "Stay updated on the latest improvements, bug fixes, and new features released for Proposar.",
+  [
+    "proposar changelog",
+    "product updates",
+    "new features",
+    "bug fixes",
+    "version history",
+    "proposar improvements",
+  ],
+  "/changelog"
+);
 
 export default function ChangelogPage() {
   return (

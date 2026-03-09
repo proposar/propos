@@ -1,6 +1,19 @@
+import { Metadata } from "next";
+import { generateMetadata } from "@/lib/seo";
 import { StaticPageLayout } from "@/components/landing/StaticPageLayout";
 
-export const metadata = { title: "About", description: "About Proposar." };
+export const metadata: Metadata = generateMetadata(
+  "About Proposar — AI Proposal Generator Founders",
+  "Learn why we built Proposar. From frustration with manual proposals to creating the fastest AI proposal generator for freelancers and agencies worldwide.",
+  [
+    "about proposar",
+    "proposal software company",
+    "AI proposal tool",
+    "freelancer software",
+    "proposal automation",
+  ],
+  "/about"
+);
 
 export default function AboutPage() {
   return (

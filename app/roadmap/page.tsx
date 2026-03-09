@@ -1,6 +1,20 @@
 import { StaticPageLayout } from "@/components/landing/StaticPageLayout";
 
-export const metadata = { title: "Roadmap", description: "What we're building next." };
+import { Metadata } from "next";
+import { generateMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = generateMetadata(
+  "Proposar Roadmap — What's Coming Next",
+  "See what we're building next at Proposar. Upcoming features, improvements, and our vision for the future.",
+  [
+    "proposar roadmap",
+    "upcoming features",
+    "product roadmap",
+    "proposar features",
+    "proposal generator roadmap",
+  ],
+  "/roadmap"
+);
 
 export default function RoadmapPage() {
   return (

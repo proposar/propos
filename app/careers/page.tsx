@@ -1,7 +1,22 @@
 import { StaticPageLayout } from "@/components/landing/StaticPageLayout";
 import Link from "next/link";
 
-export const metadata = { title: "Careers", description: "Join the Proposar team." };
+import { Metadata } from "next";
+import { generateMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = generateMetadata(
+  "Careers at Proposar — Join Our Team",
+  "Help us build the future of proposal generation. View open positions and join the Proposar team.",
+  [
+    "proposar careers",
+    "job opportunities",
+    "hiring",
+    "work at proposar",
+    "remote jobs",
+    "startup careers",
+  ],
+  "/careers"
+);
 
 export default function CareersPage() {
   return (

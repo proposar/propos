@@ -1,7 +1,21 @@
 import { StaticPageLayout } from "@/components/landing/StaticPageLayout";
 import Link from "next/link";
 
-export const metadata = { title: "Privacy Policy", description: "Proposar privacy policy." };
+import { Metadata } from "next";
+import { generateMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = generateMetadata(
+  "Privacy Policy — Proposar",
+  "Our commitment to protecting your data. Learn how Proposar handles and protects your personal information and privacy.",
+  [
+    "proposar privacy policy",
+    "data privacy",
+    "proposar security",
+    "gdpr",
+    "user data protection",
+  ],
+  "/privacy"
+);
 
 export default function PrivacyPage() {
   return (

@@ -1,7 +1,21 @@
 import { StaticPageLayout } from "@/components/landing/StaticPageLayout";
 import { ContactForm } from "@/components/contact/ContactForm";
 
-export const metadata = { title: "Contact", description: "Get in touch with Proposar." };
+import { Metadata } from "next";
+import { generateMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = generateMetadata(
+  "Contact Proposar — Get in Touch",
+  "Have questions? Get in touch with our team. We're here to help you succeed with Proposar.",
+  [
+    "contact proposar",
+    "proposar support",
+    "proposal generator support",
+    "proposar contact",
+    "get help with proposar",
+  ],
+  "/contact"
+);
 
 export default function ContactPage() {
   return (

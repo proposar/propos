@@ -1,14 +1,26 @@
 import Link from "next/link";
 import Image from "next/image";
+import { Metadata } from "next";
+import { generateMetadata } from "@/lib/seo";
 import { getAllBlogPosts, type BlogPost } from "@/lib/blog";
 import { Navbar } from "@/components/landing/Navbar";
 import BlogList from "./blog-list";
 
-export const metadata = {
-  title: "Blog | Proposar",
-  description:
-    "Insights, data, and strategies for winning more projects and growing your freelance business.",
-};
+export const metadata: Metadata = generateMetadata(
+  "Proposar Blog — Freelance & Business Insights",
+  "Read industry insights, proposal strategies, and tips for winning more clients. Learn how successful freelancers grow their business.",
+  [
+    "freelance blog",
+    "proposal writing tips",
+    "freelance success",
+    "business growth",
+    "proposal strategies",
+    "client management",
+    "freelance tips",
+    "proposal templates",
+  ],
+  "/blog"
+);
 
 export default async function BlogPage() {
   const posts = await getAllBlogPosts();
