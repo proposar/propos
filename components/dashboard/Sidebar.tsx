@@ -85,14 +85,14 @@ export function Sidebar() {
           ) : (
             <>
               <Image
-                src="/proposar-favicon.svg"
-                alt="Proposar"
-                width={32}
-                height={32}
+                src="/proposar-new-logo.svg"
+                alt="Proposar Professional Services"
+                width={40}
+                height={48}
                 className="h-8 w-auto"
                 unoptimized
               />
-              <span className="hidden sm:inline">Proposar</span>
+              <span className="hidden sm:inline ml-2">Proposar</span>
             </>
           )}
         </Link>

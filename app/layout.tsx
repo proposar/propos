@@ -39,8 +39,8 @@ export const metadata: Metadata = {
   creator: "Proposar",
   publisher: "Proposar",
   icons: {
-    icon: "/proposar-favicon.svg",
-    apple: "/proposar-logo.svg",
+    icon: "/proposar-new-logo.svg",
+    apple: "/proposar-new-logo.svg",
   },
   viewport: "width=device-width, initial-scale=1.0, maximum-scale=5.0",
   verification: {

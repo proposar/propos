@@ -37,16 +37,16 @@ export function Navbar() {
     <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0a0a14]/80 backdrop-blur-md border-b border-[#1e1e2e]">
       <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
         {/* Logo */}
-        <Link href="/" className="group flex items-center gap-2">
+        <Link href="/" className="group flex items-center gap-3">
           <Image
-            src="/proposar-favicon.svg"
-            alt="Proposar"
-            width={32}
-            height={32}
+            src="/proposar-new-logo.svg"
+            alt="Proposar Professional Services"
+            width={40}
+            height={48}
             className="group-hover:opacity-80 transition-opacity"
             unoptimized
           />
-          <span className="text-xl font-serif font-bold bg-gradient-to-r from-gold via-gold-light to-gold bg-clip-text text-transparent group-hover:opacity-80 transition-opacity hidden sm:inline">
+          <span className="text-xl font-serif font-bold bg-gradient-to-r from-gold via-gold-light to-gold bg-clip-text text-transparent group-hover:opacity-80 transition-opacity hidden lg:inline">
             Proposar
           </span>
         </Link>

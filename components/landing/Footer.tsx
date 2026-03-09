@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 export function Footer() {
   return (
@@ -6,7 +7,16 @@ export function Footer() {
       <div className="max-w-6xl mx-auto">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-12 mb-16">
           <div>
-            <p className="font-serif text-2xl font-bold text-[#faf8f4]">Proposar</p>
+            <div className="flex items-center gap-2 mb-3">
+              <Image
+                src="/proposar-new-logo.svg"
+                alt="Proposar Professional Services"
+                width={32}
+                height={40}
+                unoptimized
+              />
+              <span className="font-serif text-xl font-bold text-[#faf8f4]">Proposar</span>
+            </div>
             <p className="text-[#888890] text-sm mt-3 max-w-xs leading-relaxed">
               The proposal tool built for freelancers who want to win.
             </p>
