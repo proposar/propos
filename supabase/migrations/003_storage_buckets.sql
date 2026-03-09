@@ -1,0 +1,3 @@
+-- Storage buckets for avatars and logos (create via Supabase dashboard if this fails)
+-- In Supabase Dashboard: Storage > New bucket > avatars (public), logos (public)
+-- Then add policy: "Allow authenticated uploads" for insert with check (auth.role() = 'authenticated')

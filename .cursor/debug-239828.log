@@ -1,0 +1,16 @@
+{"sessionId":"239828","location":"api/generate","message":"about to call generateProposalWithOpenAI (PRIMARY)","data":{},"timestamp":1773071805855}
+{"sessionId":"239828","location":"openai.ts","message":"env file fallback","data":{"cwd":"P:\\Propella","envPath":"P:\\Propella\\.env.local","matchFound":false,"valLen":0},"timestamp":1773071805860}
+{"sessionId":"239828","location":"openai.ts","message":"getOpenAI","data":{"apiKeyLen":0,"hasCached":false,"apiKeyEmpty":true},"timestamp":1773071805861}
+{"sessionId":"239828","location":"openai.ts","message":"generateProposal branch","data":{"hasOpenAI":false,"takingFallback":true},"timestamp":1773071805862}
+{"sessionId":"239828","location":"api/generate","message":"about to call generateProposalWithOpenAI (PRIMARY)","data":{},"timestamp":1773074773305}
+{"sessionId":"239828","location":"openai.ts","message":"getOpenAI","data":{"apiKeyLen":164,"hasCached":false,"apiKeyEmpty":false},"timestamp":1773074773307}
+{"sessionId":"239828","location":"openai.ts","message":"OpenAI client created","data":{},"timestamp":1773074773309}
+{"sessionId":"239828","location":"openai.ts","message":"generateProposal branch","data":{"hasOpenAI":true,"takingFallback":false},"timestamp":1773074773309}
+{"sessionId":"239828","location":"api/generate","message":"about to call generateProposalWithOpenAI (PRIMARY)","data":{},"timestamp":1773084842856}
+{"sessionId":"239828","location":"openai.ts","message":"getOpenAI","data":{"apiKeyLen":164,"hasCached":false,"apiKeyEmpty":false},"timestamp":1773084842865}
+{"sessionId":"239828","location":"openai.ts","message":"OpenAI client created","data":{},"timestamp":1773084842867}
+{"sessionId":"239828","location":"openai.ts","message":"generateProposal branch","data":{"hasOpenAI":true,"takingFallback":false},"timestamp":1773084842867}
+{"sessionId":"239828","location":"api/generate","message":"about to call generateProposalWithOpenAI (PRIMARY)","data":{},"timestamp":1773086583790}
+{"sessionId":"239828","location":"openai.ts","message":"getOpenAI","data":{"apiKeyLen":164,"hasCached":false,"apiKeyEmpty":false},"timestamp":1773086583791}
+{"sessionId":"239828","location":"openai.ts","message":"OpenAI client created","data":{},"timestamp":1773086583793}
+{"sessionId":"239828","location":"openai.ts","message":"generateProposal branch","data":{"hasOpenAI":true,"takingFallback":false},"timestamp":1773086583793}

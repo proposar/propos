@@ -1,0 +1,14 @@
+-- Profile settings for Phase 8
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS brand_color TEXT DEFAULT '#D4AF37';
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS default_payment_terms TEXT;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS default_tone TEXT DEFAULT 'professional';
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS default_expiry_days INTEGER DEFAULT 30;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS default_sections JSONB DEFAULT '[]';
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS auto_follow_up_enabled BOOLEAN DEFAULT TRUE;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS auto_follow_up_days INTEGER DEFAULT 7;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS notify_proposal_viewed BOOLEAN DEFAULT TRUE;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS notify_proposal_accepted BOOLEAN DEFAULT TRUE;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS notify_proposal_declined BOOLEAN DEFAULT TRUE;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS notify_proposal_expired BOOLEAN DEFAULT TRUE;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS notify_weekly_summary BOOLEAN DEFAULT TRUE;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS notify_product_updates BOOLEAN DEFAULT FALSE;
