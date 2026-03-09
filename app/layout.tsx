@@ -43,6 +43,9 @@ export const metadata: Metadata = {
     apple: "/proposar-logo.svg",
   },
   viewport: "width=device-width, initial-scale=1.0, maximum-scale=5.0",
+  verification: {
+    google: "0rLRsbPbVjLe39eSl-S93gbNe69cLmMKLDiwHG1lJsM",
+  },
   openGraph: {
     type: "website",
     locale: "en_US",
