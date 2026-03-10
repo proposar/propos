@@ -48,6 +48,21 @@ export default function SignupPage() {
     setError(null);
     
     try {
+      // Check if email already registered
+      const checkRes = await fetch("/api/auth/check-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      
+      const checkData = await checkRes.json();
+      
+      if (checkData.exists) {
+        setError("This email is already registered. Please sign in instead.");
+        setLoading(false);
+        return;
+      }
+      
       const supabase = createClient();
       
       // Send OTP to email
@@ -93,7 +108,25 @@ export default function SignupPage() {
       if (err) throw err;
       
       if (data.user) {
-        // Set user metadata (name, business type)
+        // Create or update user profile
+        const profileRes = await fetch("/api/auth/create-profile", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userId: data.user.id,
+            email,
+            fullName,
+            businessType,
+          }),
+        });
+        
+        const profileData = await profileRes.json();
+        
+        if (!profileRes.ok) {
+          throw new Error(profileData.error || "Failed to create profile");
+        }
+        
+        // Update auth metadata
         await supabase.auth.updateUser({
           data: {
             full_name: fullName,
@@ -102,7 +135,13 @@ export default function SignupPage() {
         });
         
         router.refresh();
-        router.push("/onboarding");
+        
+        // Redirect based on whether new user or existing
+        if (profileData.isNewUser) {
+          router.push("/onboarding");
+        } else {
+          router.push("/dashboard");
+        }
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Invalid verification code");
@@ -236,7 +275,16 @@ export default function SignupPage() {
             <p className="text-red-400 text-sm">{fieldErrors.agreeTerms}</p>
           )}
 
-          {error && <p className="text-red-400 text-sm">{error}</p>}
+          {error && (
+            <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3">
+              <p className="text-red-400 text-sm mb-2">{error}</p>
+              {error.includes("already registered") && (
+                <Link href="/login" className="text-gold hover:underline text-sm">
+                  Go to sign in →
+                </Link>
+              )}
+            </div>
+          )}
 
           <button
             type="submit"
