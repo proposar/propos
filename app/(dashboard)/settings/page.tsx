@@ -53,6 +53,7 @@ type ProfileData = {
   subscription_status?: string | null;
   subscription_period_end?: string | null;
   proposals_used_this_month?: number | null;
+  stripe_subscription_id?: string | null;
   stripe_customer_id?: string | null;
 };
 
@@ -139,7 +140,7 @@ export default function SettingsPage() {
   async function openPortal() {
     setPortalLoading(true);
     try {
-      const res = await fetch("/api/lemonsqueezy/portal", { method: "POST" });
+      const res = await fetch("/api/paddle/portal", { method: "POST" });
       const data = await res.json();
       if (data.url) window.location.href = data.url;
     } finally {
@@ -405,7 +406,7 @@ export default function SettingsPage() {
               <p className="text-xs text-[#888890] mt-1">{used} of {limitLabel} proposals</p>
             </div>
           )}
-          {(profile?.stripe_customer_id || plan !== "free") ? (
+          {(profile?.stripe_subscription_id || profile?.stripe_customer_id || plan !== "free") ? (
             <>
               <button type="button" onClick={openPortal} disabled={portalLoading} className="rounded-lg bg-gold px-4 py-2 text-sm font-medium text-[#0a0a14] hover:bg-[#e8c76a] disabled:opacity-50">
                 {portalLoading ? "Opening..." : "Manage Billing"}

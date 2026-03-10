@@ -6,23 +6,29 @@ import crypto from "crypto";
 const WEBHOOK_SECRET = process.env.PADDLE_WEBHOOK_SECRET;
 
 /**
- * Verify Paddle webhook signature
- * Paddle uses HMAC-SHA256 with header X-Paddle-Signature
+ * Verify Paddle Billing webhook signature.
+ * Header format: Paddle-Signature or x-paddle-signature: ts=UNIX_TS;h1=HMAC_HEX
+ * HMAC is over "ts:raw_body" with webhook secret.
  */
-function verifySignature(body: string, signature: string): boolean {
+function verifySignature(body: string, signatureHeader: string): boolean {
   if (!WEBHOOK_SECRET) {
     console.error("Paddle webhook secret not configured");
     return false;
   }
-
   try {
+    const parts = signatureHeader.split(";").reduce((acc, part) => {
+      const [k, v] = part.trim().split("=");
+      if (k && v) acc[k] = v;
+      return acc;
+    }, {} as Record<string, string>);
+    const ts = parts.ts ?? parts.t;
+    const h1 = parts.h1;
+    if (!ts || !h1) return false;
+    const toSign = `${ts}:${body}`;
     const hmac = crypto.createHmac("sha256", WEBHOOK_SECRET);
-    hmac.update(body);
-    const calculatedSignature = hmac.digest("hex");
-    return crypto.timingSafeEqual(
-      Buffer.from(signature),
-      Buffer.from(calculatedSignature)
-    );
+    hmac.update(toSign);
+    const calculated = hmac.digest("hex");
+    return crypto.timingSafeEqual(Buffer.from(h1, "hex"), Buffer.from(calculated, "hex"));
   } catch (error) {
     console.error("Signature verification error:", error);
     return false;
@@ -32,7 +38,10 @@ function verifySignature(body: string, signature: string): boolean {
 export async function POST(request: Request) {
   try {
     const rawBody = await request.text();
-    const signature = request.headers.get("x-paddle-signature") ?? "";
+    const signature =
+      request.headers.get("paddle-signature") ??
+      request.headers.get("x-paddle-signature") ??
+      "";
 
     if (!WEBHOOK_SECRET) {
       console.error("Webhook secret not configured");
@@ -68,14 +77,15 @@ export async function POST(request: Request) {
       const priceId = data.items?.[0]?.price?.id;
       const plan = priceId ? planFromPriceId(priceId) : "pro";
 
-      // Update user's subscription in Supabase
+      // Update user's subscription in Supabase (profiles uses subscription_plan, stripe_* columns)
       const { error: updateError } = await admin
         .from("profiles")
         .update({
-          plan,
-          paddle_subscription_id: subscriptionId,
-          paddle_customer_id: data.customer_id,
+          subscription_plan: plan,
+          stripe_subscription_id: subscriptionId,
+          stripe_customer_id: data.customer_id ?? null,
           subscription_status: "active",
+          subscription_period_end: data.next_billed_at ?? null,
           updated_at: new Date().toISOString(),
         })
         .eq("id", userId);
@@ -98,12 +108,14 @@ export async function POST(request: Request) {
 
       const priceId = data.items?.[0]?.price?.id;
       const plan = priceId ? planFromPriceId(priceId) : "pro";
+      const isActive = data.status === "active" || data.status === "trialing";
 
       const { error: updateError } = await admin
         .from("profiles")
         .update({
-          plan,
-          subscription_status: data.status,
+          subscription_plan: isActive ? plan : "free",
+          subscription_status: data.status ?? "active",
+          subscription_period_end: data.next_billed_at ?? null,
           updated_at: new Date().toISOString(),
         })
         .eq("id", userId);
@@ -126,8 +138,8 @@ export async function POST(request: Request) {
       const { error: updateError } = await admin
         .from("profiles")
         .update({
-          plan: "free",
-          paddle_subscription_id: null,
+          subscription_plan: "free",
+          stripe_subscription_id: null,
           subscription_status: "canceled",
           updated_at: new Date().toISOString(),
         })

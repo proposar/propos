@@ -22,10 +22,10 @@ export function UpgradeModal({ open, onClose, message }: UpgradeModalProps) {
   async function handleUpgrade(planId: "starter" | "pro" | "agency") {
     setLoading(planId);
     try {
-      const res = await fetch("/api/lemonsqueezy/checkout", {
+      const res = await fetch("/api/paddle/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan: planId, interval: annual ? "year" : "month" }),
+        body: JSON.stringify({ plan: planId }),
       });
       const data = await res.json();
       if (data.url) window.location.href = data.url;
