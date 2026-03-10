@@ -36,10 +36,21 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (existing) {
-      return NextResponse.json(
-        { error: "Email already registered. Please sign in instead." },
-        { status: 400 }
-      );
+      // Check if a real auth user exists for this profile
+      // If no auth user exists, this is an orphaned profile from a failed signup — clean it up
+      const { data: { user }, error: authLookupError } = await adminClient.auth.admin.getUserById(existing.id);
+      
+      if (authLookupError || !user) {
+        // Orphaned profile — delete it so the user can re-register
+        await adminClient.from("profiles").delete().eq("id", existing.id);
+        console.log(`[Signup] Cleaned up orphaned profile for ${email}`);
+      } else {
+        // Real account exists
+        return NextResponse.json(
+          { error: "Email already registered. Please sign in instead." },
+          { status: 400 }
+        );
+      }
     }
 
     // Send OTP
