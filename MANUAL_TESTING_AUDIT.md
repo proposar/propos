@@ -61,10 +61,12 @@
 - **Fix:** If `logo_url` starts with `http`, use as-is; else `getPublicUrl(path)`.
 - **Files:** `app/api/proposals/[id]/pdf/route.tsx`, `app/api/proposal/[shareId]/pdf/route.tsx`, `app/api/emails/send-proposal/route.tsx`
 
-### 6. Billing — Lemonsqueezy
-- **Added:** Lemonsqueezy integration. When `LEMONSQUEEZY_API_KEY` + `LEMONSQUEEZY_STORE_ID` are set, checkout/portal use Lemonsqueezy; else Stripe.
-- **New:** `lib/lemonsqueezy.ts`, `app/api/lemonsqueezy/checkout`, `portal`, `webhook`
-- **Config:** Set variant IDs, webhook URL `.../api/lemonsqueezy/webhook`
+### 6. Billing — Paddle
+- **Added:** Paddle integration for payments (global with automatic VAT/tax handling).
+- **New:** `lib/paddle.ts`, `app/api/paddle/checkout`, `app/api/paddle/webhook`
+- **Config:** Set `PADDLE_API_KEY`, `NEXT_PUBLIC_PADDLE_CLIENT_TOKEN`, `PADDLE_WEBHOOK_SECRET`
+- **Plans:** Starter ($19/mo), Pro ($29/mo), Agency ($79/mo)
+- **Webhook:** Subscribe to `subscription.created`, `subscription.updated`, `subscription.canceled`
 
 ### 7. AI Provider — Anthropic + ChatGPT
 - **Added:** AI provider dropdown in New Proposal (Claude / ChatGPT).

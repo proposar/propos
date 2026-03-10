@@ -10,11 +10,9 @@ Set these in Vercel Dashboard → Project → Settings → Environment Variables
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | ✅ | Supabase anon/public key |
 | `SUPABASE_SERVICE_ROLE_KEY` | ✅ | Supabase service role key (server-only) |
 | `ANTHROPIC_API_KEY` or `OPENAI_API_KEY` | ✅ | AI API key (Claude or GPT) |
-| `LEMONSQUEEZY_API_KEY` | ✅ | Lemon Squeezy API key (payments – works in India) |
-| `LEMONSQUEEZY_STORE_ID` | ✅ | Lemon Squeezy store ID |
-| `LEMONSQUEEZY_WEBHOOK_SECRET` | ✅ | Lemon Squeezy webhook signing secret |
-| `NEXT_PUBLIC_LEMONSQUEEZY_STORE_LINK` | ✅ | Store URL (e.g. https://yourstore.lemonsqueezy.com) |
-| `LEMONSQUEEZY_*_VARIANT_ID` | ✅ | Variant IDs for Starter, Pro, Agency (monthly + annual) |
+| `PADDLE_API_KEY` | ✅ | Paddle API secret key (payments – global with VAT/tax) |
+| `NEXT_PUBLIC_PADDLE_CLIENT_TOKEN` | ✅ | Paddle client token (public) |
+| `PADDLE_WEBHOOK_SECRET` | ✅ | Paddle webhook signing secret |
 | `RESEND_API_KEY` | ✅ | Resend API key for emails |
 | `RESEND_FROM_EMAIL` | Optional | From address (e.g. `hello@Proposar.io`) |
 | `CRON_SECRET` | Optional | For follow-up email cron job |
@@ -39,12 +37,16 @@ Set these in Vercel Dashboard → Project → Settings → Environment Variables
 
 ---
 
-## 3. Lemon Squeezy Production Setup (Payments – India & global)
+## 3. Paddle Production Setup (Payments – Global with VAT/Tax automatic)
 
-- [ ] **Products**: Create Starter ($19), Pro ($29), Agency ($79) in Lemon Squeezy
-- [ ] **Variants**: Monthly + annual for each; copy variant IDs to env vars
-- [ ] **Webhook**: Create webhook pointing to `https://yourdomain.com/api/lemonsqueezy/webhook`
-- [ ] **Store link**: Set `NEXT_PUBLIC_LEMONSQUEEZY_STORE_LINK` to your store URL
+- [ ] **Products**: Create Starter ($19/mo), Pro ($29/mo), Agency ($79/mo) in Paddle Dashboard
+- [ ] **Price IDs**: Copy the price IDs to `/lib/paddle.ts` PADDLE_PLANS object
+- [ ] **Webhook**: Create webhook pointing to `https://yourdomain.com/api/paddle/webhook`
+  - Events to subscribe: `subscription.created`, `subscription.updated`, `subscription.canceled`
+- [ ] **API Keys**: Copy API secret key and client token to env vars
+  - `PADDLE_API_KEY`: Secret key from Paddle Dashboard → Settings → Authentication
+  - `NEXT_PUBLIC_PADDLE_CLIENT_TOKEN`: Client token from same location
+  - `PADDLE_WEBHOOK_SECRET`: Generate from Paddle Dashboard → Webhooks → New Webhook
 
 ---
 

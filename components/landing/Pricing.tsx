@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 
 const plans = [
@@ -75,7 +76,37 @@ const faqs = [
 ];
 
 export function Pricing() {
+  const router = useRouter();
   const [annual, setAnnual] = useState(false);
+  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+
+  const handleCheckout = async (plan: "starter" | "pro" | "agency") => {
+    setLoadingPlan(plan);
+    try {
+      const response = await fetch("/api/paddle/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        alert(`Checkout error: ${error.error}`);
+        setLoadingPlan(null);
+        return;
+      }
+
+      const data = await response.json();
+      if (data.url) {
+        // Redirect to Paddle checkout
+        window.location.href = data.url;
+      }
+    } catch (error) {
+      console.error("Checkout error:", error);
+      alert("Failed to start checkout. Please try again.");
+      setLoadingPlan(null);
+    }
+  };
 
   return (
     <section id="pricing" className="py-24 md:py-28 bg-[#0a0a14] px-6">
@@ -146,16 +177,17 @@ export function Pricing() {
                   </li>
                 ))}
               </ul>
-              <Link
-                href="/signup"
+              <button
+                onClick={() => handleCheckout(plan.name.toLowerCase() as "starter" | "pro" | "agency")}
+                disabled={loadingPlan !== null}
                 className={`mt-6 block w-full rounded-lg py-3 text-center font-medium transition-colors ${
                   plan.highlighted
-                    ? "bg-gold text-[#0a0a14] hover:bg-[#e8c76a]"
-                    : "border border-[#1e1e2e] text-[#faf8f4] hover:bg-[#1e1e2e]"
+                    ? "bg-gold text-[#0a0a14] hover:bg-[#e8c76a] disabled:opacity-50"
+                    : "border border-[#1e1e2e] text-[#faf8f4] hover:bg-[#1e1e2e] disabled:opacity-50"
                 }`}
               >
-                Start Free Trial
-              </Link>
+                {loadingPlan === plan.name.toLowerCase() ? "Loading..." : "Start Free Trial"}
+              </button>
             </motion.div>
           ))}
         </div>
