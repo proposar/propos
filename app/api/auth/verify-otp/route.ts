@@ -96,33 +96,48 @@ export async function POST(req: NextRequest) {
       }
 
       userId = data.user.id;
+      isNewUser = true;
 
-      // Clean up any orphan profile rows that still have this email but a different user id
-      // (e.g. when an auth user was deleted but the profile row remained, or there are duplicates).
-      const { error: deleteOrphanError } = await adminClient
+      // Because of the auth trigger (handle_new_user), a basic profile row is already created.
+      // Update it with the latest data; if somehow missing, insert it.
+      const { data: existingProfile, error: profileLookupError } = await adminClient
         .from("profiles")
-        .delete()
-        .eq("email", email)
-        .neq("id", userId);
+        .select("id")
+        .eq("id", userId)
+        .maybeSingle();
 
-      if (deleteOrphanError) {
-        console.error("Failed to delete orphan profiles by email:", deleteOrphanError);
-        return NextResponse.json({ error: "Failed to create profile" }, { status: 500 });
+      if (profileLookupError) {
+        console.error("Profile lookup error after user creation:", profileLookupError);
       }
 
-      // Create profile
-      const { error: profileError } = await adminClient
-        .from("profiles")
-        .insert({
-          id: userId,
-          email,
-          full_name: fullName,
-          business_type: businessType,
-          onboarding_completed: false,
-        });
+      let profileError = null;
+
+      if (existingProfile) {
+        const { error } = await adminClient
+          .from("profiles")
+          .update({
+            email,
+            full_name: fullName,
+            business_type: businessType,
+            onboarding_completed: false,
+          })
+          .eq("id", userId);
+        profileError = error;
+      } else {
+        const { error } = await adminClient
+          .from("profiles")
+          .insert({
+            id: userId,
+            email,
+            full_name: fullName,
+            business_type: businessType,
+            onboarding_completed: false,
+          });
+        profileError = error;
+      }
 
       if (profileError) {
-        console.error("Profile creation error:", profileError);
+        console.error("Profile upsert error:", profileError);
         await adminClient.auth.admin.deleteUser(userId);
         return NextResponse.json({ error: "Failed to create profile" }, { status: 500 });
       }
