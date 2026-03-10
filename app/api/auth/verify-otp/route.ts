@@ -98,25 +98,16 @@ export async function POST(req: NextRequest) {
       userId = data.user.id;
 
       // Clean up any orphan profile rows that still have this email but a different user id
-      // (e.g. when an auth user was deleted but the profile row remained).
-      const { data: existingProfileByEmail, error: existingByEmailError } = await adminClient
+      // (e.g. when an auth user was deleted but the profile row remained, or there are duplicates).
+      const { error: deleteOrphanError } = await adminClient
         .from("profiles")
-        .select("id")
+        .delete()
         .eq("email", email)
-        .maybeSingle();
+        .neq("id", userId);
 
-      if (existingByEmailError) {
-        console.error("Lookup existing profile by email error:", existingByEmailError);
-      } else if (existingProfileByEmail && existingProfileByEmail.id !== userId) {
-        const { error: deleteOrphanError } = await adminClient
-          .from("profiles")
-          .delete()
-          .eq("id", existingProfileByEmail.id);
-
-        if (deleteOrphanError) {
-          console.error("Failed to delete orphan profile:", deleteOrphanError);
-          return NextResponse.json({ error: "Failed to create profile" }, { status: 500 });
-        }
+      if (deleteOrphanError) {
+        console.error("Failed to delete orphan profiles by email:", deleteOrphanError);
+        return NextResponse.json({ error: "Failed to create profile" }, { status: 500 });
       }
 
       // Create profile
