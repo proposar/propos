@@ -65,12 +65,9 @@ export default function SignupPage() {
       
       const supabase = createClient();
       
-      // Send OTP to email
+      // Send OTP to email (no redirect = pure OTP code)
       const { error: err } = await supabase.auth.signInWithOtp({
         email,
-        options: {
-          emailRedirectTo: `${typeof window !== "undefined" ? window.location.origin : ""}/auth/callback`,
-        },
       });
       
       if (err) throw err;
