@@ -48,29 +48,20 @@ export default function SignupPage() {
     setError(null);
     
     try {
-      // Check if email already registered
-      const checkRes = await fetch("/api/auth/check-email", {
+      // Send custom OTP
+      const res = await fetch("/api/auth/send-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, fullName }),
       });
       
-      const checkData = await checkRes.json();
+      const data = await res.json();
       
-      if (checkData.exists) {
-        setError("This email is already registered. Please sign in instead.");
+      if (!res.ok) {
+        setError(data.error || "Failed to send OTP");
         setLoading(false);
         return;
       }
-      
-      const supabase = createClient();
-      
-      // Send OTP to email (no redirect = pure OTP code)
-      const { error: err } = await supabase.auth.signInWithOtp({
-        email,
-      });
-      
-      if (err) throw err;
       
       setOtpSent(true);
       setError(null);
@@ -93,55 +84,44 @@ export default function SignupPage() {
     setError(null);
     
     try {
-      const supabase = createClient();
-      
-      // Verify OTP
-      const { data, error: err } = await supabase.auth.verifyOtp({
-        email,
-        token: otpCode,
-        type: "email",
+      // Verify OTP and create user
+      const res = await fetch("/api/auth/verify-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          code: otpCode,
+          fullName,
+          businessType,
+        }),
       });
       
-      if (err) throw err;
+      const data = await res.json();
       
-      if (data.user) {
-        // Create or update user profile
-        const profileRes = await fetch("/api/auth/create-profile", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            userId: data.user.id,
-            email,
-            fullName,
-            businessType,
-          }),
-        });
-        
-        const profileData = await profileRes.json();
-        
-        if (!profileRes.ok) {
-          throw new Error(profileData.error || "Failed to create profile");
-        }
-        
-        // Update auth metadata
-        await supabase.auth.updateUser({
-          data: {
-            full_name: fullName,
-            business_type: businessType,
-          },
-        });
-        
-        router.refresh();
-        
-        // Redirect based on whether new user or existing
-        if (profileData.isNewUser) {
+      if (!res.ok) {
+        setError(data.error || "Failed to verify code");
+        setLoading(false);
+        return;
+      }
+      
+      // Get new session
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      router.refresh();
+      
+      // If session exists, go to onboarding, else need to wait for session refresh
+      if (session) {
+        router.push("/onboarding");
+      } else {
+        // Session will be established by auth callback, refresh and redirect
+        setTimeout(() => {
+          router.refresh();
           router.push("/onboarding");
-        } else {
-          router.push("/dashboard");
-        }
+        }, 1000);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Invalid verification code");
+      setError(err instanceof Error ? err.message : "Failed to verify code");
     } finally {
       setLoading(false);
     }

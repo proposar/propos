@@ -3,8 +3,9 @@
  * Detects disposable/fake email addresses
  */
 
-// List of common disposable email domains
+// Comprehensive list of disposable/temporary email domains
 const DISPOSABLE_DOMAINS = new Set([
+  // Popular temp mail services
   "tempmail.com",
   "throwaway.email",
   "guerrillamail.com",
@@ -23,6 +24,37 @@ const DISPOSABLE_DOMAINS = new Set([
   "fakeinbox.com",
   "spam4.me",
   "testing123.com",
+  
+  // Additional temp/disposable services
+  "guerrillamail.info",
+  "guerrillamail.net",
+  "guerrillamail.org",
+  "guerrillapop.com",
+  "pokemail.net",
+  "spam.la",
+  "spamgourmet.com",
+  "mailnesia.com",
+  "mytrashmail.com",
+  "temp-mail.io",
+  "tempmail.net",
+  "15minutemail.com",
+  "20minutemail.com",
+  "throwawaymail.com",
+  "cachedmail.com",
+  "tempail.com",
+  "mailhole.com",
+  "getdisposableemail.com",
+  "suremail.info",
+  "temp.mail.ru",
+  "fakeemail.net",
+  "dispostable.com",
+  "anonbox.net",
+  "securemail.info",
+  "trashmail.ws",
+  "dropmail.me",
+  "mail.tm",
+  "moakt.com",
+  "tempaddress.repl.co",
 ]);
 
 // Corporate/common free email domains (allowed)
@@ -37,6 +69,12 @@ const ALLOWED_DOMAINS = new Set([
   "mail.com",
   "zoho.com",
   "yandex.com",
+  "gmx.com",
+  "tutanota.com",
+  "posteo.de",
+  "fastmail.com",
+  "hey.com",
+  "mailbox.org",
 ]);
 
 /**
@@ -54,6 +92,26 @@ export function isDisposableEmail(email: string): boolean {
   const domain = email.split("@")[1]?.toLowerCase();
   if (!domain) return false;
   return DISPOSABLE_DOMAINS.has(domain);
+}
+
+/**
+ * Check if domain looks like a test/fake domain
+ */
+export function isTestDomain(email: string): boolean {
+  const domain = email.split("@")[1]?.toLowerCase() || "";
+  
+  // Check for common test patterns
+  const testPatterns = [
+    /test\./, // test.com, test.example.com
+    /\.test$/, // example.test
+    /^test/,  // test@...
+    /localhost/,
+    /\.local$/,
+    /example\.com/,
+    /^fake|^dummy|^invalid|^no-reply/,
+  ];
+  
+  return testPatterns.some(pattern => pattern.test(domain));
 }
 
 /**
@@ -92,8 +150,12 @@ export function validateEmail(email: string): {
     return { valid: false, error: "Enter a valid email address" };
   }
 
+  if (isTestDomain(email)) {
+    return { valid: false, error: "This email domain is not valid" };
+  }
+
   if (isDisposableEmail(email)) {
-    return { valid: false, error: "Please use a real email address (not a temp email service)" };
+    return { valid: false, error: "Temporary email addresses are not allowed. Use a real email address." };
   }
 
   if (!isValidEmailDomain(email)) {

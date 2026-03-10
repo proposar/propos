@@ -61,11 +61,20 @@ export default function LoginPage() {
     if (!otpSent) {
       // Send OTP
       try {
-        const supabase = createClient();
-        const { error: err } = await supabase.auth.signInWithOtp({
-          email: otpEmail,
+        const res = await fetch("/api/auth/send-login-otp", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: otpEmail }),
         });
-        if (err) throw err;
+        
+        const data = await res.json();
+        
+        if (!res.ok) {
+          setError(data.error || "Failed to send OTP");
+          setLoading(false);
+          return;
+        }
+        
         setOtpSent(true);
         setError(null);
       } catch (err) {
@@ -76,19 +85,24 @@ export default function LoginPage() {
     } else {
       // Verify OTP
       try {
-        const supabase = createClient();
-        const { data, error: err } = await supabase.auth.verifyOtp({
-          email: otpEmail,
-          token: otpCode,
-          type: 'email',
+        const res = await fetch("/api/auth/verify-login-otp", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: otpEmail, code: otpCode }),
         });
-        if (err) throw err;
-        if (data.user) {
-          router.refresh();
-          router.push("/dashboard");
+        
+        const data = await res.json();
+        
+        if (!res.ok) {
+          setError(data.error || "Failed to verify code");
+          setLoading(false);
+          return;
         }
+        
+        router.refresh();
+        router.push("/dashboard");
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Invalid OTP code");
+        setError(err instanceof Error ? err.message : "Failed to verify code");
       } finally {
         setLoading(false);
       }
