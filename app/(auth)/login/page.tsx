@@ -58,13 +58,16 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
     
+    // Normalize email for consistency
+    const normalizedEmail = otpEmail.trim().toLowerCase();
+    
     if (!otpSent) {
       // Send OTP
       try {
         const res = await fetch("/api/auth/send-login-otp", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: otpEmail }),
+          body: JSON.stringify({ email: normalizedEmail }),
         });
         
         const data = await res.json();
@@ -88,7 +91,7 @@ export default function LoginPage() {
         const res = await fetch("/api/auth/verify-login-otp", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: otpEmail, code: otpCode }),
+          body: JSON.stringify({ email: normalizedEmail, code: otpCode }),
         });
         
         const data = await res.json();

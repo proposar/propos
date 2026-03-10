@@ -48,11 +48,14 @@ export default function SignupPage() {
     setError(null);
     
     try {
+      // Normalize email for consistency
+      const normalizedEmail = email.trim().toLowerCase();
+      
       // Send custom OTP
       const res = await fetch("/api/auth/send-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, fullName }),
+        body: JSON.stringify({ email: normalizedEmail, fullName }),
       });
       
       const data = await res.json();
@@ -84,12 +87,15 @@ export default function SignupPage() {
     setError(null);
     
     try {
+      // Normalize email for consistency
+      const normalizedEmail = email.trim().toLowerCase();
+      
       // Verify OTP and create user (only after OTP is valid)
       const res = await fetch("/api/auth/verify-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          email,
+          email: normalizedEmail,
           code: otpCode,
           fullName,
           businessType,

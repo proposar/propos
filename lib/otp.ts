@@ -10,7 +10,12 @@ const otpStorage = new Map<string, { code: string; expiresAt: number; attempts: 
  * Generate a 6-digit OTP code
  */
 export function generateOTP(): string {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+  // Ensure exactly 6 digits
+  const code = Math.floor(100000 + Math.random() * 900000).toString();
+  if (code.length !== 6) {
+    console.warn(`[OTP] Generated code length mismatch: ${code} (length: ${code.length})`);
+  }
+  return code;
 }
 
 /**
@@ -32,7 +37,12 @@ export async function sendOTP(email: string, fullName?: string): Promise<{
       attempts: 0,
     });
 
-    console.log(`[OTP] Generated for ${normalizedEmail}: ${otp}`);
+    console.log(`\n${'='.repeat(60)}`);
+    console.log(`[OTP SEND] Email: ${normalizedEmail}`);
+    console.log(`[OTP SEND] Code: ${otp} (length: ${otp.length})`);
+    console.log(`[OTP SEND] Expires: ${new Date(expiresAt).toISOString()}`);
+    console.log(`[OTP SEND] All stored: ${Array.from(otpStorage.keys()).join(', ')}`);
+    console.log(`${'='.repeat(60)}\n`);
 
     // Send via Resend
     const { error } = await resend.emails.send({
@@ -83,32 +93,46 @@ export function verifyOTP(
   const normalizedEmail = email.trim().toLowerCase();
   const stored = otpStorage.get(normalizedEmail);
 
-  console.log(`[OTP] Verifying for ${normalizedEmail}. Code: ${code}. Found in storage: ${!!stored}`);
-  console.log(`[OTP] Storage keys:`, Array.from(otpStorage.keys()));
+  console.log(`\n${'='.repeat(60)}`);
+  console.log(`[OTP VERIFY] Email: ${normalizedEmail} | Code: ${code}`);
+  console.log(`[OTP VERIFY] Found in storage: ${!!stored}`);
+  console.log(`[OTP VERIFY] All stored emails:`, Array.from(otpStorage.keys()));
+  
+  if (stored) {
+    console.log(`[OTP VERIFY] Stored code: ${stored.code}`);
+    console.log(`[OTP VERIFY] Code match: ${stored.code === code}`);
+    console.log(`[OTP VERIFY] Expires at: ${new Date(stored.expiresAt).toISOString()}`);
+    console.log(`[OTP VERIFY] Now: ${new Date(Date.now()).toISOString()}`);
+    console.log(`[OTP VERIFY] Expired: ${Date.now() > stored.expiresAt}`);
+  }
+  console.log(`${'='.repeat(60)}\n`);
 
   if (!stored) {
-    return { valid: false, error: "No OTP found for this email" };
+    return { valid: false, error: `No verification code found for ${normalizedEmail}. Please request a new code.` };
   }
 
   if (Date.now() > stored.expiresAt) {
     otpStorage.delete(normalizedEmail);
-    return { valid: false, error: "OTP expired. Please request a new code." };
+    console.log(`[OTP] Code expired for ${normalizedEmail}`);
+    return { valid: false, error: "Verification code expired. Please request a new one." };
   }
 
   stored.attempts++;
 
   if (stored.attempts > 5) {
     otpStorage.delete(normalizedEmail);
+    console.log(`[OTP] Too many attempts for ${normalizedEmail}`);
     return { valid: false, error: "Too many attempts. Please request a new code." };
   }
 
   if (stored.code !== code) {
-    return { valid: false, error: "Invalid verification code" };
+    console.log(`[OTP] Wrong code for ${normalizedEmail}. Expected: ${stored.code}, Got: ${code}`);
+    return { valid: false, error: `Invalid code. You have ${5 - stored.attempts} attempts left.` };
   }
 
   // OTP is valid, delete it
   otpStorage.delete(normalizedEmail);
-  console.log(`[OTP] Successfully verified for ${normalizedEmail}`);
+  console.log(`[OTP] ✓ Successfully verified for ${normalizedEmail}`);
   return { valid: true };
 }
 
