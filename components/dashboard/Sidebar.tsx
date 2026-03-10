@@ -19,6 +19,7 @@ const navItems = [
   { href: "/templates", label: "Templates", icon: "📋" },
   { href: "/referrals", label: "Earn with Referrals", icon: "🎁" },
   { href: "/feedback", label: "User Feedback", icon: "💬" },
+  { href: "/billing", label: "Billing & Plans", icon: "💳" },
   { href: "/settings", label: "Settings", icon: "⚙️" },
 ];
 
