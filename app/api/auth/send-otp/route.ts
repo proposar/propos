@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Check if email already registered
+    // Check if email already has a VERIFIED account (profile + auth user both exist)
     const adminClient = createAdminClient();
     const { data: existing } = await adminClient
       .from("profiles")
@@ -36,21 +36,17 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (existing) {
-      // Check if a real auth user exists for this profile
-      // If no auth user exists, this is an orphaned profile from a failed signup — clean it up
-      const { data: { user }, error: authLookupError } = await adminClient.auth.admin.getUserById(existing.id);
-      
-      if (authLookupError || !user) {
-        // Orphaned profile — delete it so the user can re-register
-        await adminClient.from("profiles").delete().eq("id", existing.id);
-        console.log(`[Signup] Cleaned up orphaned profile for ${email}`);
-      } else {
-        // Real account exists
+      // Verify a real auth user backs this profile
+      const { data: { user } } = await adminClient.auth.admin.getUserById(existing.id);
+      if (user) {
         return NextResponse.json(
           { error: "Email already registered. Please sign in instead." },
           { status: 400 }
         );
       }
+      // Orphaned profile (no auth user) — clean it up silently
+      await adminClient.from("profiles").delete().eq("id", existing.id);
+      console.log(`[Signup] Cleaned orphaned profile for ${email}`);
     }
 
     // Send OTP

@@ -42,20 +42,45 @@ export async function POST(req: NextRequest) {
 
     const adminClient = createAdminClient();
 
-    // Check if user already exists via profiles table (efficient)
-    const { data: existingProfile } = await adminClient
-      .from("profiles")
-      .select("id")
-      .eq("email", email)
-      .single();
+    // Check if auth user already exists by email (handles orphaned auth users)
+    const { data: { users: existingUsers } } = await adminClient.auth.admin.listUsers({ perPage: 1000 });
+    const existingAuthUser = existingUsers?.find(u => u.email?.toLowerCase() === email);
 
     let userId: string;
-    const isNewUser = !existingProfile;
+    let isNewUser = true;
 
-    if (existingProfile) {
-      userId = existingProfile.id;
+    if (existingAuthUser) {
+      // Auth user already exists — reuse it
+      userId = existingAuthUser.id;
+      
+      // Check if profile exists
+      const { data: existingProfile } = await adminClient
+        .from("profiles")
+        .select("id")
+        .eq("id", userId)
+        .single();
+
+      isNewUser = !existingProfile;
+
+      if (!existingProfile) {
+        // Create missing profile
+        const { error: profileError } = await adminClient
+          .from("profiles")
+          .insert({
+            id: userId,
+            email,
+            full_name: fullName,
+            business_type: businessType,
+            onboarding_completed: false,
+          });
+
+        if (profileError) {
+          console.error("Profile creation error:", profileError);
+          return NextResponse.json({ error: "Failed to create profile" }, { status: 500 });
+        }
+      }
     } else {
-      // Create new auth user - email already verified via OTP
+      // Create brand new auth user
       const { data, error: authError } = await adminClient.auth.admin.createUser({
         email,
         email_confirm: true,
@@ -67,10 +92,7 @@ export async function POST(req: NextRequest) {
 
       if (authError) {
         console.error("Auth user creation error:", authError);
-        return NextResponse.json(
-          { error: "Failed to create account" },
-          { status: 500 }
-        );
+        return NextResponse.json({ error: "Failed to create account" }, { status: 500 });
       }
 
       userId = data.user.id;
@@ -88,12 +110,8 @@ export async function POST(req: NextRequest) {
 
       if (profileError) {
         console.error("Profile creation error:", profileError);
-        // Clean up auth user if profile creation failed
         await adminClient.auth.admin.deleteUser(userId);
-        return NextResponse.json(
-          { error: "Failed to create profile" },
-          { status: 500 }
-        );
+        return NextResponse.json({ error: "Failed to create profile" }, { status: 500 });
       }
     }
 
