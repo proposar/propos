@@ -21,15 +21,18 @@ export async function sendOTP(email: string, fullName?: string): Promise<{
   error?: string;
 }> {
   try {
+    const normalizedEmail = email.trim().toLowerCase();
     const otp = generateOTP();
     const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
 
-    // Store OTP
-    otpStorage.set(email, {
+    // Store OTP with normalized email
+    otpStorage.set(normalizedEmail, {
       code: otp,
       expiresAt,
       attempts: 0,
     });
+
+    console.log(`[OTP] Generated for ${normalizedEmail}: ${otp}`);
 
     // Send via Resend
     const { error } = await resend.emails.send({
@@ -77,21 +80,25 @@ export function verifyOTP(
   valid: boolean;
   error?: string;
 } {
-  const stored = otpStorage.get(email);
+  const normalizedEmail = email.trim().toLowerCase();
+  const stored = otpStorage.get(normalizedEmail);
+
+  console.log(`[OTP] Verifying for ${normalizedEmail}. Code: ${code}. Found in storage: ${!!stored}`);
+  console.log(`[OTP] Storage keys:`, Array.from(otpStorage.keys()));
 
   if (!stored) {
     return { valid: false, error: "No OTP found for this email" };
   }
 
   if (Date.now() > stored.expiresAt) {
-    otpStorage.delete(email);
+    otpStorage.delete(normalizedEmail);
     return { valid: false, error: "OTP expired. Please request a new code." };
   }
 
   stored.attempts++;
 
   if (stored.attempts > 5) {
-    otpStorage.delete(email);
+    otpStorage.delete(normalizedEmail);
     return { valid: false, error: "Too many attempts. Please request a new code." };
   }
 
@@ -100,7 +107,8 @@ export function verifyOTP(
   }
 
   // OTP is valid, delete it
-  otpStorage.delete(email);
+  otpStorage.delete(normalizedEmail);
+  console.log(`[OTP] Successfully verified for ${normalizedEmail}`);
   return { valid: true };
 }
 

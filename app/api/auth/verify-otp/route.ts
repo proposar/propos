@@ -5,7 +5,9 @@ import crypto from "crypto";
 
 export async function POST(req: NextRequest) {
   try {
-    const { email, code, fullName, businessType } = await req.json();
+    let { email, code, fullName, businessType } = await req.json();
+    
+    email = email?.trim().toLowerCase();
 
     if (!email || !code) {
       return NextResponse.json(

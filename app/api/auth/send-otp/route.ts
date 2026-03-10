@@ -5,7 +5,9 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
   try {
-    const { email, fullName } = await req.json();
+    let { email, fullName } = await req.json();
+    
+    email = email?.trim().toLowerCase();
 
     if (!email) {
       return NextResponse.json({ error: "Email required" }, { status: 400 });
