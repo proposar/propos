@@ -1,5 +1,5 @@
 import { verifyOTP } from "@/lib/otp";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
@@ -24,32 +24,41 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const supabase = await createClient();
+    const adminClient = createAdminClient();
 
     // Get user via profile
-    const { data: profile } = await supabase
+    const { data: profile } = await adminClient
       .from("profiles")
       .select("id")
-      .eq("email", email.toLowerCase())
+      .eq("email", email)
       .single();
 
     if (!profile) {
       return NextResponse.json(
-        { error: "User not found" },
+        { error: "User not found. Please sign up instead." },
         { status: 404 }
       );
     }
 
-    // Update last sign in
-    await supabase
-      .from("profiles")
-      .update({ updated_at: new Date().toISOString() })
-      .eq("email", email.toLowerCase());
+    // Generate a sign-in token so the frontend can establish a session
+    const { data: linkData, error: linkError } = await adminClient.auth.admin.generateLink({
+      type: "magiclink",
+      email,
+    });
+
+    if (linkError) {
+      console.error("Generate link error:", linkError);
+      return NextResponse.json(
+        { error: "Failed to create session" },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json(
       {
         success: true,
         userId: profile.id,
+        token_hash: linkData.properties.hashed_token,
         message: "OTP verified successfully",
       },
       { status: 200 }

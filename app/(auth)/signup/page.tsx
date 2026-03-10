@@ -110,13 +110,22 @@ export default function SignupPage() {
         return;
       }
 
-      // Force session refresh to pick up the new user
+      // Use the token_hash returned by server to establish a real session
       const supabase = createClient();
-      await supabase.auth.refreshSession();
-      
+      const { error: sessionError } = await supabase.auth.verifyOtp({
+        token_hash: data.token_hash,
+        type: "magiclink",
+      });
+
+      if (sessionError) {
+        console.error("Session error:", sessionError);
+        setError("Account created but sign-in failed. Please log in manually.");
+        setLoading(false);
+        return;
+      }
+
       router.refresh();
       
-      // Redirect based on whether new user or existing
       if (data.isNewUser) {
         router.push("/onboarding");
       } else {

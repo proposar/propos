@@ -1,6 +1,5 @@
 import { Resend } from "resend";
-import crypto from "crypto";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/server";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -28,7 +27,7 @@ export async function sendOTP(email: string, fullName?: string): Promise<{
     const otp = generateOTP();
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
-    const supabase = await createClient();
+    const supabase = createAdminClient();
 
     // Delete any existing OTP for this email (to reset attempts)
     await supabase
@@ -110,7 +109,7 @@ export async function verifyOTP(
 }> {
   try {
     const normalizedEmail = email.trim().toLowerCase();
-    const supabase = await createClient();
+    const supabase = createAdminClient();
 
     // Fetch OTP from database
     const { data: stored, error: dbError } = await supabase
@@ -195,7 +194,7 @@ export async function verifyOTP(
  */
 export async function clearExpiredOTPs(): Promise<void> {
   try {
-    const supabase = await createClient();
+    const supabase = createAdminClient();
     await supabase
       .from("otp_codes")
       .delete()

@@ -1,6 +1,6 @@
 import { sendOTP } from "@/lib/otp";
 import { validateEmail } from "@/lib/email-validation";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
@@ -23,11 +23,11 @@ export async function POST(req: NextRequest) {
     }
 
     // Check if email exists
-    const supabase = await createClient();
-    const { data: profile } = await supabase
+    const adminClient = createAdminClient();
+    const { data: profile } = await adminClient
       .from("profiles")
       .select("id")
-      .eq("email", email.toLowerCase())
+      .eq("email", email)
       .single();
 
     if (!profile) {

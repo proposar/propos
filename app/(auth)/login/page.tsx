@@ -102,6 +102,20 @@ export default function LoginPage() {
           return;
         }
         
+        // Use the token_hash returned by server to establish a real session
+        const supabase = createClient();
+        const { error: sessionError } = await supabase.auth.verifyOtp({
+          token_hash: data.token_hash,
+          type: "magiclink",
+        });
+
+        if (sessionError) {
+          console.error("Session error:", sessionError);
+          setError("Verification succeeded but sign-in failed. Please try again.");
+          setLoading(false);
+          return;
+        }
+        
         router.refresh();
         router.push("/dashboard");
       } catch (err) {

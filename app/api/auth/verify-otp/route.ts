@@ -1,7 +1,6 @@
 import { verifyOTP } from "@/lib/otp";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
-import crypto from "crypto";
 
 export async function POST(req: NextRequest) {
   try {
@@ -41,22 +40,25 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const supabase = await createClient();
+    const adminClient = createAdminClient();
 
-    // Check if auth user exists
-    const { data: { users } } = await supabase.auth.admin.listUsers();
-    const existingAuthUser = users?.find(u => u.email?.toLowerCase() === email);
-    
+    // Check if user already exists via profiles table (efficient)
+    const { data: existingProfile } = await adminClient
+      .from("profiles")
+      .select("id")
+      .eq("email", email)
+      .single();
+
     let userId: string;
+    const isNewUser = !existingProfile;
 
-    if (existingAuthUser) {
-      // User already has an auth account
-      userId = existingAuthUser.id;
+    if (existingProfile) {
+      userId = existingProfile.id;
     } else {
-      // Create new auth user (OTP-based, no password)
-      const { data, error: authError } = await supabase.auth.admin.createUser({
+      // Create new auth user - email already verified via OTP
+      const { data, error: authError } = await adminClient.auth.admin.createUser({
         email,
-        email_confirm: true, // Auto-confirm email since OTP was verified
+        email_confirm: true,
         user_metadata: {
           full_name: fullName,
           business_type: businessType,
@@ -72,36 +74,44 @@ export async function POST(req: NextRequest) {
       }
 
       userId = data.user.id;
+
+      // Create profile
+      const { error: profileError } = await adminClient
+        .from("profiles")
+        .insert({
+          id: userId,
+          email,
+          full_name: fullName,
+          business_type: businessType,
+          onboarding_completed: false,
+        });
+
+      if (profileError) {
+        console.error("Profile creation error:", profileError);
+        // Clean up auth user if profile creation failed
+        await adminClient.auth.admin.deleteUser(userId);
+        return NextResponse.json(
+          { error: "Failed to create profile" },
+          { status: 500 }
+        );
+      }
     }
 
-    // **NOW** create or update profile (only after auth user exists)
-    const { data: existingProfile } = await supabase
-      .from("profiles")
-      .select("id")
-      .eq("id", userId)
-      .single();
+    // Generate a sign-in token so the frontend can establish a session
+    const { data: linkData, error: linkError } = await adminClient.auth.admin.generateLink({
+      type: "magiclink",
+      email,
+    });
 
-    const isNewUser = !existingProfile;
-
-    const { error: profileError } = await supabase
-      .from("profiles")
-      .upsert({
-        id: userId,
-        email,
-        full_name: fullName,
-        business_type: businessType,
-        onboarding_completed: isNewUser ? false : undefined,
-      });
-
-    if (profileError) {
-      console.error("Profile creation error:", profileError);
+    if (linkError) {
+      console.error("Generate link error:", linkError);
       return NextResponse.json(
-        { error: "Failed to create profile" },
+        { error: "Failed to create session" },
         { status: 500 }
       );
     }
 
-    console.log(`[Auth] User created/updated: ${email} | Name: ${fullName} | Type: ${businessType} (ID: ${userId})`);
+    console.log(`[Auth] User verified: ${email} (ID: ${userId}, new: ${isNewUser})`);
 
     return NextResponse.json(
       {
@@ -109,6 +119,7 @@ export async function POST(req: NextRequest) {
         userId,
         email,
         isNewUser,
+        token_hash: linkData.properties.hashed_token,
         message: "Email verified successfully",
       },
       { status: 200 }
