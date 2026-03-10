@@ -8,6 +8,8 @@ export async function POST(req: NextRequest) {
     let { email, code, fullName, businessType } = await req.json();
     
     email = email?.trim().toLowerCase();
+    fullName = fullName?.trim();
+    businessType = businessType?.trim();
 
     if (!email || !code) {
       return NextResponse.json(
@@ -16,7 +18,21 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Verify OTP
+    if (!fullName) {
+      return NextResponse.json(
+        { error: "Full name is required" },
+        { status: 400 }
+      );
+    }
+
+    if (!businessType) {
+      return NextResponse.json(
+        { error: "Business type is required" },
+        { status: 400 }
+      );
+    }
+
+    // **VERIFY OTP FIRST** - Only proceed if OTP is valid
     const otpResult = verifyOTP(email, code);
     if (!otpResult.valid) {
       return NextResponse.json(
@@ -27,22 +43,51 @@ export async function POST(req: NextRequest) {
 
     const supabase = await createClient();
 
-    // Check if profile already exists
+    // Check if auth user exists
+    const { data: { users } } = await supabase.auth.admin.listUsers();
+    const existingAuthUser = users?.find(u => u.email?.toLowerCase() === email);
+    
+    let userId: string;
+
+    if (existingAuthUser) {
+      // User already has an auth account
+      userId = existingAuthUser.id;
+    } else {
+      // Create new auth user (OTP-based, no password)
+      const { data, error: authError } = await supabase.auth.admin.createUser({
+        email,
+        email_confirm: true, // Auto-confirm email since OTP was verified
+        user_metadata: {
+          full_name: fullName,
+          business_type: businessType,
+        },
+      });
+
+      if (authError) {
+        console.error("Auth user creation error:", authError);
+        return NextResponse.json(
+          { error: "Failed to create account" },
+          { status: 500 }
+        );
+      }
+
+      userId = data.user.id;
+    }
+
+    // **NOW** create or update profile (only after auth user exists)
     const { data: existingProfile } = await supabase
       .from("profiles")
       .select("id")
-      .eq("email", email.toLowerCase())
+      .eq("id", userId)
       .single();
 
-    const userId = existingProfile?.id || crypto.randomUUID();
     const isNewUser = !existingProfile;
 
-    // Create or update profile
     const { error: profileError } = await supabase
       .from("profiles")
       .upsert({
         id: userId,
-        email: email.toLowerCase(),
+        email,
         full_name: fullName,
         business_type: businessType,
         onboarding_completed: isNewUser ? false : undefined,
@@ -55,6 +100,8 @@ export async function POST(req: NextRequest) {
         { status: 500 }
       );
     }
+
+    console.log(`[Auth] User created/updated: ${email} | Name: ${fullName} | Type: ${businessType} (ID: ${userId})`);
 
     return NextResponse.json(
       {

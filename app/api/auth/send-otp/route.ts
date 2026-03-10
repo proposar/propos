@@ -8,9 +8,14 @@ export async function POST(req: NextRequest) {
     let { email, fullName } = await req.json();
     
     email = email?.trim().toLowerCase();
+    fullName = fullName?.trim();
 
     if (!email) {
       return NextResponse.json({ error: "Email required" }, { status: 400 });
+    }
+
+    if (!fullName) {
+      return NextResponse.json({ error: "Full name required" }, { status: 400 });
     }
 
     // Validate email
@@ -27,7 +32,7 @@ export async function POST(req: NextRequest) {
     const { data: existing } = await supabase
       .from("profiles")
       .select("id")
-      .eq("email", email.toLowerCase())
+      .eq("email", email)
       .single();
 
     if (existing) {

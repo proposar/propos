@@ -84,7 +84,7 @@ export default function SignupPage() {
     setError(null);
     
     try {
-      // Verify OTP and create user
+      // Verify OTP and create user (only after OTP is valid)
       const res = await fetch("/api/auth/verify-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -103,22 +103,18 @@ export default function SignupPage() {
         setLoading(false);
         return;
       }
-      
-      // Get new session
+
+      // Force session refresh to pick up the new user
       const supabase = createClient();
-      const { data: { session } } = await supabase.auth.getSession();
+      await supabase.auth.refreshSession();
       
       router.refresh();
       
-      // If session exists, go to onboarding, else need to wait for session refresh
-      if (session) {
+      // Redirect based on whether new user or existing
+      if (data.isNewUser) {
         router.push("/onboarding");
       } else {
-        // Session will be established by auth callback, refresh and redirect
-        setTimeout(() => {
-          router.refresh();
-          router.push("/onboarding");
-        }, 1000);
+        router.push("/dashboard");
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to verify code");
