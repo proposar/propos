@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
     }
 
     // **VERIFY OTP FIRST** - Only proceed if OTP is valid
-    const otpResult = verifyOTP(email, code);
+    const otpResult = await verifyOTP(email, code);
     if (!otpResult.valid) {
       return NextResponse.json(
         { error: otpResult.error },
