@@ -290,6 +290,8 @@ export function ProposalForm() {
         grandTotal: lineItemsEnabled ? grandTotal : undefined,
       };
 
+      console.log("[ProposalForm] Submitting payload:", JSON.stringify(payload, null, 2));
+      
       const res = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -297,6 +299,10 @@ export function ProposalForm() {
       });
       clearInterval(interval);
       const data = await res.json();
+      
+      console.log("[ProposalForm] Response status:", res.status);
+      console.log("[ProposalForm] Response data:", data);
+      
       if (res.status === 400 && data?.details?.fieldErrors) {
         const fieldErrors: Record<string, string> = {};
         Object.entries(data.details.fieldErrors as Record<string, string[] | undefined>).forEach(
@@ -307,23 +313,32 @@ export function ProposalForm() {
             }
           },
         );
+        console.log("[ProposalForm] Field validation errors:", fieldErrors);
         setErrors(fieldErrors);
         setLoading(false);
         return;
       }
       if (res.status === 402) {
+        console.log("[ProposalForm] User upgrade required");
         setUpgradeOpen(true);
         setErrors({});
         setLoading(false);
         return;
       }
       if (data.id) {
+        console.log("[ProposalForm] ✅ Proposal generated successfully:", data.id);
         trackProposalGenerated();
         router.push(`/proposals/${data.id}`);
-      } else setErrors({ submit: data.error || "Generation failed" });
-    } catch {
+      } else {
+        const errorMsg = data.error || data.details || JSON.stringify(data) || "Generation failed";
+        console.error("[ProposalForm] Generation failed:", errorMsg);
+        setErrors({ submit: errorMsg });
+      }
+    } catch (error) {
       clearInterval(interval);
-      setErrors({ submit: "Something went wrong. Please try again." });
+      const errorMsg = error instanceof Error ? error.message : "Something went wrong. Please try again.";
+      console.error("[ProposalForm] Request error:", errorMsg);
+      setErrors({ submit: errorMsg });
     } finally {
       setLoading(false);
     }
