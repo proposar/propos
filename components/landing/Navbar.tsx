@@ -9,13 +9,8 @@ import { createClient } from "@/lib/supabase/client";
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
-  const [rememberMeEnabled, setRememberMeEnabled] = useState(false);
 
   useEffect(() => {
-    // Check remember me flag
-    const remembered = localStorage.getItem('rememberMe') === 'true';
-    setRememberMeEnabled(remembered);
-
     const supabase = createClient();
     supabase.auth.getUser().then(({ data: { user } }) => setIsLoggedIn(!!user));
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
@@ -63,7 +58,7 @@ export function Navbar() {
 
         {/* Desktop Auth Buttons */}
         <div className="hidden md:flex items-center gap-3">
-          {isLoggedIn && rememberMeEnabled ? (
+          {isLoggedIn ? (
             <Link
               href="/dashboard"
               className="px-6 py-2.5 rounded-lg bg-gradient-to-r from-gold to-[#e8c76a] text-[#0a0a14] hover:shadow-[0_0_24px_rgba(217,119,6,0.3)] transition-all font-semibold text-sm"
@@ -142,7 +137,7 @@ export function Navbar() {
                 </Link>
               ))}
               <div className="border-t border-[#1e1e2e] pt-3 space-y-2">
-                {isLoggedIn && rememberMeEnabled ? (
+                {isLoggedIn ? (
                   <Link
                     href="/dashboard"
                     className="block text-center px-6 py-2.5 rounded-lg bg-gradient-to-r from-gold to-[#e8c76a] text-[#0a0a14] font-semibold text-sm hover:shadow-[0_0_24px_rgba(217,119,6,0.3)] transition-all"

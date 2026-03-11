@@ -22,7 +22,7 @@ export function ForgotPasswordModal({ open, onClose }: ForgotPasswordModalProps)
     try {
       const supabase = createClient();
       const { error: err } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${typeof window !== "undefined" ? window.location.origin : ""}/login`,
+        redirectTo: `${typeof window !== "undefined" ? window.location.origin : ""}/auth/callback?next=/reset-password`,
       });
       if (err) throw err;
       setSuccess(true);
