@@ -41,6 +41,14 @@ export interface CustomService {
   description: string;
 }
 
+interface ExistingClient {
+  id: string;
+  name: string;
+  company: string | null;
+  email: string | null;
+  industry: string | null;
+}
+
 export function ProposalForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -53,7 +61,13 @@ export function ProposalForm() {
   const [clientCompany, setClientCompany] = useState("");
   const [clientEmail, setClientEmail] = useState("");
   const [useExistingClient, setUseExistingClient] = useState(false);
-  const [industry, setIndustry] = useState(INDUSTRIES[0]);
+  const [existingClients, setExistingClients] = useState<ExistingClient[]>([]);
+  const [existingClientsLoading, setExistingClientsLoading] = useState(false);
+  const [existingClientsError, setExistingClientsError] = useState("");
+  const [selectedExistingClientId, setSelectedExistingClientId] = useState("");
+  const [industry, setIndustry] = useState<(typeof INDUSTRIES)[number]>(
+    INDUSTRIES[0],
+  );
 
   const [projectTitle, setProjectTitle] = useState("");
   const [projectType, setProjectType] = useState<
@@ -139,6 +153,52 @@ export function ProposalForm() {
         .catch(() => {});
     }
   }, [searchParams]);
+
+  useEffect(() => {
+    if (!useExistingClient || existingClients.length > 0 || existingClientsLoading)
+      return;
+
+    setExistingClientsLoading(true);
+    setExistingClientsError("");
+
+    fetch("/api/clients?limit=100")
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error("Failed to load clients"))))
+      .then((clients: ExistingClient[]) => {
+        setExistingClients(clients ?? []);
+      })
+      .catch(() => {
+        setExistingClientsError("Could not load clients. Please try again.");
+      })
+      .finally(() => {
+        setExistingClientsLoading(false);
+      });
+  }, [useExistingClient, existingClients.length, existingClientsLoading]);
+
+  useEffect(() => {
+    if (!useExistingClient) {
+      setSelectedExistingClientId("");
+      if (!searchParams.get("clientId")) {
+        setClientId(null);
+      }
+      return;
+    }
+
+    if (!selectedExistingClientId) return;
+
+    const selected = existingClients.find((c) => c.id === selectedExistingClientId);
+    if (!selected) return;
+
+    setClientId(selected.id);
+    setClientName(selected.name ?? "");
+    setClientCompany(selected.company ?? "");
+    setClientEmail(selected.email ?? "");
+    if (
+      selected.industry &&
+      INDUSTRIES.includes(selected.industry as (typeof INDUSTRIES)[number])
+    ) {
+      setIndustry(selected.industry as (typeof INDUSTRIES)[number]);
+    }
+  }, [useExistingClient, selectedExistingClientId, existingClients, searchParams]);
 
   const toggleSection = (s: string) => {
     setSections((prev) =>
@@ -384,6 +444,38 @@ export function ProposalForm() {
             />
             Select existing client
           </label>
+          {useExistingClient && (
+            <div className="mb-4">
+              <label className={labelClass}>Choose Client</label>
+              <select
+                value={selectedExistingClientId}
+                onChange={(e) => setSelectedExistingClientId(e.target.value)}
+                className={inputClass}
+                disabled={existingClientsLoading}
+              >
+                <option value="">
+                  {existingClientsLoading
+                    ? "Loading clients..."
+                    : "Select a client"}
+                </option>
+                {existingClients.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                    {c.company ? ` - ${c.company}` : ""}
+                    {c.email ? ` (${c.email})` : ""}
+                  </option>
+                ))}
+              </select>
+              {existingClientsError && (
+                <p className="text-red-400 text-xs mt-1">{existingClientsError}</p>
+              )}
+              {!existingClientsLoading && existingClients.length === 0 && !existingClientsError && (
+                <p className="text-xs text-[#888890] mt-1">
+                  No clients found yet. Add clients first from the Clients page.
+                </p>
+              )}
+            </div>
+          )}
           <div className="space-y-4">
             <div>
               <label className={labelClass}>Client Name *</label>
