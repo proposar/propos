@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { UpgradeModal } from "@/components/UpgradeModal";
 import {
@@ -49,9 +49,21 @@ interface ExistingClient {
   industry: string | null;
 }
 
+interface ProfileDefaults {
+  business_name?: string | null;
+  website?: string | null;
+  bio?: string | null;
+  currency?: string | null;
+  default_payment_terms?: string | null;
+  default_tone?: string | null;
+  default_sections?: string[] | null;
+  default_expiry_days?: number | null;
+}
+
 export function ProposalForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const hasUserInteractedRef = useRef(false);
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [progressMsg, setProgressMsg] = useState("");
@@ -84,7 +96,9 @@ export function ProposalForm() {
     TIMELINE_OPTIONS[0],
   );
   const [startDate, setStartDate] = useState("");
-  const [paymentTerms, setPaymentTerms] = useState(PAYMENT_TERMS[0]);
+  const [paymentTerms, setPaymentTerms] = useState<
+    (typeof PAYMENT_TERMS)[number]
+  >(PAYMENT_TERMS[0]);
 
   const [lineItemsEnabled, setLineItemsEnabled] = useState(false);
   const [lineItems, setLineItems] = useState<LineItem[]>([
@@ -117,6 +131,8 @@ export function ProposalForm() {
   );
   const [upgradeOpen, setUpgradeOpen] = useState(false);
   const [clientId, setClientId] = useState<string | null>(null);
+  const [onboardingDefaultsApplied, setOnboardingDefaultsApplied] =
+    useState(false);
 
   useEffect(() => {
     const cId = searchParams.get("clientId");
@@ -199,6 +215,81 @@ export function ProposalForm() {
       setIndustry(selected.industry as (typeof INDUSTRIES)[number]);
     }
   }, [useExistingClient, selectedExistingClientId, existingClients, searchParams]);
+
+  useEffect(() => {
+    if (onboardingDefaultsApplied) return;
+
+    fetch("/api/profile")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((profile: ProfileDefaults | null) => {
+        if (!profile || hasUserInteractedRef.current) {
+          setOnboardingDefaultsApplied(true);
+          return;
+        }
+
+        if (
+          profile.currency &&
+          CURRENCIES.includes(profile.currency as (typeof CURRENCIES)[number])
+        ) {
+          setCurrency(profile.currency as (typeof CURRENCIES)[number]);
+        }
+
+        if (
+          profile.default_payment_terms &&
+          PAYMENT_TERMS.includes(
+            profile.default_payment_terms as (typeof PAYMENT_TERMS)[number],
+          )
+        ) {
+          setPaymentTerms(
+            profile.default_payment_terms as (typeof PAYMENT_TERMS)[number],
+          );
+        }
+
+        if (
+          profile.default_tone &&
+          TONE_OPTIONS.some((t) => t.value === profile.default_tone)
+        ) {
+          setTone(profile.default_tone as (typeof TONE_OPTIONS)[number]["value"]);
+        }
+
+        const validSections = (profile.default_sections ?? []).filter((s) =>
+          PROPOSAL_SECTIONS.includes(s as (typeof PROPOSAL_SECTIONS)[number]),
+        );
+        if (validSections.length > 0) {
+          setSections(validSections);
+        }
+
+        if (
+          typeof profile.default_expiry_days === "number" &&
+          profile.default_expiry_days > 0
+        ) {
+          const d = new Date();
+          d.setDate(d.getDate() + profile.default_expiry_days);
+          setExpiryDate(d.toISOString().split("T")[0]);
+        }
+
+        if (!additionalContext.trim()) {
+          const contextParts = [
+            profile.business_name
+              ? `Business name: ${profile.business_name}`
+              : null,
+            profile.website ? `Website: ${profile.website}` : null,
+            profile.bio ? `Business bio: ${profile.bio}` : null,
+          ].filter(Boolean);
+
+          if (contextParts.length > 0) {
+            setAdditionalContext(
+              `Use this business context while writing:\n${contextParts.join("\n")}`,
+            );
+          }
+        }
+
+        setOnboardingDefaultsApplied(true);
+      })
+      .catch(() => {
+        setOnboardingDefaultsApplied(true);
+      });
+  }, [additionalContext, onboardingDefaultsApplied]);
 
   const toggleSection = (s: string) => {
     setSections((prev) =>
@@ -430,7 +521,16 @@ export function ProposalForm() {
 
   return (
     <div className="grid lg:grid-cols-5 gap-8">
-      <form onSubmit={handleSubmit} className="lg:col-span-3 space-y-8">
+      <form
+        onSubmit={handleSubmit}
+        onChangeCapture={() => {
+          hasUserInteractedRef.current = true;
+        }}
+        className="lg:col-span-3 space-y-8"
+      >
+        <div className="rounded-xl border border-gold/30 bg-gold/10 px-4 py-3 text-sm text-[#f2d67f]">
+          Using onboarding defaults for tone, sections, currency, payment terms, and expiry date. You can edit everything below for this proposal.
+        </div>
         {/* Section 1: About the Client */}
         <div className="rounded-xl border border-[#1e1e2e] bg-[#12121e] p-6">
           <h2 className="font-semibold text-[#faf8f4] mb-4">
