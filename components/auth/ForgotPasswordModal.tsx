@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { createClient } from "@/lib/supabase/client";
+import Link from "next/link";
 
 interface ForgotPasswordModalProps {
   open: boolean;
@@ -14,11 +15,13 @@ export function ForgotPasswordModal({ open, onClose }: ForgotPasswordModalProps)
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [userNotFound, setUserNotFound] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setUserNotFound(false);
     try {
       // First check if account exists and has password auth
       const checkRes = await fetch("/api/auth/check-password-account", {
@@ -30,7 +33,7 @@ export function ForgotPasswordModal({ open, onClose }: ForgotPasswordModalProps)
       const { exists, hasPassword } = await checkRes.json();
 
       if (!exists) {
-        setError("No account found with this email address");
+        setUserNotFound(true);
         setLoading(false);
         return;
       }
@@ -53,6 +56,13 @@ export function ForgotPasswordModal({ open, onClose }: ForgotPasswordModalProps)
     } finally {
       setLoading(false);
     }
+  }
+
+  function handleReset() {
+    setEmail("");
+    setError(null);
+    setSuccess(false);
+    setUserNotFound(false);
   }
 
   if (!open) return null;
@@ -83,10 +93,42 @@ export function ForgotPasswordModal({ open, onClose }: ForgotPasswordModalProps)
               ✕
             </button>
           </div>
+          
           {success ? (
             <p className="text-foreground text-center py-4">
               Check your email. We&apos;ve sent you a link to reset your password.
             </p>
+          ) : userNotFound ? (
+            <div className="space-y-4">
+              <div className="rounded-lg bg-red-500/10 border border-red-500/30 px-4 py-3">
+                <p className="text-red-400 text-sm font-medium">User not found</p>
+                <p className="text-red-400/80 text-sm mt-1">
+                  No account exists with this email address.
+                </p>
+              </div>
+              <p className="text-muted text-sm">
+                Don&apos;t have an account yet? Create one to get started.
+              </p>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleReset();
+                    onClose();
+                  }}
+                  className="flex-1 rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium text-foreground hover:bg-surface transition-colors"
+                >
+                  Back
+                </button>
+                <Link
+                  href="/signup"
+                  onClick={onClose}
+                  className="flex-1 rounded-lg bg-gold px-4 py-2 text-sm font-medium text-background hover:bg-gold-light transition-colors text-center"
+                >
+                  Sign up
+                </Link>
+              </div>
+            </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
