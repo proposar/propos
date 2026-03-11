@@ -20,6 +20,28 @@ export function ForgotPasswordModal({ open, onClose }: ForgotPasswordModalProps)
     setLoading(true);
     setError(null);
     try {
+      // First check if account exists and has password auth
+      const checkRes = await fetch("/api/auth/check-password-account", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+
+      const { exists, hasPassword } = await checkRes.json();
+
+      if (!exists) {
+        setError("No account found with this email address");
+        setLoading(false);
+        return;
+      }
+
+      if (!hasPassword) {
+        setError("This account was created with Google or email code login. Please use that method to sign in instead.");
+        setLoading(false);
+        return;
+      }
+
+      // Send reset email
       const supabase = createClient();
       const { error: err } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${typeof window !== "undefined" ? window.location.origin : ""}/auth/callback?next=/reset-password`,

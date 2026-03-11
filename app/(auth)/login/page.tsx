@@ -36,7 +36,25 @@ export default function LoginPage() {
         email,
         password,
       });
-      if (err) throw err;
+      if (err) {
+        // Check if account exists but has no password
+        const checkRes = await fetch("/api/auth/check-password-account", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email }),
+        });
+
+        const { exists, hasPassword } = await checkRes.json();
+
+        if (exists && !hasPassword) {
+          setError("This account was created with Google or email code login. Please use that method above.");
+        } else {
+          setError("Invalid email or password");
+        }
+        setLoading(false);
+        return;
+      }
+
       if (data.user) {
         if (rememberMe) {
           localStorage.setItem('rememberMe', 'true');
