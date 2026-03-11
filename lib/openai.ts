@@ -3,76 +3,55 @@
  */
 
 import OpenAI from "openai";
-import { readFileSync, appendFileSync } from "fs";
-import { join } from "path";
-
-function dbg(msg: string, data: object) {
-  const line = JSON.stringify({ sessionId: "239828", location: "openai.ts", message: msg, data, timestamp: Date.now() }) + "\n";
-  try { appendFileSync(join(process.cwd(), ".cursor", "debug-239828.log"), line); } catch { /* ignore */ }
-}
-
-let _openai: OpenAI | null = null;
-
-function loadOpenAIKey(): string {
-  const fromEnv = (process.env.OPENAI_API_KEY ?? "").trim();
-  if (fromEnv && fromEnv !== "placeholder") return fromEnv;
-  try {
-    const cwd = process.cwd();
-    const envPath = join(cwd, ".env.local");
-    let content = readFileSync(envPath, "utf-8").replace(/^\uFEFF/, "");
-    const match = content.match(/OPENAI_API_KEY\s*=\s*(.+)/);
-    dbg("env file fallback", { cwd, envPath, matchFound: !!match, valLen: match ? match[1].trim().length : 0 });
-    if (match) {
-      const val = match[1].trim().replace(/^["']|["']$/g, "");
-      if (val && val !== "placeholder") return val;
-    }
-  } catch (e) {
-    dbg("env file fallback error", { errMsg: String(e instanceof Error ? e.message : e), cwd: process.cwd() });
-  }
-  return "";
-}
 
 function getOpenAI(): OpenAI | null {
-  // #region agent log
-  const apiKey = loadOpenAIKey();
-  dbg("getOpenAI", { apiKeyLen: apiKey.length, hasCached: !!_openai, apiKeyEmpty: !apiKey });
-  if (_openai) {
-    return _openai;
+  // Use environment variable from Vercel or .env.local
+  const apiKey = (process.env.OPENAI_API_KEY ?? "").trim();
+  
+  if (!apiKey || apiKey === "placeholder") {
+    console.warn("OpenAI API key not configured");
+    return null;
   }
-  // #endregion
-  if (!apiKey || apiKey === "placeholder") return null;
+  
   try {
-    _openai = new OpenAI({ apiKey });
-    dbg("OpenAI client created", {});
-    return _openai;
+    return new OpenAI({ apiKey });
   } catch (e) {
-    dbg("OpenAI client creation failed", { errMsg: String(e instanceof Error ? e.message : e) });
+    console.error("Failed to initialize OpenAI client:", e instanceof Error ? e.message : e);
     return null;
   }
 }
 
 export async function generateProposalWithOpenAI(userPrompt: string): Promise<string> {
   const openai = getOpenAI();
-  // #region agent log
-  dbg("generateProposal branch", { hasOpenAI: !!openai, takingFallback: !openai });
-  // #endregion
+  
   if (!openai) {
-    return `# Proposal...
-*Configure OPENAI_API_KEY to generate with ChatGPT.*
+    // Return detailed template when OpenAI is not configured
+    return `# Professional Business Proposal
 
 ## Executive Summary
-We understand your needs and are prepared to deliver a comprehensive solution.
+We are pleased to present this comprehensive proposal. Our team understands your needs and is prepared to deliver exceptional results.
+
+## Proposed Solution
+We will deliver a professional solution tailored to your specific requirements.
 
 ## Deliverables
-- Item 1
-- Item 2
-- Item 3
+- Strategic planning and consultation
+- Implementation and execution
+- Quality assurance and testing
+- Training and documentation
+- Post-launch support
+
+## Timeline
+We estimate this project will require 2-4 weeks for completion, with regular milestone updates.
 
 ## Investment
-Please contact us for detailed pricing.
+We believe in transparent pricing. Our proposal includes all services outlined above.
 
 ## Next Steps
-Reply to this proposal to get started.`;
+We'd love to discuss this proposal with you. Please reply with any questions, feedback, or to move forward.
+
+---
+*Configure OPENAI_API_KEY in Vercel environment variables to enable AI-powered proposals.*`;
   }
 
   try {
@@ -90,28 +69,42 @@ Reply to this proposal to get started.`;
     });
 
     const text = completion.choices[0]?.message?.content ?? "";
+    if (!text) throw new Error("Empty response from OpenAI");
     return text;
   } catch (error) {
-    dbg("generateProposal OpenAI error", { errMsg: String(error instanceof Error ? error.message : error) });
-    // Fall back to template on error
-    return `# Proposal...
-*OpenAI API error. Please check your API key configuration.*
+    console.error("OpenAI API error:", error instanceof Error ? error.message : error);
+    // Return professional template on API error
+    return `# Professional Business Proposal
 
 ## Executive Summary
-We understand your needs and are prepared to deliver a comprehensive solution.
+Thank you for considering our services. We have prepared this proposal based on your requirements.
+
+## Proposed Solution
+We will deliver a comprehensive solution tailored to your business needs, ensuring maximum value and timely delivery.
 
 ## Deliverables
-- Item 1
-- Item 2
-- Item 3
+- Detailed project scope and specifications
+- Professional implementation
+- Quality assurance
+- Ongoing support
 
-## Investment
-Please contact us for detailed pricing.
+## Timeline & Budget
+Please see the detailed breakdown below for timeline and investment details.
+
+## Why Choose Us
+- Proven track record with similar projects
+- Professional and responsive team
+- Commitment to exceeding expectations
+- Transparent communication throughout
 
 ## Next Steps
-Reply to this proposal to get started.`;
+We're excited about the opportunity to work with you. Reply to this proposal to schedule a call or ask any questions.
+
+---
+*Note: This is a template proposal. For fully AI-generated proposals, ensure OPENAI_API_KEY is configured.*`;
   }
 }
+
 
 const CHASE_SYSTEM_PROMPT = `You are writing follow-up emails for a freelancer chasing a client who hasn't responded to a proposal.
 Write short, warm, non-pushy emails that get replies.

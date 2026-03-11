@@ -255,6 +255,18 @@ export const proposalGenerateSchema = z.object({
   discountPercent: z.number().min(0).max(100).optional(),
   taxPercent: z.number().min(0).max(100).optional(),
   grandTotal: z.number().min(0).optional(),
-});
+}).refine(
+  (data) => {
+    // If lineItemsEnabled is false, budgetAmount is required
+    if (!data.lineItemsEnabled && !data.budgetAmount) {
+      return false;
+    }
+    return true;
+  },
+  {
+    message: "Budget amount is required when line items are disabled",
+    path: ["budgetAmount"],
+  }
+);
 
 export type ProposalGenerate = z.infer<typeof proposalGenerateSchema>;

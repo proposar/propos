@@ -37,8 +37,15 @@ export async function POST(request: Request) {
     // Validate request body with Zod
     const validationResult = proposalGenerateSchema.safeParse(body);
     if (!validationResult.success) {
+      const errors = validationResult.error.flatten();
+      console.error("[Generate API] Validation failed:", errors);
+      console.error("[Generate API] Request body:", JSON.stringify(body, null, 2));
       return NextResponse.json(
-        { error: "Validation failed", details: validationResult.error.flatten() },
+        { 
+          error: "Validation failed", 
+          details: errors,
+          received: body // Help debugging
+        },
         { status: 400 }
       );
     }
@@ -126,13 +133,22 @@ export async function POST(request: Request) {
     // Use Claude Sonnet 4 as PRIMARY (best quality for long-form proposals), OpenAI as fallback
     let generatedContent: string;
     try {
+      console.log("[Generate API] Starting proposal generation with Claude...");
       generatedContent = await generateProposal(userPrompt);
       if (!generatedContent || generatedContent.trim().length === 0) {
         throw new Error("Claude generated empty content");
       }
+      console.log("[Generate API] Claude generation succeeded");
     } catch (claudeError) {
-      console.warn("Claude generation failed, falling back to OpenAI:", claudeError instanceof Error ? claudeError.message : claudeError);
-      generatedContent = await generateProposalWithOpenAI(userPrompt);
+      console.warn("[Generate API] Claude generation failed, falling back to OpenAI:", claudeError instanceof Error ? claudeError.message : claudeError);
+      try {
+        console.log("[Generate API] Starting proposal generation with OpenAI...");
+        generatedContent = await generateProposalWithOpenAI(userPrompt);
+        console.log("[Generate API] OpenAI generation succeeded");
+      } catch (openaiError) {
+        console.error("[Generate API] OpenAI generation also failed:", openaiError instanceof Error ? openaiError.message : openaiError);
+        throw new Error("Both Claude and OpenAI generation failed");
+      }
     }
 
     const { data: proposal, error: insertError } = await supabase
