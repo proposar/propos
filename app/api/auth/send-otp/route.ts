@@ -27,8 +27,23 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Check if email already has a VERIFIED account (profile + auth user both exist)
+    // Check if email already has an account (via ANY method: Google, OTP, password)
     const adminClient = createAdminClient();
+    
+    // First check if auth user exists with this email (regardless of provider)
+    const { data: { users: allUsers } } = await adminClient.auth.admin.listUsers({ perPage: 1000 });
+    const existingAuthUser = allUsers?.find(u => u.email?.toLowerCase() === email);
+
+    if (existingAuthUser) {
+      // Auth user exists (could be from Google, password, or previous OTP)
+      // Don't allow signing up again - they should sign in instead
+      return NextResponse.json(
+        { error: "Email already registered. Please sign in instead." },
+        { status: 400 }
+      );
+    }
+
+    // Also check for orphaned profiles (have profile but no auth user)
     const { data: existing } = await adminClient
       .from("profiles")
       .select("id")
@@ -36,14 +51,6 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (existing) {
-      // Verify a real auth user backs this profile
-      const { data: { user } } = await adminClient.auth.admin.getUserById(existing.id);
-      if (user) {
-        return NextResponse.json(
-          { error: "Email already registered. Please sign in instead." },
-          { status: 400 }
-        );
-      }
       // Orphaned profile (no auth user) — clean it up silently
       await adminClient.from("profiles").delete().eq("id", existing.id);
       console.log(`[Signup] Cleaned orphaned profile for ${email}`);
