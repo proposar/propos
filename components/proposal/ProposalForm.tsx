@@ -64,6 +64,7 @@ export function ProposalForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const hasUserInteractedRef = useRef(false);
+  const clientsFetchedRef = useRef(false);
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [progressMsg, setProgressMsg] = useState("");
@@ -171,24 +172,26 @@ export function ProposalForm() {
   }, [searchParams]);
 
   useEffect(() => {
-    if (!useExistingClient || existingClients.length > 0 || existingClientsLoading)
-      return;
+    if (!useExistingClient || clientsFetchedRef.current) return;
 
+    clientsFetchedRef.current = true;
     setExistingClientsLoading(true);
     setExistingClientsError("");
 
     fetch("/api/clients?limit=100")
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error("Failed to load clients"))))
-      .then((clients: ExistingClient[]) => {
-        setExistingClients(clients ?? []);
+      .then((data: unknown) => {
+        const clients = Array.isArray(data) ? (data as ExistingClient[]) : [];
+        setExistingClients(clients);
       })
       .catch(() => {
+        clientsFetchedRef.current = false; // allow retry on error
         setExistingClientsError("Could not load clients. Please try again.");
       })
       .finally(() => {
         setExistingClientsLoading(false);
       });
-  }, [useExistingClient, existingClients.length, existingClientsLoading]);
+  }, [useExistingClient]);
 
   useEffect(() => {
     if (!useExistingClient) {

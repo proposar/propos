@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const PLANS = [
@@ -8,6 +8,29 @@ const PLANS = [
   { id: "pro" as const, name: "Pro", price: "$29", period: "/mo", popular: true, features: ["Unlimited proposals", "Priority AI", "Client dashboard", "Custom branding"] },
   { id: "agency" as const, name: "Agency", price: "$79", period: "/mo", features: ["5 team members", "White-label", "API access", "Dedicated support"] },
 ];
+
+// Extend Window for Paddle.js
+declare global {
+  interface Window {
+    Paddle?: {
+      Setup: (opts: { token: string; environment?: string }) => void;
+      Environment?: { set: (env: string) => void };
+      Checkout: {
+        open: (opts: {
+          items: Array<{ priceId: string; quantity: number }>;
+          settings?: Record<string, unknown>;
+          customData?: Record<string, string>;
+        }) => void;
+      };
+    };
+  }
+}
+
+interface PaddleConfig {
+  clientToken: string | null;
+  isSandbox: boolean;
+  priceIds: { starter: string; pro: string; agency: string };
+}
 
 interface UpgradeModalProps {
   open: boolean;
@@ -18,23 +41,79 @@ interface UpgradeModalProps {
 export function UpgradeModal({ open, onClose, message }: UpgradeModalProps) {
   const [annual, setAnnual] = useState(false);
   const [loading, setLoading] = useState<string | null>(null);
+  const [paddleConfig, setPaddleConfig] = useState<PaddleConfig | null>(null);
+  const [paddleReady, setPaddleReady] = useState(false);
 
-  async function handleUpgrade(planId: "starter" | "pro" | "agency") {
-    setLoading(planId);
-    try {
-      const res = await fetch("/api/paddle/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan: planId }),
-      });
-      const data = await res.json();
-      if (data.url) window.location.href = data.url;
-      else throw new Error(data.error ?? "Checkout failed");
-    } catch (err) {
-      console.error(err);
-      setLoading(null);
-    }
-  }
+  // Fetch Paddle config and load Paddle.js once
+  useEffect(() => {
+    if (!open || paddleConfig) return;
+
+    fetch("/api/paddle/config")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((cfg: PaddleConfig | null) => {
+        if (!cfg?.clientToken) return;
+        setPaddleConfig(cfg);
+
+        // Dynamically load Paddle.js if not already loaded
+        if (window.Paddle) {
+          setPaddleReady(true);
+          return;
+        }
+        const script = document.createElement("script");
+        script.src = "https://cdn.paddle.com/paddle/v2/paddle.js";
+        script.onload = () => {
+          if (window.Paddle) {
+            if (cfg.isSandbox) {
+              window.Paddle.Environment?.set("sandbox");
+            }
+            window.Paddle.Setup({ token: cfg.clientToken! });
+            setPaddleReady(true);
+          }
+        };
+        document.head.appendChild(script);
+      })
+      .catch(() => {});
+  }, [open, paddleConfig]);
+
+  const handleUpgrade = useCallback(
+    async (planId: "starter" | "pro" | "agency") => {
+      if (!paddleReady || !paddleConfig || !window.Paddle) {
+        // Fallback: server-side redirect
+        setLoading(planId);
+        try {
+          const res = await fetch("/api/paddle/checkout", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ plan: planId }),
+          });
+          const data = await res.json();
+          if (data.url) window.location.href = data.url;
+          else alert("Checkout unavailable. Please try again later.");
+        } catch {
+          alert("Checkout unavailable. Please try again later.");
+        } finally {
+          setLoading(null);
+        }
+        return;
+      }
+
+      const priceId = paddleConfig.priceIds[planId];
+      try {
+        window.Paddle.Checkout.open({
+          items: [{ priceId, quantity: 1 }],
+          settings: {
+            theme: "dark",
+            locale: "en",
+            successUrl: `${window.location.origin}/dashboard?upgrade=success`,
+          },
+        });
+      } catch (err) {
+        console.error("Paddle checkout error", err);
+        alert("Could not open checkout. Please try again.");
+      }
+    },
+    [paddleReady, paddleConfig],
+  );
 
   if (!open) return null;
 
@@ -100,7 +179,7 @@ export function UpgradeModal({ open, onClose, message }: UpgradeModalProps) {
                     plan.popular ? "bg-gold text-[#0a0a14] hover:bg-[#e8c76a]" : "border border-[#1e1e2e] text-[#faf8f4] hover:bg-[#0a0a14]"
                   }`}
                 >
-                  {loading === plan.id ? "Redirecting..." : "Upgrade Now"}
+                  {loading === plan.id ? "Opening..." : "Upgrade Now"}
                 </button>
               </div>
             ))}
@@ -118,3 +197,4 @@ export function UpgradeModal({ open, onClose, message }: UpgradeModalProps) {
     </AnimatePresence>
   );
 }
+
