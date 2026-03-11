@@ -234,7 +234,11 @@ export function ProposalForm() {
     const e: Record<string, string> = {};
     if (!clientName.trim()) e.clientName = "Required";
     if (!projectTitle.trim()) e.projectTitle = "Required";
-    if (!scope.trim()) e.scope = "Required";
+    if (!scope.trim()) {
+      e.scope = "Required";
+    } else if (scope.trim().length < 10) {
+      e.scope = "Project scope must be at least 10 characters";
+    }
     if (!lineItemsEnabled) {
       if (!budgetAmount.trim() || isNaN(Number(budgetAmount)))
         e.budgetAmount = "Enter a valid amount";
