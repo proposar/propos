@@ -132,24 +132,42 @@ export async function POST(request: Request) {
 
     // Use Claude Sonnet 4 as PRIMARY (best quality for long-form proposals), OpenAI as fallback
     let generatedContent: string;
+    let usedService: "claude" | "openai" | "none" = "none";
+    
     try {
-      console.log("[Generate API] Starting proposal generation with Claude...");
+      console.log("[Generate API] Starting proposal generation with Claude (Anthropic)...");
       generatedContent = await generateProposal(userPrompt);
       if (!generatedContent || generatedContent.trim().length === 0) {
         throw new Error("Claude generated empty content");
       }
-      console.log("[Generate API] Claude generation succeeded");
+      usedService = "claude";
+      console.log("[Generate API] ✅ Claude generation succeeded");
     } catch (claudeError) {
-      console.warn("[Generate API] Claude generation failed, falling back to OpenAI:", claudeError instanceof Error ? claudeError.message : claudeError);
+      console.warn("[Generate API] Claude generation failed:", claudeError instanceof Error ? claudeError.message : claudeError);
+      console.log("[Generate API] Falling back to OpenAI (ChatGPT)...");
       try {
-        console.log("[Generate API] Starting proposal generation with OpenAI...");
         generatedContent = await generateProposalWithOpenAI(userPrompt);
-        console.log("[Generate API] OpenAI generation succeeded");
+        if (!generatedContent || generatedContent.trim().length === 0) {
+          throw new Error("OpenAI generated empty content");
+        }
+        usedService = "openai";
+        console.log("[Generate API] ✅ OpenAI generation succeeded");
       } catch (openaiError) {
-        console.error("[Generate API] OpenAI generation also failed:", openaiError instanceof Error ? openaiError.message : openaiError);
-        throw new Error("Both Claude and OpenAI generation failed");
+        console.error("[Generate API] ❌ Both Claude and OpenAI generation failed");
+        console.error("[Generate API] Claude error:", claudeError instanceof Error ? claudeError.message : claudeError);
+        console.error("[Generate API] OpenAI error:", openaiError instanceof Error ? openaiError.message : openaiError);
+        return NextResponse.json(
+          { 
+            error: "AI generation failed. Please check environment configuration.",
+            details: "Both Claude (Anthropic) and OpenAI services failed. Please ensure ANTHROPIC_API_KEY and/or OPENAI_API_KEY are configured in Vercel environment variables."
+          },
+          { status: 500 }
+        );
       }
     }
+    
+    console.log(`[Generate API] Used service: ${usedService.toUpperCase()}`);
+
 
     const { data: proposal, error: insertError } = await supabase
       .from("proposals")

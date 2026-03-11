@@ -120,33 +120,24 @@ Write the complete proposal now. This is a final, ready-to-send document.`;
 
 export async function generateProposal(userPrompt: string): Promise<string> {
   if (!process.env.ANTHROPIC_API_KEY) {
-    return `# Proposal for ${userPrompt.slice(0, 50)}...
-
-*Configure ANTHROPIC_API_KEY to generate real proposals.*
-
-## Executive Summary
-We understand your needs and are prepared to deliver a comprehensive solution.
-
-## Deliverables
-- Item 1
-- Item 2
-- Item 3
-
-## Investment
-Please contact us for detailed pricing.
-
-## Next Steps
-Reply to this proposal to get started.`;
+    console.warn("[Anthropic] API key not configured, falling back to OpenAI");
+    throw new Error("ANTHROPIC_API_KEY not configured");
   }
-  const message = await anthropic.messages.create({
-    model: "claude-sonnet-4-20250514",
-    max_tokens: 4000,
-    temperature: 0.7,
-    system: SYSTEM_PROMPT,
-    messages: [{ role: "user", content: userPrompt }],
-  });
-  const text = message.content.find((c) => c.type === "text");
-  return text && "text" in text ? text.text : "";
+  
+  try {
+    const message = await anthropic.messages.create({
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 4000,
+      temperature: 0.7,
+      system: SYSTEM_PROMPT,
+      messages: [{ role: "user", content: userPrompt }],
+    });
+    const text = message.content.find((c) => c.type === "text");
+    return text && "text" in text ? text.text : "";
+  } catch (error) {
+    console.error("[Anthropic] Generation failed:", error instanceof Error ? error.message : error);
+    throw error;
+  }
 }
 
 const CHASE_SYSTEM_PROMPT = `You are writing follow-up emails for a freelancer chasing a client who hasn't responded to a proposal.
