@@ -50,8 +50,8 @@ export const proposalCreateSchema = z.object({
   timeline: z.string().optional(),
   startDate: z.string().datetime().optional(),
   paymentTerms: z.string().optional(),
-  // Keep in sync with TONE_OPTIONS values
-  tone: z.enum(["professional", "friendly", "formal", "casual", "bold"]).optional(),
+  // Keep in sync with TONE_OPTIONS values from lib/constants.ts
+  tone: z.enum(["professional", "friendly", "bold", "formal"]).optional(),
   sections: z.array(z.string()).optional(),
   additionalContext: z.string().optional(),
   expiryDate: z.string().datetime().optional(),
@@ -237,7 +237,7 @@ export const proposalGenerateSchema = z.object({
   // we convert to ISO in the API route.
   startDate: z.string().max(50).nullable().optional(),
   paymentTerms: z.string().max(255).nullable().optional(),
-  tone: z.enum(["professional", "friendly", "formal", "casual"]).optional(),
+  tone: z.enum(["professional", "friendly", "bold", "formal"]).optional(),
   sections: z.array(z.string()).optional(),
   additionalContext: z.string().max(5000).nullable().optional(),
   // Same as startDate: allow simple date strings, convert server-side.
