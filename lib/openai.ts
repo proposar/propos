@@ -25,36 +25,12 @@ export async function generateProposalWithOpenAI(userPrompt: string): Promise<st
   const openai = getOpenAI();
   
   if (!openai) {
-    // Return detailed template when OpenAI is not configured
-    return `# Professional Business Proposal
-
-## Executive Summary
-We are pleased to present this comprehensive proposal. Our team understands your needs and is prepared to deliver exceptional results.
-
-## Proposed Solution
-We will deliver a professional solution tailored to your specific requirements.
-
-## Deliverables
-- Strategic planning and consultation
-- Implementation and execution
-- Quality assurance and testing
-- Training and documentation
-- Post-launch support
-
-## Timeline
-We estimate this project will require 2-4 weeks for completion, with regular milestone updates.
-
-## Investment
-We believe in transparent pricing. Our proposal includes all services outlined above.
-
-## Next Steps
-We'd love to discuss this proposal with you. Please reply with any questions, feedback, or to move forward.
-
----
-*Configure OPENAI_API_KEY in Vercel environment variables to enable AI-powered proposals.*`;
+    console.error("[OpenAI] API key not configured - OPENAI_API_KEY is missing from environment");
+    throw new Error("OpenAI API key not configured. Please set OPENAI_API_KEY in Vercel environment variables.");
   }
 
   try {
+    console.log("[OpenAI] Calling ChatGPT API for proposal generation...");
     const completion = await openai.chat.completions.create({
       model: "gpt-4o",
       max_tokens: 4000,
@@ -69,39 +45,14 @@ We'd love to discuss this proposal with you. Please reply with any questions, fe
     });
 
     const text = completion.choices[0]?.message?.content ?? "";
-    if (!text) throw new Error("Empty response from OpenAI");
+    if (!text) {
+      throw new Error("OpenAI returned empty response");
+    }
+    console.log("[OpenAI] ✅ Successfully generated proposal content");
     return text;
   } catch (error) {
-    console.error("OpenAI API error:", error instanceof Error ? error.message : error);
-    // Return professional template on API error
-    return `# Professional Business Proposal
-
-## Executive Summary
-Thank you for considering our services. We have prepared this proposal based on your requirements.
-
-## Proposed Solution
-We will deliver a comprehensive solution tailored to your business needs, ensuring maximum value and timely delivery.
-
-## Deliverables
-- Detailed project scope and specifications
-- Professional implementation
-- Quality assurance
-- Ongoing support
-
-## Timeline & Budget
-Please see the detailed breakdown below for timeline and investment details.
-
-## Why Choose Us
-- Proven track record with similar projects
-- Professional and responsive team
-- Commitment to exceeding expectations
-- Transparent communication throughout
-
-## Next Steps
-We're excited about the opportunity to work with you. Reply to this proposal to schedule a call or ask any questions.
-
----
-*Note: This is a template proposal. For fully AI-generated proposals, ensure OPENAI_API_KEY is configured.*`;
+    console.error("[OpenAI] API call failed:", error instanceof Error ? error.message : error);
+    throw error;
   }
 }
 

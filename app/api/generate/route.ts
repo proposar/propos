@@ -130,36 +130,38 @@ export async function POST(request: Request) {
       grandTotal: lineItemsEnabled ? grandTotal : undefined,
     });
 
-    // Use Claude Sonnet 4 as PRIMARY (best quality for long-form proposals), OpenAI as fallback
+    // Use OpenAI as PRIMARY service (configured in Vercel), Claude as optional fallback for future
     let generatedContent: string;
-    let usedService: "claude" | "openai" | "none" = "none";
+    let usedService: "openai" | "claude" | "template" = "template";
     
     try {
-      console.log("[Generate API] Starting proposal generation with Claude (Anthropic)...");
-      generatedContent = await generateProposal(userPrompt);
+      console.log("[Generate API] Starting proposal generation with OpenAI (GPT-4o)...");
+      generatedContent = await generateProposalWithOpenAI(userPrompt);
       if (!generatedContent || generatedContent.trim().length === 0) {
-        throw new Error("Claude generated empty content");
+        throw new Error("OpenAI generated empty content");
       }
-      usedService = "claude";
-      console.log("[Generate API] ✅ Claude generation succeeded");
-    } catch (claudeError) {
-      console.warn("[Generate API] Claude generation failed:", claudeError instanceof Error ? claudeError.message : claudeError);
-      console.log("[Generate API] Falling back to OpenAI (ChatGPT)...");
+      usedService = "openai";
+      console.log("[Generate API] ✅ OpenAI generation succeeded");
+    } catch (openaiError) {
+      console.warn("[Generate API] OpenAI generation failed:", openaiError instanceof Error ? openaiError.message : openaiError);
+      console.log("[Generate API] Trying Claude (Anthropic) as fallback...");
       try {
-        generatedContent = await generateProposalWithOpenAI(userPrompt);
+        generatedContent = await generateProposal(userPrompt);
         if (!generatedContent || generatedContent.trim().length === 0) {
-          throw new Error("OpenAI generated empty content");
+          throw new Error("Claude generated empty content");
         }
-        usedService = "openai";
-        console.log("[Generate API] ✅ OpenAI generation succeeded");
-      } catch (openaiError) {
-        console.error("[Generate API] ❌ Both Claude and OpenAI generation failed");
-        console.error("[Generate API] Claude error:", claudeError instanceof Error ? claudeError.message : claudeError);
+        usedService = "claude";
+        console.log("[Generate API] ✅ Claude generation succeeded");
+      } catch (claudeError) {
+        console.error("[Generate API] ❌ Both OpenAI and Claude generation failed");
         console.error("[Generate API] OpenAI error:", openaiError instanceof Error ? openaiError.message : openaiError);
+        console.error("[Generate API] Claude error:", claudeError instanceof Error ? claudeError.message : claudeError);
+        
+        // Return error instead of template
         return NextResponse.json(
           { 
-            error: "AI generation failed. Please check environment configuration.",
-            details: "Both Claude (Anthropic) and OpenAI services failed. Please ensure ANTHROPIC_API_KEY and/or OPENAI_API_KEY are configured in Vercel environment variables."
+            error: "Proposal generation failed. Please try again.",
+            details: "OpenAI API is not responding. Please check your OPENAI_API_KEY in Vercel environment variables."
           },
           { status: 500 }
         );

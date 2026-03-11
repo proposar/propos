@@ -120,11 +120,12 @@ Write the complete proposal now. This is a final, ready-to-send document.`;
 
 export async function generateProposal(userPrompt: string): Promise<string> {
   if (!process.env.ANTHROPIC_API_KEY) {
-    console.warn("[Anthropic] API key not configured, falling back to OpenAI");
+    console.warn("[Anthropic] API key not configured (this is optional - OpenAI is the primary service)");
     throw new Error("ANTHROPIC_API_KEY not configured");
   }
   
   try {
+    console.log("[Anthropic] Calling Claude API for proposal generation (fallback)...");
     const message = await anthropic.messages.create({
       model: "claude-sonnet-4-20250514",
       max_tokens: 4000,
@@ -133,9 +134,14 @@ export async function generateProposal(userPrompt: string): Promise<string> {
       messages: [{ role: "user", content: userPrompt }],
     });
     const text = message.content.find((c) => c.type === "text");
-    return text && "text" in text ? text.text : "";
+    const result = text && "text" in text ? text.text : "";
+    if (!result) {
+      throw new Error("Claude returned empty response");
+    }
+    console.log("[Anthropic] ✅ Successfully generated proposal content (Claude fallback)");
+    return result;
   } catch (error) {
-    console.error("[Anthropic] Generation failed:", error instanceof Error ? error.message : error);
+    console.error("[Anthropic] API call failed:", error instanceof Error ? error.message : error);
     throw error;
   }
 }
