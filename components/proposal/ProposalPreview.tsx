@@ -401,15 +401,34 @@ export function ProposalPreview({ proposalId }: ProposalPreviewProps) {
           )}
         </div>
 
-        <div className="rounded-xl border border-[#1e1e2e] bg-[#fafaf9] text-gray-900 p-8 md:p-10 shadow-sm">
-          <p className="text-[10px] text-gray-400 uppercase tracking-widest font-medium mb-4">Preview (Client View)</p>
-          <div className="space-y-6">
-            <div className="pb-4 border-b border-gray-200">
-              <p className="font-serif text-xl md:text-2xl font-bold text-gray-900 tracking-tight">{proposal.client_name}</p>
-              <p className="text-gray-500 text-sm mt-1 font-medium">Prepared exclusively for you</p>
-              <p className="text-gray-600 text-sm mt-2">{proposal.title}</p>
+        <div className="rounded-2xl border border-gray-200 bg-white text-gray-900 shadow-[0_4px_40px_rgba(0,0,0,0.06)] overflow-hidden">
+          <div className="relative">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gold rounded-t-2xl" />
+            <div className="px-8 md:px-10 pt-8 pb-6">
+              <div className="flex items-center justify-between mb-6">
+                {profile?.business_name ? (
+                  <span className="font-serif font-bold text-gray-900 text-lg tracking-tight">{profile.business_name}</span>
+                ) : (
+                  <span className="text-xs text-gray-400 uppercase tracking-widest font-medium">Client Preview</span>
+                )}
+                <span className="text-[10px] text-gray-400 uppercase tracking-wider font-medium">
+                  {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                </span>
+              </div>
+              <div className="flex items-center gap-4 mb-6">
+                <div className="flex-1 h-px bg-gray-200" />
+                <div className="w-1.5 h-1.5 rounded-full bg-gold" />
+                <div className="flex-1 h-px bg-gray-200" />
+              </div>
+              <div className="text-center pb-4">
+                <p className="text-[10px] text-gray-400 uppercase tracking-[0.2em] font-semibold mb-2">Prepared exclusively for</p>
+                <p className="font-serif text-2xl md:text-3xl font-bold text-gray-900 tracking-tight">{proposal.client_name}</p>
+                <p className="text-gray-500 text-sm mt-2 font-medium">{proposal.title}</p>
+              </div>
             </div>
-            <ProposalContent content={content} variant="preview" />
+          </div>
+          <div className="px-8 md:px-10 pb-8">
+            <ProposalContent content={content} variant="preview" brandColor="#c9a84c" />
           </div>
         </div>
 
