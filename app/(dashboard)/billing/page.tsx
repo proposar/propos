@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { useUser } from "@/hooks/useUser";
 import { useSubscription } from "@/hooks/useSubscription";
+import { openCheckout } from "@/lib/paddle-client";
 import Link from "next/link";
 
 const PLANS = {
@@ -117,16 +118,13 @@ export default function BillingPage() {
     
     setUpgradeLoading(targetPlan);
     try {
-      const res = await fetch("/api/paddle/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan: targetPlan, billing }),
-      });
-      const data = await res.json();
-      if (data.url) {
-        window.location.href = data.url;
-      } else {
-        alert(data.error || "Failed to start checkout");
+      if (!["starter", "pro", "agency"].includes(targetPlan)) {
+        alert("Invalid plan selected");
+        return;
+      }
+      const result = await openCheckout(targetPlan as "starter" | "pro" | "agency");
+      if (!result.ok) {
+        alert(result.error || "Failed to start checkout");
       }
     } catch (err) {
       console.error("Checkout error:", err);

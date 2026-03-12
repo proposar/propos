@@ -1,42 +1,14 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { openCheckout } from "@/lib/paddle-client";
 
 const PLANS = [
   { id: "starter" as const, name: "Starter", price: "$19", period: "/mo", features: ["10 proposals/mo", "AI generation", "Shareable links", "Open tracking"] },
   { id: "pro" as const, name: "Pro", price: "$29", period: "/mo", popular: true, features: ["Unlimited proposals", "Priority AI", "Client dashboard", "Custom branding"] },
   { id: "agency" as const, name: "Agency", price: "$79", period: "/mo", features: ["5 team members", "White-label", "API access", "Dedicated support"] },
 ];
-
-// Extend Window for Paddle.js
-declare global {
-  interface Window {
-    Paddle?: {
-      Initialize: (opts: {
-        token: string;
-        checkout?: {
-          settings?: Record<string, unknown>;
-        };
-      }) => void;
-      Environment?: { set: (env: string) => void };
-      Checkout: {
-        open: (opts: {
-          items: Array<{ priceId: string; quantity: number }>;
-          settings?: Record<string, unknown>;
-          customer?: { email?: string };
-          customData?: Record<string, string>;
-        }) => void;
-      };
-    };
-  }
-}
-
-interface PaddleConfig {
-  clientToken: string | null;
-  isSandbox: boolean;
-  priceIds: { starter: string; pro: string; agency: string };
-}
 
 interface UpgradeModalProps {
   open: boolean;
@@ -47,101 +19,16 @@ interface UpgradeModalProps {
 export function UpgradeModal({ open, onClose, message }: UpgradeModalProps) {
   const [annual, setAnnual] = useState(false);
   const [loading, setLoading] = useState<string | null>(null);
-  const [paddleConfig, setPaddleConfig] = useState<PaddleConfig | null>(null);
-  const [paddleReady, setPaddleReady] = useState(false);
-  const paddleInitializedRef = useRef(false);
-
-  const initializePaddle = useCallback((cfg: PaddleConfig) => {
-    if (!window.Paddle || !cfg.clientToken || paddleInitializedRef.current) {
+  const handleUpgrade = async (planId: "starter" | "pro" | "agency") => {
+    setLoading(planId);
+    const result = await openCheckout(planId);
+    if (!result.ok) {
+      alert(result.error || "Checkout unavailable. Please try again later.");
+      setLoading(null);
       return;
     }
-
-    if (cfg.isSandbox) {
-      window.Paddle.Environment?.set("sandbox");
-    }
-
-    window.Paddle.Initialize({
-      token: cfg.clientToken,
-      checkout: {
-        settings: {
-          theme: "dark",
-          locale: "en",
-          displayMode: "overlay",
-          successUrl: `${window.location.origin}/dashboard?upgrade=success`,
-        },
-      },
-    });
-
-    paddleInitializedRef.current = true;
-    setPaddleReady(true);
-  }, []);
-
-  // Fetch Paddle config and load Paddle.js once
-  useEffect(() => {
-    if (!open || paddleConfig) return;
-
-    fetch("/api/paddle/config")
-      .then((r) => (r.ok ? r.json() : null))
-      .then((cfg: PaddleConfig | null) => {
-        if (!cfg?.clientToken) return;
-        setPaddleConfig(cfg);
-
-        if (window.Paddle) {
-          initializePaddle(cfg);
-          return;
-        }
-
-        const script = document.createElement("script");
-        script.src = "https://cdn.paddle.com/paddle/v2/paddle.js";
-        script.onload = () => {
-          initializePaddle(cfg);
-        };
-        document.head.appendChild(script);
-      })
-      .catch(() => {});
-  }, [initializePaddle, open, paddleConfig]);
-
-  const handleUpgrade = useCallback(
-    async (planId: "starter" | "pro" | "agency") => {
-      setLoading(planId);
-
-      if (!paddleReady || !paddleConfig || !window.Paddle) {
-        // Fallback: server-side redirect
-        try {
-          const res = await fetch("/api/paddle/checkout", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ plan: planId }),
-          });
-          const data = await res.json();
-          if (data.url) window.location.href = data.url;
-          else alert("Checkout unavailable. Please try again later.");
-        } catch {
-          alert("Checkout unavailable. Please try again later.");
-        } finally {
-          setLoading(null);
-        }
-        return;
-      }
-
-      const priceId = paddleConfig.priceIds[planId];
-      try {
-        window.Paddle.Checkout.open({
-          items: [{ priceId, quantity: 1 }],
-          settings: {
-            displayMode: "overlay",
-            successUrl: `${window.location.origin}/dashboard?upgrade=success`,
-          },
-        });
-      } catch (err) {
-        console.error("Paddle checkout error", err);
-        alert("Could not open checkout. Please try again.");
-      } finally {
-        setLoading(null);
-      }
-    },
-    [paddleReady, paddleConfig],
-  );
+    setLoading(null);
+  };
 
   if (!open) return null;
 

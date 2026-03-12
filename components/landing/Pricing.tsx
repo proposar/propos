@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import { openCheckout } from "@/lib/paddle-client";
 
 const plans = [
   {
@@ -83,27 +84,14 @@ export function Pricing() {
   const handleCheckout = async (plan: "starter" | "pro" | "agency") => {
     setLoadingPlan(plan);
     try {
-      const response = await fetch("/api/paddle/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan }),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        alert(`Checkout error: ${error.error}`);
-        setLoadingPlan(null);
-        return;
-      }
-
-      const data = await response.json();
-      if (data.url) {
-        // Redirect to Paddle checkout
-        window.location.href = data.url;
+      const result = await openCheckout(plan);
+      if (!result.ok) {
+        alert(`Checkout error: ${result.error}`);
       }
     } catch (error) {
       console.error("Checkout error:", error);
       alert("Failed to start checkout. Please try again.");
+    } finally {
       setLoadingPlan(null);
     }
   };
