@@ -182,6 +182,8 @@ export default function BillingPage() {
   const limit = currentPlan.proposalsPerMonth;
   const used = profile?.proposals_used_this_month ?? 0;
   const limitLabel = limit === -1 ? "Unlimited" : limit;
+  const hasBillingSubscription =
+    !!profile?.stripe_subscription_id || !!profile?.stripe_customer_id;
 
   return (
     <div className="min-h-screen bg-[#0a0a14] text-[#faf8f4] py-16 px-4">
@@ -321,6 +323,9 @@ export default function BillingPage() {
           const p = PLANS[planKey as keyof typeof PLANS];
           const isCurrentPlan = plan === planKey;
           const price = billing === "monthly" ? p.monthly : p.annual;
+          const isFreePlanKey = planKey === "free";
+          const shouldUsePortalForUpgrade =
+            hasBillingSubscription && !isFreePlanKey && !isCurrentPlan;
 
           return (
             <motion.div
@@ -387,11 +392,15 @@ export default function BillingPage() {
 
                 {/* CTA Button */}
                 <button
-                  onClick={() => handleUpgrade(planKey)}
+                  onClick={() =>
+                    shouldUsePortalForUpgrade
+                      ? openPortal()
+                      : handleUpgrade(planKey)
+                  }
                   disabled={
                     isCurrentPlan ||
                     upgradeLoading !== null ||
-                    (planKey === "free")
+                    isFreePlanKey
                   }
                   className={`w-full py-2 px-4 rounded-lg font-medium transition-all ${
                     isCurrentPlan
@@ -403,8 +412,10 @@ export default function BillingPage() {
                     ? "Loading..."
                     : isCurrentPlan
                     ? "Current Plan"
-                    : planKey === "free"
+                    : isFreePlanKey
                     ? "Already Free"
+                    : shouldUsePortalForUpgrade
+                    ? "Change in Billing Portal"
                     : "Upgrade Now"}
                 </button>
 
