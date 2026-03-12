@@ -13,7 +13,12 @@ export async function GET() {
   }
 
   const clientToken = process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN ?? null;
-  const isSandbox = process.env.PADDLE_ENVIRONMENT !== "production";
+  const configuredEnvironment =
+    process.env.PADDLE_ENVIRONMENT?.trim().toLowerCase() ?? "";
+  const inferredSandbox = clientToken?.startsWith("test_") ?? false;
+  const isSandbox = configuredEnvironment
+    ? configuredEnvironment === "sandbox" || configuredEnvironment === "test"
+    : inferredSandbox;
 
   return NextResponse.json({
     clientToken,

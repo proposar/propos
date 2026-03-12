@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const PLANS = [
@@ -13,12 +13,18 @@ const PLANS = [
 declare global {
   interface Window {
     Paddle?: {
-      Setup: (opts: { token: string; environment?: string }) => void;
+      Initialize: (opts: {
+        token: string;
+        checkout?: {
+          settings?: Record<string, unknown>;
+        };
+      }) => void;
       Environment?: { set: (env: string) => void };
       Checkout: {
         open: (opts: {
           items: Array<{ priceId: string; quantity: number }>;
           settings?: Record<string, unknown>;
+          customer?: { email?: string };
           customData?: Record<string, string>;
         }) => void;
       };
@@ -43,6 +49,32 @@ export function UpgradeModal({ open, onClose, message }: UpgradeModalProps) {
   const [loading, setLoading] = useState<string | null>(null);
   const [paddleConfig, setPaddleConfig] = useState<PaddleConfig | null>(null);
   const [paddleReady, setPaddleReady] = useState(false);
+  const paddleInitializedRef = useRef(false);
+
+  const initializePaddle = useCallback((cfg: PaddleConfig) => {
+    if (!window.Paddle || !cfg.clientToken || paddleInitializedRef.current) {
+      return;
+    }
+
+    if (cfg.isSandbox) {
+      window.Paddle.Environment?.set("sandbox");
+    }
+
+    window.Paddle.Initialize({
+      token: cfg.clientToken,
+      checkout: {
+        settings: {
+          theme: "dark",
+          locale: "en",
+          displayMode: "overlay",
+          successUrl: `${window.location.origin}/dashboard?upgrade=success`,
+        },
+      },
+    });
+
+    paddleInitializedRef.current = true;
+    setPaddleReady(true);
+  }, []);
 
   // Fetch Paddle config and load Paddle.js once
   useEffect(() => {
@@ -54,32 +86,27 @@ export function UpgradeModal({ open, onClose, message }: UpgradeModalProps) {
         if (!cfg?.clientToken) return;
         setPaddleConfig(cfg);
 
-        // Dynamically load Paddle.js if not already loaded
         if (window.Paddle) {
-          setPaddleReady(true);
+          initializePaddle(cfg);
           return;
         }
+
         const script = document.createElement("script");
         script.src = "https://cdn.paddle.com/paddle/v2/paddle.js";
         script.onload = () => {
-          if (window.Paddle) {
-            if (cfg.isSandbox) {
-              window.Paddle.Environment?.set("sandbox");
-            }
-            window.Paddle.Setup({ token: cfg.clientToken! });
-            setPaddleReady(true);
-          }
+          initializePaddle(cfg);
         };
         document.head.appendChild(script);
       })
       .catch(() => {});
-  }, [open, paddleConfig]);
+  }, [initializePaddle, open, paddleConfig]);
 
   const handleUpgrade = useCallback(
     async (planId: "starter" | "pro" | "agency") => {
+      setLoading(planId);
+
       if (!paddleReady || !paddleConfig || !window.Paddle) {
         // Fallback: server-side redirect
-        setLoading(planId);
         try {
           const res = await fetch("/api/paddle/checkout", {
             method: "POST",
@@ -102,14 +129,15 @@ export function UpgradeModal({ open, onClose, message }: UpgradeModalProps) {
         window.Paddle.Checkout.open({
           items: [{ priceId, quantity: 1 }],
           settings: {
-            theme: "dark",
-            locale: "en",
+            displayMode: "overlay",
             successUrl: `${window.location.origin}/dashboard?upgrade=success`,
           },
         });
       } catch (err) {
         console.error("Paddle checkout error", err);
         alert("Could not open checkout. Please try again.");
+      } finally {
+        setLoading(null);
       }
     },
     [paddleReady, paddleConfig],
