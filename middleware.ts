@@ -49,7 +49,7 @@ export async function middleware(request: NextRequest) {
   if (pathname === "/" && user && hasQueryParams) {
     const billingUrl = url.clone();
     billingUrl.pathname = "/billing";
-    billingUrl.search = "?upgrade=success";
+    billingUrl.search = "";
     return NextResponse.redirect(billingUrl);
   }
 
