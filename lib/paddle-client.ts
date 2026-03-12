@@ -83,7 +83,6 @@ async function initializePaddle(config: PaddleConfig): Promise<PaddleGlobal | nu
             theme: "dark",
             locale: "en",
             displayMode: "overlay",
-            successUrl: `${window.location.origin}/dashboard?upgrade=success`,
           },
         },
       });

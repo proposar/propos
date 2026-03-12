@@ -98,20 +98,13 @@ export default function BillingPage() {
   const [billing, setBilling] = useState<"monthly" | "annual">("monthly");
   const [upgradeLoading, setUpgradeLoading] = useState<string | null>(null);
   const [portalLoading, setPortalLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     if (!profileLoading && !profile) {
       router.push("/login");
     }
   }, [profile, profileLoading, router]);
-
-  if (profileLoading || subscriptionLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold"></div>
-      </div>
-    );
-  }
 
   const handleUpgrade = async (targetPlan: string) => {
     if (targetPlan === plan) return;
@@ -122,19 +115,41 @@ export default function BillingPage() {
         alert("Invalid plan selected");
         return;
       }
+      console.log("[Billing] Opening checkout for plan:", targetPlan);
       const result = await openCheckout(targetPlan as "starter" | "pro" | "agency", {
         successUrl: `${window.location.origin}/dashboard/billing?upgrade=success`,
       });
+      console.log("[Billing] Checkout result:", result);
       if (!result.ok) {
         alert(result.error || "Failed to start checkout");
       }
     } catch (err) {
-      console.error("Checkout error:", err);
+      console.error("[Billing] Checkout error:", err);
       alert("Failed to start checkout");
     } finally {
       setUpgradeLoading(null);
     }
   };
+
+  // Handle plan parameter from URL and auto-trigger checkout
+  useEffect(() => {
+    if (!mounted) {
+      setMounted(true);
+      return;
+    }
+
+    const planParam = new URLSearchParams(window.location.search).get("plan");
+    if (
+      planParam &&
+      ["starter", "pro", "agency"].includes(planParam) &&
+      !subscriptionLoading &&
+      plan &&
+      planParam !== plan
+    ) {
+      console.log("[Billing] Auto-triggering checkout for plan:", planParam);
+      handleUpgrade(planParam);
+    }
+  }, [subscriptionLoading, plan, mounted, handleUpgrade]);
 
   const openPortal = async () => {
     setPortalLoading(true);
@@ -153,6 +168,14 @@ export default function BillingPage() {
       setPortalLoading(false);
     }
   };
+
+  if (profileLoading || subscriptionLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold"></div>
+      </div>
+    );
+  }
 
   const currentPlan = PLANS[plan as keyof typeof PLANS];
   const limit = currentPlan.proposalsPerMonth;
