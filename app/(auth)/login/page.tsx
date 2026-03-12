@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { createClient } from "@/lib/supabase/client";
@@ -9,6 +9,17 @@ import { ForgotPasswordModal } from "@/components/auth/ForgotPasswordModal";
 
 export default function LoginPage() {
   const router = useRouter();
+  const [redirectTo, setRedirectTo] = useState<string>("/dashboard");
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    const params = new URLSearchParams(window.location.search);
+    const redirectParam = params.get("redirectTo");
+    if (redirectParam) {
+      setRedirectTo(redirectParam);
+    }
+  }, []);
   const [activeTab, setActiveTab] = useState<"password" | "otp">("password");
   
   // Password login state
@@ -62,7 +73,7 @@ export default function LoginPage() {
           localStorage.removeItem('rememberMe');
         }
         router.refresh();
-        router.push("/dashboard");
+        router.push(redirectTo);
       }
       else setError("Invalid credentials");
     } catch (err) {
@@ -136,7 +147,7 @@ export default function LoginPage() {
         }
         
         router.refresh();
-        router.push("/dashboard");
+        router.push(redirectTo);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to verify code");
       } finally {
@@ -150,9 +161,12 @@ export default function LoginPage() {
     setError(null);
     try {
       const supabase = createClient();
+      const callbackUrl = new URL(`${window.location.origin}/auth/callback`);
+      callbackUrl.searchParams.set("next", redirectTo);
+      
       await supabase.auth.signInWithOAuth({
         provider: "google",
-        options: { redirectTo: `${window.location.origin}/auth/callback` },
+        options: { redirectTo: callbackUrl.toString() },
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Sign in failed");

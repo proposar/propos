@@ -84,7 +84,15 @@ export function Pricing() {
   const handleCheckout = async (plan: "starter" | "pro" | "agency") => {
     setLoadingPlan(plan);
     try {
-      const result = await openCheckout(plan);
+      const checkAuth = await fetch("/api/auth/session");
+      if (!checkAuth.ok) {
+        router.push("/login?redirectTo=/dashboard/billing");
+        setLoadingPlan(null);
+        return;
+      }
+      const result = await openCheckout(plan, {
+        successUrl: `${window.location.origin}/dashboard/billing?upgrade=success`,
+      });
       if (!result.ok) {
         alert(`Checkout error: ${result.error}`);
       }

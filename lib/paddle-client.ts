@@ -95,11 +95,14 @@ async function initializePaddle(config: PaddleConfig): Promise<PaddleGlobal | nu
   return paddleInitPromise;
 }
 
-async function startServerCheckout(plan: PaddlePlan): Promise<{ ok: true } | { ok: false; error: string }> {
+async function startServerCheckout(
+  plan: PaddlePlan,
+  successUrl?: string,
+): Promise<{ ok: true } | { ok: false; error: string }> {
   const response = await fetch("/api/paddle/checkout", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ plan }),
+    body: JSON.stringify({ plan, successUrl }),
   });
 
   let payload: { url?: string; error?: string } | null = null;
@@ -121,12 +124,17 @@ async function startServerCheckout(plan: PaddlePlan): Promise<{ ok: true } | { o
   return { ok: true };
 }
 
-export async function openCheckout(plan: PaddlePlan): Promise<{ ok: true } | { ok: false; error: string }> {
+export async function openCheckout(
+  plan: PaddlePlan,
+  options?: { successUrl?: string },
+): Promise<{ ok: true } | { ok: false; error: string }> {
   try {
     const configResponse = await fetch("/api/paddle/config", { cache: "no-store" });
     const config: PaddleConfig | null = configResponse.ok
       ? ((await configResponse.json()) as PaddleConfig)
       : null;
+
+    const successUrl = options?.successUrl ?? `${window.location.origin}/dashboard?upgrade=success`;
 
     if (config?.clientToken) {
       const paddle = await initializePaddle(config);
@@ -136,14 +144,14 @@ export async function openCheckout(plan: PaddlePlan): Promise<{ ok: true } | { o
           items: [{ priceId, quantity: 1 }],
           settings: {
             displayMode: "overlay",
-            successUrl: `${window.location.origin}/dashboard?upgrade=success`,
+            successUrl,
           },
         });
         return { ok: true };
       }
     }
 
-    return await startServerCheckout(plan);
+    return await startServerCheckout(plan, successUrl);
   } catch (error) {
     return {
       ok: false,

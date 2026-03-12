@@ -122,7 +122,9 @@ export default function BillingPage() {
         alert("Invalid plan selected");
         return;
       }
-      const result = await openCheckout(targetPlan as "starter" | "pro" | "agency");
+      const result = await openCheckout(targetPlan as "starter" | "pro" | "agency", {
+        successUrl: `${window.location.origin}/dashboard/billing?upgrade=success`,
+      });
       if (!result.ok) {
         alert(result.error || "Failed to start checkout");
       }

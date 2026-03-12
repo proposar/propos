@@ -23,6 +23,7 @@ export async function POST(request: Request) {
 
     const body = await request.json();
     const plan = (body.plan as PaddlePlanId) ?? "pro";
+    const customSuccessUrl = body.successUrl as string | undefined;
 
     // Get user profile for checkout data
     const { data: profile } = await supabase
@@ -32,10 +33,11 @@ export async function POST(request: Request) {
       .single();
 
     const baseUrl = APP_METADATA.url;
+    const defaultRedirectUrl = customSuccessUrl ?? `${baseUrl}/dashboard?upgrade=success`;
     const result = await createCheckout(plan, {
       email: profile?.email ?? user.email ?? undefined,
       customData: { user_id: user.id },
-      redirectUrl: `${baseUrl}/dashboard?upgrade=success`,
+      redirectUrl: defaultRedirectUrl,
     });
 
     if ("error" in result) {
