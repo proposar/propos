@@ -45,6 +45,8 @@ export async function createCheckout(
       items: [{ price_id: priceId, quantity: 1 }],
       custom_data: options.customData ?? {},
       collection_mode: "automatic" as const,
+      // Where Paddle should send the customer after checkout
+      ...(options.redirectUrl ? { redirect_url: options.redirectUrl } : {}),
     };
 
     const response = await fetch("https://api.paddle.com/transactions", {

@@ -7,6 +7,27 @@ import { motion } from "framer-motion";
 
 const plans = [
   {
+    name: "Free",
+    badge: "Best for testing",
+    monthly: 0,
+    annual: 0,
+    features: [
+      { text: "3 proposals per month", included: true },
+      { text: "AI proposal generation", included: true },
+      { text: "Shareable proposal links", included: true },
+      { text: "Open tracking (basic)", included: true },
+      { text: "3 proposal templates", included: true },
+      { text: "PDF export", included: true },
+      { text: "Email support", included: false },
+      { text: "Custom branding", included: false },
+      { text: "Follow-up reminders", included: false },
+      { text: "Client dashboard", included: false },
+      { text: "Priority AI", included: false },
+    ],
+    highlighted: false,
+    isFree: true as const,
+  },
+  {
     name: "Starter",
     badge: "Get Started",
     monthly: 19,
@@ -25,6 +46,7 @@ const plans = [
       { text: "Priority AI", included: false },
     ],
     highlighted: false,
+    isFree: false as const,
   },
   {
     name: "Pro",
@@ -46,6 +68,7 @@ const plans = [
       { text: "API access", included: false },
     ],
     highlighted: true,
+    isFree: false as const,
   },
   {
     name: "Agency",
@@ -65,6 +88,7 @@ const plans = [
       { text: "Usage analytics", included: true },
     ],
     highlighted: false,
+    isFree: false as const,
   },
 ];
 
@@ -142,10 +166,18 @@ export function Pricing() {
               </div>
               <h3 className="font-serif text-xl font-semibold text-[#faf8f4]">{plan.name}</h3>
               <p className="mt-2 text-3xl font-bold text-[#faf8f4]">
-                ${annual ? plan.annual : plan.monthly}
-                <span className="text-base font-normal text-[#888890]">/mo</span>
+                {plan.isFree ? (
+                  <>
+                    $0<span className="text-base font-normal text-[#888890]">/mo</span>
+                  </>
+                ) : (
+                  <>
+                    ${annual ? plan.annual : plan.monthly}
+                    <span className="text-base font-normal text-[#888890]">/mo</span>
+                  </>
+                )}
               </p>
-              {annual && (
+              {!plan.isFree && annual && (
                 <p className="text-xs text-[#888890] mt-1">Billed annually</p>
               )}
               <ul className="mt-6 space-y-3 flex-1">
@@ -160,17 +192,26 @@ export function Pricing() {
                   </li>
                 ))}
               </ul>
-              <button
-                onClick={() => handleCheckout(plan.name.toLowerCase() as "starter" | "pro" | "agency")}
-                disabled={loadingPlan !== null}
-                className={`mt-6 block w-full rounded-lg py-3 text-center font-medium transition-colors ${
-                  plan.highlighted
-                    ? "bg-gold text-[#0a0a14] hover:bg-[#e8c76a] disabled:opacity-50"
-                    : "border border-[#1e1e2e] text-[#faf8f4] hover:bg-[#1e1e2e] disabled:opacity-50"
-                }`}
-              >
-                {loadingPlan === plan.name.toLowerCase() ? "Loading..." : "Start Free Trial"}
-              </button>
+              {plan.isFree ? (
+                <button
+                  onClick={() => router.push("/signup")}
+                  className="mt-6 block w-full rounded-lg py-3 text-center font-medium border border-[#1e1e2e] text-[#faf8f4] hover:bg-[#1e1e2e] transition-colors"
+                >
+                  Get Started Free
+                </button>
+              ) : (
+                <button
+                  onClick={() => handleCheckout(plan.name.toLowerCase() as "starter" | "pro" | "agency")}
+                  disabled={loadingPlan !== null}
+                  className={`mt-6 block w-full rounded-lg py-3 text-center font-medium transition-colors ${
+                    plan.highlighted
+                      ? "bg-gold text-[#0a0a14] hover:bg-[#e8c76a] disabled:opacity-50"
+                      : "border border-[#1e1e2e] text-[#faf8f4] hover:bg-[#1e1e2e] disabled:opacity-50"
+                  }`}
+                >
+                  {loadingPlan === plan.name.toLowerCase() ? "Loading..." : "Start Free Trial"}
+                </button>
+              )}
             </motion.div>
           ))}
         </div>
