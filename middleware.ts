@@ -41,14 +41,12 @@ export async function middleware(request: NextRequest) {
   const url = request.nextUrl;
   const { pathname, searchParams } = url;
 
-  // If Paddle (or any external payment link) redirects back to the homepage
-  // with a token-ish query parameter, send the user to billing instead so
-  // they don't get "stuck" on the landing page.
-  const hasPaddleToken = Array.from(searchParams.keys()).some((key) =>
-    key.toLowerCase().includes("tkn"),
-  );
+  // If a logged-in user is sent to the homepage with any query parameters
+  // (e.g. from Paddle payment links like /?_ptdn=...), treat it as a
+  // post-checkout callback and send them to the billing page instead.
+  const hasQueryParams = searchParams.toString().length > 0;
 
-  if (pathname === "/" && hasPaddleToken) {
+  if (pathname === "/" && user && hasQueryParams) {
     const billingUrl = url.clone();
     billingUrl.pathname = "/billing";
     billingUrl.search = "?upgrade=success";
