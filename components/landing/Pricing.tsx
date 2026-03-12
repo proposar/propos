@@ -4,7 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { openCheckout } from "@/lib/paddle-client";
 
 const plans = [
   {
@@ -84,24 +83,9 @@ export function Pricing() {
   const handleCheckout = async (plan: "starter" | "pro" | "agency") => {
     setLoadingPlan(plan);
     try {
-      console.log("[Pricing] Checking auth for plan:", plan);
-      const checkAuth = await fetch("/api/auth/session");
-      console.log("[Pricing] Auth check response:", checkAuth.status);
-      
-      if (!checkAuth.ok) {
-        console.log("[Pricing] Not authenticated, redirecting to login");
-        // Not authenticated - redirect to login, then to billing page
-        router.push(`/login?redirectTo=/dashboard/billing?plan=${plan}`);
-        setLoadingPlan(null);
-        return;
-      }
-      
-      // Authenticated - go directly to billing page with plan parameter
-      console.log("[Pricing] User authenticated, redirecting to billing page");
+      // Always send users to the protected billing page.
+      // If they are not logged in, billing will redirect them to login first.
       router.push(`/dashboard/billing?plan=${plan}`);
-    } catch (error) {
-      console.error("[Pricing] Error:", error);
-      alert("Something went wrong. Please try again.");
     } finally {
       setLoadingPlan(null);
     }
