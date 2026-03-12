@@ -38,7 +38,22 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { pathname } = request.nextUrl;
+  const url = request.nextUrl;
+  const { pathname, searchParams } = url;
+
+  // If Paddle (or any external payment link) redirects back to the homepage
+  // with a token-ish query parameter, send the user to billing instead so
+  // they don't get "stuck" on the landing page.
+  const hasPaddleToken = Array.from(searchParams.keys()).some((key) =>
+    key.toLowerCase().includes("tkn"),
+  );
+
+  if (pathname === "/" && hasPaddleToken) {
+    const billingUrl = url.clone();
+    billingUrl.pathname = "/billing";
+    billingUrl.search = "?upgrade=success";
+    return NextResponse.redirect(billingUrl);
+  }
 
   // Protect dashboard and app routes (including billing)
   const protectedPaths = ["/dashboard", "/billing", "/proposals", "/templates", "/clients", "/settings", "/onboarding", "/analytics", "/pipeline", "/contracts", "/invoices"];
