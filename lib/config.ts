@@ -1,4 +1,12 @@
 export const PLANS = {
+  free: {
+    name: "Free",
+    priceMonthly: 0,
+    priceYearly: 0,
+    proposalsPerMonth: 3,
+    templates: 1,
+    clients: 10,
+  },
   starter: {
     name: "Starter",
     priceMonthly: 19,
