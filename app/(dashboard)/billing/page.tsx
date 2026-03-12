@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { useUser } from "@/hooks/useUser";
@@ -106,7 +106,7 @@ export default function BillingPage() {
     }
   }, [profile, profileLoading, router]);
 
-  const handleUpgrade = async (targetPlan: string) => {
+  const handleUpgrade = useCallback(async (targetPlan: string) => {
     if (targetPlan === plan) return;
     
     setUpgradeLoading(targetPlan);
@@ -129,7 +129,7 @@ export default function BillingPage() {
     } finally {
       setUpgradeLoading(null);
     }
-  };
+  }, [plan]);
 
   // Handle plan parameter from URL and auto-trigger checkout
   useEffect(() => {
