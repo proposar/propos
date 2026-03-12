@@ -49,6 +49,11 @@ interface ExistingClient {
   industry: string | null;
 }
 
+const isUuid = (value: string) =>
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+    value,
+  );
+
 interface ProfileDefaults {
   business_name?: string | null;
   website?: string | null;
@@ -182,9 +187,51 @@ export function ProposalForm() {
 
     fetch("/api/clients?limit=100")
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error("Failed to load clients"))))
-      .then((data: unknown) => {
+      .then(async (data: unknown) => {
         const clients = Array.isArray(data) ? (data as ExistingClient[]) : [];
-        setExistingClients(clients);
+        if (clients.length > 0) {
+          setExistingClients(clients);
+          return;
+        }
+
+        const proposalResponse = await fetch("/api/proposals");
+        if (!proposalResponse.ok) {
+          setExistingClients([]);
+          return;
+        }
+
+        const proposals = (await proposalResponse.json()) as Array<{
+          client_name?: string | null;
+          client_company?: string | null;
+          client_email?: string | null;
+        }>;
+
+        const seen = new Set<string>();
+        const legacyClients: ExistingClient[] = [];
+
+        for (const proposal of proposals ?? []) {
+          const name = proposal.client_name?.trim();
+          if (!name) continue;
+
+          const company = proposal.client_company?.trim() || null;
+          const email = proposal.client_email?.trim() || null;
+          const key = `${name.toLowerCase()}|${(email ?? "").toLowerCase()}|${
+            (company ?? "").toLowerCase()
+          }`;
+
+          if (seen.has(key)) continue;
+          seen.add(key);
+
+          legacyClients.push({
+            id: `legacy-${legacyClients.length + 1}`,
+            name,
+            company,
+            email,
+            industry: null,
+          });
+        }
+
+        setExistingClients(legacyClients);
       })
       .catch(() => {
         clientsFetchedRef.current = false; // allow retry on error
@@ -209,7 +256,7 @@ export function ProposalForm() {
     const selected = existingClients.find((c) => c.id === selectedExistingClientId);
     if (!selected) return;
 
-    setClientId(selected.id);
+    setClientId(isUuid(selected.id) ? selected.id : null);
     setClientName(selected.name ?? "");
     setClientCompany(selected.company ?? "");
     setClientEmail(selected.email ?? "");
