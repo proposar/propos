@@ -48,16 +48,19 @@ export async function middleware(request: NextRequest) {
 
   if (pathname === "/" && user && hasQueryParams) {
     const billingUrl = url.clone();
-    billingUrl.pathname = "/billing";
+    billingUrl.pathname = "/dashboard/billing";
     billingUrl.search = "";
     return NextResponse.redirect(billingUrl);
   }
 
   // Protect dashboard and app routes (including billing)
-  const protectedPaths = ["/dashboard", "/billing", "/proposals", "/templates", "/clients", "/settings", "/onboarding", "/analytics", "/pipeline", "/contracts", "/invoices"];
+  const protectedPaths = ["/dashboard", "/proposals", "/templates", "/clients", "/settings", "/onboarding", "/analytics", "/pipeline", "/contracts", "/invoices"];
   const isProtected = protectedPaths.some((p) => pathname === p || pathname.startsWith(p + "/"));
   if (isProtected && !user) {
-    return NextResponse.redirect(new URL("/login", request.url));
+    const loginUrl = new URL("/login", request.url);
+    const originalPath = pathname + (url.search ? url.search : "");
+    loginUrl.searchParams.set("redirectTo", originalPath);
+    return NextResponse.redirect(loginUrl);
   }
 
   // Redirect authenticated users away from auth pages

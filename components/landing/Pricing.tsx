@@ -107,9 +107,9 @@ export function Pricing() {
   const handleCheckout = async (plan: "starter" | "pro" | "agency") => {
     setLoadingPlan(plan);
     try {
-      // Send users to the billing page (route is /billing)
+      // Send users to the billing page (route is /dashboard/billing)
       // Billing page will handle auth + checkout for this plan.
-      router.push(`/billing?plan=${plan}`);
+      router.push(`/dashboard/billing?plan=${plan}`);
     } finally {
       setLoadingPlan(null);
     }

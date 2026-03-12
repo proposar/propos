@@ -33,7 +33,7 @@ export async function POST(request: Request) {
       .single();
 
     const baseUrl = APP_METADATA.url;
-    const defaultRedirectUrl = customSuccessUrl ?? `${baseUrl}/billing`;
+    const defaultRedirectUrl = customSuccessUrl ?? `${baseUrl}/dashboard/billing`;
     const result = await createCheckout(plan, {
       email: profile?.email ?? user.email ?? undefined,
       customData: { user_id: user.id },
