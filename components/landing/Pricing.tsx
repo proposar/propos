@@ -83,9 +83,9 @@ export function Pricing() {
   const handleCheckout = async (plan: "starter" | "pro" | "agency") => {
     setLoadingPlan(plan);
     try {
-      // Always send users to the protected billing page.
-      // If they are not logged in, billing will redirect them to login first.
-      router.push(`/dashboard/billing?plan=${plan}`);
+      // Send users to the billing page (route is /billing)
+      // Billing page will handle auth + checkout for this plan.
+      router.push(`/billing?plan=${plan}`);
     } finally {
       setLoadingPlan(null);
     }
