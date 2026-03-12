@@ -5,6 +5,38 @@ import crypto from "crypto";
 
 const WEBHOOK_SECRET = process.env.PADDLE_WEBHOOK_SECRET;
 
+async function resolveUserId(
+  admin: ReturnType<typeof createAdminClient>,
+  data: Record<string, any>
+): Promise<string | null> {
+  const customUserId = data?.custom_data?.user_id;
+  if (typeof customUserId === "string" && customUserId.trim()) {
+    return customUserId;
+  }
+
+  const subscriptionId = typeof data?.id === "string" ? data.id : null;
+  if (subscriptionId) {
+    const { data: profileBySubscription } = await admin
+      .from("profiles")
+      .select("id")
+      .eq("stripe_subscription_id", subscriptionId)
+      .single();
+    if (profileBySubscription?.id) return profileBySubscription.id;
+  }
+
+  const customerId = typeof data?.customer_id === "string" ? data.customer_id : null;
+  if (customerId) {
+    const { data: profileByCustomer } = await admin
+      .from("profiles")
+      .select("id")
+      .eq("stripe_customer_id", customerId)
+      .single();
+    if (profileByCustomer?.id) return profileByCustomer.id;
+  }
+
+  return null;
+}
+
 /**
  * Verify Paddle Billing webhook signature.
  * Header format: Paddle-Signature or x-paddle-signature: ts=UNIX_TS;h1=HMAC_HEX
@@ -65,17 +97,20 @@ export async function POST(request: Request) {
 
     // Handle subscription.created event
     if (eventType === "subscription.created") {
-      const customData = data.custom_data ?? {};
-      const userId = customData.user_id;
+      const userId = await resolveUserId(admin, data);
 
       if (!userId) {
-        console.error("No user_id in custom_data");
+        console.error("No user mapping found for subscription.created", data?.id);
         return NextResponse.json({ received: true });
       }
 
       const subscriptionId = data.id;
       const priceId = data.items?.[0]?.price?.id;
-      const plan = priceId ? planFromPriceId(priceId) : "pro";
+      const plan = priceId ? planFromPriceId(priceId) : null;
+      if (!plan) {
+        console.error("Unknown Paddle price ID on subscription.created", priceId);
+        return NextResponse.json({ received: true });
+      }
 
       // Update user's subscription in Supabase (profiles uses subscription_plan, stripe_* columns)
       const { error: updateError } = await admin
@@ -101,19 +136,24 @@ export async function POST(request: Request) {
 
     // Handle subscription.updated event
     if (eventType === "subscription.updated") {
-      const customData = data.custom_data ?? {};
-      const userId = customData.user_id;
+      const userId = await resolveUserId(admin, data);
 
       if (!userId) return NextResponse.json({ received: true });
 
       const priceId = data.items?.[0]?.price?.id;
-      const plan = priceId ? planFromPriceId(priceId) : "pro";
+      const plan = priceId ? planFromPriceId(priceId) : null;
+      if (!plan) {
+        console.error("Unknown Paddle price ID on subscription.updated", priceId);
+        return NextResponse.json({ received: true });
+      }
       const isActive = data.status === "active" || data.status === "trialing";
 
       const { error: updateError } = await admin
         .from("profiles")
         .update({
           subscription_plan: isActive ? plan : "free",
+          stripe_subscription_id: data.id ?? null,
+          stripe_customer_id: data.customer_id ?? null,
           subscription_status: data.status ?? "active",
           subscription_period_end: data.next_billed_at ?? null,
           updated_at: new Date().toISOString(),
@@ -130,8 +170,7 @@ export async function POST(request: Request) {
 
     // Handle subscription.canceled event
     if (eventType === "subscription.canceled") {
-      const customData = data.custom_data ?? {};
-      const userId = customData.user_id;
+      const userId = await resolveUserId(admin, data);
 
       if (!userId) return NextResponse.json({ received: true });
 
@@ -140,7 +179,9 @@ export async function POST(request: Request) {
         .update({
           subscription_plan: "free",
           stripe_subscription_id: null,
+          stripe_customer_id: null,
           subscription_status: "canceled",
+          subscription_period_end: null,
           updated_at: new Date().toISOString(),
         })
         .eq("id", userId);

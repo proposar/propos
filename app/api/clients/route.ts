@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { clientCreateSchema, clientSearchSchema } from "@/lib/validators";
+import { PLAN_LIMITS } from "@/lib/config";
 import type { Client } from "@/types";
 
 const DEFAULT_SORT = "updated_at";
@@ -93,6 +94,35 @@ export async function POST(request: Request): Promise<NextResponse<Client | { er
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("subscription_plan")
+    .eq("id", user.id)
+    .single();
+
+  const plan = (profile?.subscription_plan as keyof typeof PLAN_LIMITS) ?? "free";
+  const clientLimit = PLAN_LIMITS[plan].clients;
+  if (clientLimit >= 0) {
+    const { count, error: countError } = await supabase
+      .from("clients")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id);
+
+    if (countError) {
+      return NextResponse.json({ error: countError.message }, { status: 500 });
+    }
+
+    if ((count ?? 0) >= clientLimit) {
+      return NextResponse.json(
+        {
+          error: "Client limit reached for your current plan",
+          upgradeUrl: "/dashboard/billing?plan=starter",
+        },
+        { status: 402 }
+      );
+    }
+  }
 
   const body = await request.json();
 

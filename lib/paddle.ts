@@ -15,6 +15,13 @@ export const PADDLE_PLANS = {
 
 export type PaddlePlanId = keyof typeof PADDLE_PLANS;
 
+export function isPaddlePlanId(value: unknown): value is PaddlePlanId {
+  return (
+    typeof value === "string" &&
+    Object.prototype.hasOwnProperty.call(PADDLE_PLANS, value)
+  );
+}
+
 export function getPriceId(plan: PaddlePlanId): string {
   return PADDLE_PLANS[plan];
 }
@@ -169,8 +176,8 @@ export async function getSubscription(subscriptionId: string): Promise<{
  */
 export function planFromPriceId(
   priceId: string
-): PaddlePlanId {
+): PaddlePlanId | null {
   const entries = Object.entries(PADDLE_PLANS) as [PaddlePlanId, string][];
   const plan = entries.find(([_, id]) => id === priceId)?.[0];
-  return plan || "pro";
+  return plan ?? null;
 }
