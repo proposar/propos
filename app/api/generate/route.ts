@@ -79,10 +79,31 @@ export async function POST(request: Request) {
       grandTotal,
     } = validationResult.data;
 
-    const { data: profile } = await supabase.from("profiles").select("subscription_plan, proposals_used_this_month, full_name, business_name").eq("id", user.id).single();
+    const { data: profile } = await supabase.from("profiles").select("subscription_plan, proposals_used_this_month, proposals_reset_date, full_name, business_name").eq("id", user.id).single();
     const plan = (profile?.subscription_plan as keyof typeof PLAN_LIMITS) ?? "free";
     const limits = PLAN_LIMITS[plan];
-    const used = profile?.proposals_used_this_month ?? 0;
+    let used = profile?.proposals_used_this_month ?? 0;
+    const now = new Date();
+    const resetDate = profile?.proposals_reset_date
+      ? new Date(profile.proposals_reset_date)
+      : null;
+    const shouldResetUsage =
+      !resetDate ||
+      resetDate.getUTCFullYear() !== now.getUTCFullYear() ||
+      resetDate.getUTCMonth() !== now.getUTCMonth();
+
+    if (shouldResetUsage) {
+      used = 0;
+      await supabase
+        .from("profiles")
+        .update({
+          proposals_used_this_month: 0,
+          proposals_reset_date: now.toISOString().slice(0, 10),
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", user.id);
+    }
+
     const limit = limits.proposalsPerMonth;
     if (limit >= 0 && used >= limit) {
       return NextResponse.json(
@@ -226,6 +247,7 @@ export async function POST(request: Request) {
         .from("profiles")
         .update({
           proposals_used_this_month: used + 1,
+          proposals_reset_date: now.toISOString().slice(0, 10),
           updated_at: new Date().toISOString(),
         })
         .eq("id", user.id);
