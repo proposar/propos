@@ -84,20 +84,31 @@ export function Pricing() {
   const handleCheckout = async (plan: "starter" | "pro" | "agency") => {
     setLoadingPlan(plan);
     try {
+      console.log("[Pricing] Checking auth...");
       const checkAuth = await fetch("/api/auth/session");
+      console.log("[Pricing] Auth check response:", checkAuth.status);
+      
       if (!checkAuth.ok) {
+        console.log("[Pricing] Not authenticated, redirecting to login");
         router.push("/login?redirectTo=/dashboard/billing");
         setLoadingPlan(null);
         return;
       }
+      
+      const successUrl = `${window.location.origin}/dashboard/billing?upgrade=success`;
+      console.log("[Pricing] User authenticated, opening checkout with successUrl:", successUrl);
+      
       const result = await openCheckout(plan, {
-        successUrl: `${window.location.origin}/dashboard/billing?upgrade=success`,
+        successUrl,
       });
+      console.log("[Pricing] Checkout result:", result);
+      
       if (!result.ok) {
+        console.error("[Pricing] Checkout failed:", result.error);
         alert(`Checkout error: ${result.error}`);
       }
     } catch (error) {
-      console.error("Checkout error:", error);
+      console.error("[Pricing] Checkout error:", error);
       alert("Failed to start checkout. Please try again.");
     } finally {
       setLoadingPlan(null);

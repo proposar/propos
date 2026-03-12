@@ -129,17 +129,24 @@ export async function openCheckout(
   options?: { successUrl?: string },
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   try {
+    console.log("[openCheckout] Starting checkout for plan:", plan, "with options:", options);
+    
     const configResponse = await fetch("/api/paddle/config", { cache: "no-store" });
+    console.log("[openCheckout] Config response status:", configResponse.status);
+    
     const config: PaddleConfig | null = configResponse.ok
       ? ((await configResponse.json()) as PaddleConfig)
       : null;
 
     const successUrl = options?.successUrl ?? `${window.location.origin}/dashboard?upgrade=success`;
+    console.log("[openCheckout] Using successUrl:", successUrl);
+    console.log("[openCheckout] Paddle client token exists:", !!config?.clientToken);
 
     if (config?.clientToken) {
       const paddle = await initializePaddle(config);
       if (paddle) {
         const priceId = config.priceIds[plan];
+        console.log("[openCheckout] Opening Paddle overlay with priceId:", priceId);
         paddle.Checkout.open({
           items: [{ priceId, quantity: 1 }],
           settings: {
@@ -147,12 +154,15 @@ export async function openCheckout(
             successUrl,
           },
         });
+        console.log("[openCheckout] Paddle overlay opened successfully");
         return { ok: true };
       }
     }
 
+    console.log("[openCheckout] Falling back to server checkout");
     return await startServerCheckout(plan, successUrl);
   } catch (error) {
+    console.error("[openCheckout] Error:", error);
     return {
       ok: false,
       error:
