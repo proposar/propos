@@ -65,6 +65,7 @@ export function ProposalForm() {
   const searchParams = useSearchParams();
   const hasUserInteractedRef = useRef(false);
   const clientsFetchedRef = useRef(false);
+  const searchClientIdRef = useRef<string | null>(null);
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [progressMsg, setProgressMsg] = useState("");
@@ -142,6 +143,7 @@ export function ProposalForm() {
     const templateId = searchParams.get("templateId");
     const projectType = searchParams.get("projectType");
     if (cId) setClientId(cId);
+    searchClientIdRef.current = cId;
     if (cName) setClientName(decodeURIComponent(cName));
     if (projectType)
       setProjectType(
@@ -196,7 +198,7 @@ export function ProposalForm() {
   useEffect(() => {
     if (!useExistingClient) {
       setSelectedExistingClientId("");
-      if (!searchParams.get("clientId")) {
+      if (!searchClientIdRef.current) {
         setClientId(null);
       }
       return;
@@ -217,7 +219,7 @@ export function ProposalForm() {
     ) {
       setIndustry(selected.industry as (typeof INDUSTRIES)[number]);
     }
-  }, [useExistingClient, selectedExistingClientId, existingClients, searchParams]);
+  }, [useExistingClient, selectedExistingClientId, existingClients]);
 
   useEffect(() => {
     if (onboardingDefaultsApplied) return;
