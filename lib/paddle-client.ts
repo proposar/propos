@@ -34,7 +34,7 @@ export async function openCheckout(
   options?: { successUrl?: string },
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   try {
-    const successUrl = options?.successUrl ?? `${window.location.origin}/dashboard/billing`;
+    const successUrl = options?.successUrl ?? `${window.location.origin}/billing`;
     console.log("[openCheckout] Starting server-side checkout for plan:", plan, "successUrl:", successUrl);
 
     // Always use server-side checkout via our API route.

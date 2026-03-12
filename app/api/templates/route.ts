@@ -71,7 +71,7 @@ export async function POST(request: Request): Promise<NextResponse<Template | { 
       return NextResponse.json(
         {
           error: "Template limit reached for your current plan",
-          upgradeUrl: "/dashboard/billing?plan=starter",
+          upgradeUrl: "/billing?plan=starter",
         },
         { status: 402 }
       );

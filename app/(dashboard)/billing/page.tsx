@@ -118,7 +118,7 @@ export default function BillingPage() {
       console.log("[Billing] Opening checkout for plan:", targetPlan);
       const result = await openCheckout(targetPlan as "starter" | "pro" | "agency", {
         // After checkout, always return to the billing page.
-        successUrl: `${window.location.origin}/dashboard/billing`,
+        successUrl: `${window.location.origin}/billing`,
       });
       console.log("[Billing] Checkout result:", result);
       if (!result.ok) {

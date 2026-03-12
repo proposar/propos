@@ -41,6 +41,12 @@ export async function middleware(request: NextRequest) {
   const url = request.nextUrl;
   const { pathname, searchParams } = url;
 
+  if (pathname === "/dashboard/billing") {
+    const billingUrl = url.clone();
+    billingUrl.pathname = "/billing";
+    return NextResponse.redirect(billingUrl);
+  }
+
   // If a logged-in user is sent to the homepage with any query parameters
   // (e.g. from Paddle payment links like /?_ptdn=...), treat it as a
   // post-checkout callback and send them to the billing page instead.
@@ -48,7 +54,7 @@ export async function middleware(request: NextRequest) {
 
   if (pathname === "/" && user && hasQueryParams) {
     const billingUrl = url.clone();
-    billingUrl.pathname = "/dashboard/billing";
+    billingUrl.pathname = "/billing";
     billingUrl.search = "";
     return NextResponse.redirect(billingUrl);
   }

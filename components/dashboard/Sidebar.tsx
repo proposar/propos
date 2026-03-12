@@ -19,7 +19,7 @@ const navItems = [
   { href: "/templates", label: "Templates", icon: "📋" },
   { href: "/referrals", label: "Earn with Referrals", icon: "🎁" },
   { href: "/feedback", label: "User Feedback", icon: "💬" },
-  { href: "/dashboard/billing", label: "Billing & Plans", icon: "💳" },
+  { href: "/billing", label: "Billing & Plans", icon: "💳" },
   { href: "/settings", label: "Settings", icon: "⚙️" },
 ];
 
@@ -143,7 +143,7 @@ export function Sidebar() {
       {plan === "free" && (
         <div className="p-3 border-t border-[#1e1e2e]">
           <Link
-            href="/dashboard/billing?plan=pro"
+            href="/billing?plan=pro"
             className="block rounded-lg border border-gold/50 bg-gold/10 p-3 text-sm text-gold hover:bg-gold/20 transition-colors"
           >
             <p className="font-medium">You&apos;re on Free.</p>
