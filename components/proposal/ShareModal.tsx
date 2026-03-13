@@ -276,6 +276,7 @@ export function ShareModal({
                 Your Message
               </label>
               <textarea
+                aria-label="WhatsApp message"
                 value={whatsappMessage}
                 onChange={(e) => setWhatsappMessage(e.target.value)}
                 rows={8}
@@ -326,6 +327,7 @@ export function ShareModal({
               </label>
               <input
                 type="text"
+                aria-label="Email Subject"
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
                 className="w-full rounded-lg border border-[#1e1e2e] bg-[#0a0a14] px-3 py-2 text-[#faf8f4] text-sm"
@@ -450,6 +452,7 @@ export function ShareModal({
             <div className="flex gap-2">
               <input
                 type="text"
+                aria-label="Proposal share link"
                 readOnly
                 value={link}
                 className="flex-1 rounded-lg border border-[#1e1e2e] bg-[#0a0a14] px-3 py-2 text-[#faf8f4] text-xs font-mono"

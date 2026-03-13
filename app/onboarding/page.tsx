@@ -299,6 +299,7 @@ export default function OnboardingPage() {
                     Country
                   </label>
                   <select
+                    aria-label="Country"
                     value={country}
                     onChange={(e) => setCountry(e.target.value)}
                     className="w-full rounded-lg border border-border bg-surface px-4 py-3 text-foreground focus:outline-none focus:ring-2 focus:ring-gold/50"
@@ -315,6 +316,7 @@ export default function OnboardingPage() {
                     Currency preference
                   </label>
                   <select
+                    aria-label="Currency preference"
                     value={currency}
                     onChange={(e) => setCurrency(e.target.value)}
                     className="w-full rounded-lg border border-border bg-surface px-4 py-3 text-foreground focus:outline-none focus:ring-2 focus:ring-gold/50"
@@ -355,6 +357,7 @@ export default function OnboardingPage() {
                     <input
                       id="logo-input"
                       type="file"
+                      aria-label="Upload logo"
                       accept="image/*"
                       className="hidden"
                       onChange={(e) => {
@@ -383,12 +386,15 @@ export default function OnboardingPage() {
                   <div className="flex items-center gap-3">
                     <input
                       type="color"
+                      aria-label="Brand color picker"
                       value={brandColor}
                       onChange={(e) => setBrandColor(e.target.value)}
                       className="h-10 w-14 rounded border border-border cursor-pointer bg-transparent"
                     />
                     <input
                       type="text"
+                      aria-label="Brand color hex"
+                      placeholder="#c9a84c"
                       value={brandColor}
                       onChange={(e) => setBrandColor(e.target.value)}
                       className="flex-1 rounded-lg border border-border bg-surface px-4 py-3 text-foreground font-mono text-sm"

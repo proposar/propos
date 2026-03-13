@@ -3,13 +3,40 @@
 -- Fixes: referral columns, welcome email tracking, public proposal RLS
 -- ============================================================
 
--- 1. Add missing columns to profiles for the referral system
+-- 1. Ensure referral tables exist (self-healing for production)
+CREATE TABLE IF NOT EXISTS referrals (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  referrer_id uuid NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  referral_code text NOT NULL UNIQUE,
+  referee_email text NOT NULL,
+  referee_id uuid REFERENCES profiles(id) ON DELETE SET NULL,
+  referred_at timestamp with time zone DEFAULT now(),
+  completed_signup_at timestamp with time zone,
+  completed_upgrade_at timestamp with time zone,
+  commission_amount decimal(8, 2),
+  reward_claimed boolean DEFAULT false,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS referral_rewards (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  referral_id uuid NOT NULL REFERENCES referrals(id) ON DELETE CASCADE,
+  reward_type text NOT NULL, -- 'commission', 'credit', 'bonus'
+  amount decimal(8, 2) NOT NULL,
+  currency text DEFAULT 'USD',
+  description text,
+  claimed_at timestamp with time zone,
+  created_at timestamp with time zone DEFAULT now()
+);
+
+-- 2. Add missing columns to profiles for the referral system
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS referral_code TEXT UNIQUE;
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS referral_earnings DECIMAL(10,2) DEFAULT 0;
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS referral_count INTEGER DEFAULT 0;
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS welcome_email_sent BOOLEAN DEFAULT FALSE;
 
--- 2. Create referral_signups view (maps referrals table to what the UI/API expects)
+-- 3. Create referral_signups view (maps referrals table to what the UI/API expects)
 CREATE OR REPLACE VIEW referral_signups AS
 SELECT
   r.id,

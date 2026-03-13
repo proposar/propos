@@ -84,13 +84,14 @@ export async function POST(request: Request) {
   return NextResponse.json({ error: "Unknown action" }, { status: 400 });
 }
 
+import { SupabaseClient } from "@supabase/supabase-js";
+
 /**
  * Generate a unique referral code and persist it.
  * Format: PROP-XXXX-XXXXXX (user-based prefix + random suffix)
  */
 async function generateAndSaveCode(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  supabase: any,
+  supabase: SupabaseClient,
   userId: string
 ): Promise<string | null> {
   const prefix = userId.replace(/-/g, "").substring(0, 4).toUpperCase();

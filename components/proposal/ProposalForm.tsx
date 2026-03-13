@@ -600,6 +600,7 @@ export function ProposalForm() {
             <div className="mb-4">
               <label className={labelClass}>Choose Client</label>
               <select
+                aria-label="Choose Client"
                 value={selectedExistingClientId}
                 onChange={(e) => setSelectedExistingClientId(e.target.value)}
                 className={inputClass}
@@ -633,6 +634,8 @@ export function ProposalForm() {
               <label className={labelClass}>Client Name *</label>
               <input
                 type="text"
+                aria-label="Client Name"
+                placeholder="e.g. John Smith"
                 value={clientName}
                 onChange={(e) => setClientName(e.target.value)}
                 className={inputClass}
@@ -646,6 +649,8 @@ export function ProposalForm() {
               <label className={labelClass}>Client Company</label>
               <input
                 type="text"
+                aria-label="Client Company"
+                placeholder="e.g. Acme Corp"
                 value={clientCompany}
                 onChange={(e) => setClientCompany(e.target.value)}
                 className={inputClass}
@@ -655,6 +660,8 @@ export function ProposalForm() {
               <label className={labelClass}>Client Email</label>
               <input
                 type="email"
+                aria-label="Client Email"
+                placeholder="client@example.com"
                 value={clientEmail}
                 onChange={(e) => setClientEmail(e.target.value)}
                 className={inputClass}
@@ -663,6 +670,7 @@ export function ProposalForm() {
             <div>
               <label className={labelClass}>Industry</label>
               <select
+                aria-label="Industry"
                 value={industry}
                 onChange={(e) => setIndustry(e.target.value as typeof industry)}
                 className={inputClass}
@@ -702,6 +710,7 @@ export function ProposalForm() {
             <div>
               <label className={labelClass}>Project Type * <span className="text-[#888890] font-normal">(what you do)</span></label>
               <select
+                aria-label="Project Type"
                 value={projectType}
                 onChange={(e) =>
                   setProjectType(e.target.value as typeof projectType)
@@ -782,6 +791,8 @@ export function ProposalForm() {
                   <label className={labelClass}>Budget Amount *</label>
                   <input
                     type="number"
+                    aria-label="Budget Amount"
+                    placeholder="5000"
                     min={0}
                     step={0.01}
                     value={budgetAmount}
@@ -798,6 +809,7 @@ export function ProposalForm() {
                 <div className="w-24">
                   <label className={labelClass}>Currency</label>
                   <select
+                    aria-label="Currency"
                     value={currency}
                     onChange={(e) =>
                       setCurrency(e.target.value as typeof currency)
@@ -818,6 +830,7 @@ export function ProposalForm() {
               <div className="mb-4">
                 <label className={labelClass}>Currency</label>
                 <select
+                  aria-label="Currency"
                   value={currency}
                   onChange={(e) =>
                     setCurrency(e.target.value as typeof currency)
@@ -836,6 +849,7 @@ export function ProposalForm() {
             <div>
               <label className={labelClass}>Budget Type</label>
               <select
+                aria-label="Budget Type"
                 value={budgetType}
                 onChange={(e) =>
                   setBudgetType(e.target.value as typeof budgetType)
@@ -852,6 +866,7 @@ export function ProposalForm() {
             <div>
               <label className={labelClass}>Project Timeline *</label>
               <select
+                aria-label="Project Timeline"
                 value={timeline}
                 onChange={(e) => setTimeline(e.target.value as typeof timeline)}
                 className={inputClass}
@@ -867,6 +882,7 @@ export function ProposalForm() {
               <label className={labelClass}>Start Date</label>
               <input
                 type="date"
+                aria-label="Project Start Date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
                 className={inputClass}
@@ -875,6 +891,7 @@ export function ProposalForm() {
             <div>
               <label className={labelClass}>Payment Terms</label>
               <select
+                aria-label="Payment Terms"
                 value={paymentTerms}
                 onChange={(e) =>
                   setPaymentTerms(e.target.value as typeof paymentTerms)
@@ -906,6 +923,7 @@ export function ProposalForm() {
             <label className="relative inline-flex items-center cursor-pointer">
               <input
                 type="checkbox"
+                aria-label="Enable line items pricing breakdown"
                 className="sr-only peer"
                 checked={lineItemsEnabled}
                 onChange={(e) => setLineItemsEnabled(e.target.checked)}
@@ -965,6 +983,7 @@ export function ProposalForm() {
                         </label>
                         <input
                           type="number"
+                          aria-label="Quantity"
                           min="0.01"
                           step="0.01"
                           value={item.quantity}
@@ -984,6 +1003,7 @@ export function ProposalForm() {
                           Unit
                         </label>
                         <select
+                          aria-label="Unit"
                           value={item.unit}
                           onChange={(e) =>
                             updateLineItem(item.id, "unit", e.target.value)
@@ -1105,6 +1125,8 @@ export function ProposalForm() {
                       </span>
                       <input
                         type="number"
+                        aria-label="Discount percentage"
+                        placeholder="0"
                         min="0"
                         max="100"
                         value={discountPercent || ""}
@@ -1129,6 +1151,8 @@ export function ProposalForm() {
                       <span className="text-sm text-[#888890]">Tax (%)</span>
                       <input
                         type="number"
+                        aria-label="Tax percentage"
+                        placeholder="0"
                         min="0"
                         max="100"
                         value={taxPercent || ""}
@@ -1296,6 +1320,7 @@ export function ProposalForm() {
               <label className={labelClass}>Expiry Date</label>
               <input
                 type="date"
+                aria-label="Proposal Expiry Date"
                 value={expiryDate}
                 onChange={(e) => setExpiryDate(e.target.value)}
                 className={inputClass}
