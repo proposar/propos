@@ -155,20 +155,41 @@ export function PublicProposalView({
 
   if (accepted) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white flex items-center justify-center p-6">
-        <div className="text-center max-w-md">
+      <div className="min-h-screen bg-white flex items-center justify-center p-6 relative overflow-hidden">
+        {/* Confetti-like sublte gradient overlay */}
+        <div className="absolute inset-0 opacity-20" style={{
+          background: `radial-gradient(circle at 10% 20%, ${bc} 0%, transparent 40%), radial-gradient(circle at 90% 80%, ${bc} 0%, transparent 40%)`
+        }} />
+        <div className="text-center max-w-lg relative z-10">
           <div
-            className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6"
-            style={{ backgroundColor: bc + "15" }}
+            className="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-8 shadow-xl"
+            style={{ backgroundColor: bc + "10", border: `1px solid ${bc}30` }}
           >
-            <svg className="w-10 h-10" style={{ color: bc }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <svg className="w-12 h-12" style={{ color: bc }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
-          <h1 className="text-3xl font-serif font-bold text-gray-900 mb-3">Proposal Accepted!</h1>
-          <p className="text-gray-500 leading-relaxed text-lg">
-            {proposal.freelancerName || proposal.businessName} will be in touch within 24 hours to kick things off.
+          <h1 className="text-4xl font-serif font-bold text-gray-900 mb-4 tracking-tight">Project Accepted!</h1>
+          <p className="text-gray-600 leading-relaxed text-lg mb-8">
+            Excellent choice. We&apos;ve notified {proposal.freelancerName || proposal.businessName} and they are preparing the next steps.
           </p>
+          <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100 text-left">
+            <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-4">What happens next?</h3>
+            <ul className="space-y-4">
+              <li className="flex gap-3 text-sm text-gray-600">
+                <span className="w-6 h-6 rounded-full bg-white border flex items-center justify-center text-[10px] font-bold shrink-0">1</span>
+                <span>A formal contract will be sent to your email for e-signature.</span>
+              </li>
+              <li className="flex gap-3 text-sm text-gray-600">
+                <span className="w-6 h-6 rounded-full bg-white border flex items-center justify-center text-[10px] font-bold shrink-0">2</span>
+                <span>Upon signature, the first invoice will be issued to initiate the project.</span>
+              </li>
+              <li className="flex gap-3 text-sm text-gray-600">
+                <span className="w-6 h-6 rounded-full bg-white border flex items-center justify-center text-[10px] font-bold shrink-0">3</span>
+                <span>A kickoff meeting will be scheduled to finalize the timeline.</span>
+              </li>
+            </ul>
+          </div>
         </div>
       </div>
     );

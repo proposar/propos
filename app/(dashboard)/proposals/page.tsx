@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { MessageCircle } from "lucide-react";
 import { ShareModal } from "@/components/proposal/ShareModal";
+import { TableSkeleton } from "@/components/ui/TableSkeleton";
 
 type ProposalStatus = "draft" | "sent" | "viewed" | "accepted" | "declined";
 
@@ -61,7 +62,9 @@ export default function ProposalsPage() {
       </div>
       <div className="rounded-xl border border-[#1e1e2e] bg-[#12121e] overflow-hidden">
         {loading ? (
-          <div className="p-8 text-center text-[#888890]">Loading...</div>
+          <div className="p-4">
+            <TableSkeleton rows={5} cols={7} />
+          </div>
         ) : proposals.length === 0 ? (
           <div className="p-8 text-center text-[#888890]">
             <p>No proposals yet. Create your first one.</p>

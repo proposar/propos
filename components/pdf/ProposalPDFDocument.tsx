@@ -9,10 +9,10 @@ import {
 
 const styles = StyleSheet.create({
   page: {
-    padding: 50,
+    padding: 60,
     fontFamily: "Helvetica",
-    fontSize: 11,
-    color: "#2c2c2c",
+    fontSize: 10.5,
+    color: "#1F2937",
     lineHeight: 1.6,
     backgroundColor: "#FFFFFF",
   },
@@ -60,9 +60,9 @@ const styles = StyleSheet.create({
     marginBottom: 3,
   },
   divider: {
-    height: 3,
+    height: 1.5,
     width: "100%",
-    marginBottom: 35,
+    marginBottom: 40,
   },
   topContent: {
     flexDirection: "row",
@@ -81,11 +81,11 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   clientName: {
-    fontSize: 28,
+    fontSize: 32,
     fontFamily: "Helvetica-Bold",
-    color: "#1a1a1a",
-    marginBottom: 6,
-    fontWeight: "bold",
+    color: "#111827",
+    marginBottom: 8,
+    letterSpacing: -0.5,
   },
   clientCompany: {
     fontSize: 13,
@@ -148,9 +148,10 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   investmentAmount: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#1a1a1a",
+    fontSize: 32,
+    fontFamily: "Helvetica-Bold",
+    color: "#111827",
+    letterSpacing: -1,
   },
 
   // Premium Table Styles

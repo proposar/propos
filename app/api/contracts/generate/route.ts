@@ -32,26 +32,31 @@ export async function POST(request: Request) {
   const freelancerName = profile?.full_name ?? "Freelancer";
   const businessName = profile?.business_name ?? "";
   const freelancerCountry = profile?.country ?? "Freelancer's jurisdiction";
-  const prompt = `Generate a freelance contract for:
-Freelancer: ${freelancerName}, ${businessName}
-Client: ${proposal.client_name}, ${proposal.client_company ?? ""}
-Project: ${proposal.project_type}, ${proposal.project_scope}
-Value: ${proposal.budget_currency ?? "USD"} ${proposal.budget_amount ?? 0}
-Timeline: ${proposal.timeline ?? "To be agreed"}
-Payment terms: From proposal
-Deliverables: ${Array.isArray(proposal.deliverables) ? proposal.deliverables.join(", ") : "From proposal"}
+  const prompt = `Act as a Senior Legal Counsel specializing in Freelance and Agency Law. Generate a high-performance, premium Service Agreement between:
 
-Include sections:
-1. Project scope and deliverables
-2. Timeline and milestones
- 3. Payment terms and schedule (including deposits, milestone payments, late fees/interest, and what happens if the client does not pay on time)
- 4. Revision policy (max 2 rounds)
- 5. Intellectual property (client owns final work)
- 6. Confidentiality (basic)
- 7. Termination (14 days notice, including for non-payment)
- 8. Limitation of liability
- 9. Governing law and dispute resolution (use ${freelancerCountry} as the governing law; include that electronic signatures are valid)
- 10. Signature block (freelancer + client, ready for e-signing)`;
+Lessor/Service Provider (Freelancer): ${freelancerName}, ${businessName} (Located in: ${freelancerCountry})
+Lessee/Client: ${proposal.client_name}, ${proposal.client_company ?? "Individual"}
+Project: ${proposal.project_type}
+Scope: ${proposal.project_scope}
+Contract Value: ${proposal.budget_currency ?? "USD"} ${proposal.budget_amount ?? 0}
+Timeline: ${proposal.timeline ?? "To be defined in milestones"}
+
+CORE OBJECTIVE: Protect the Freelancer/Agency from 'Ghosting', Scope Creep, and Non-Payment.
+
+The contract MUST include these specific clauses in professional legal language:
+1. Detailed Scope & Deliverables: Based on the provided project description.
+2. Anti-Ghosting Payment Schedule:
+   - Mandatory Upfront Deposit: 50% required before work commences.
+   - Milestone Payments: Clear triggers for remaining 50% (e.g., 25% on first draft, 25% on final delivery).
+   - Late Payment Terms: 5% weekly interest on overdue invoices.
+3. Kill-Fee / Early Termination: If the client terminates for convenience or disappears (ghosts) for >14 days, a 25% "Kill Fee" of the remaining contract value is immediately due plus payment for all work done.
+4. Intellectual Property (IP) Protection: Crucial - IP transfer ONLY happens upon receipt of FULL AND FINAL PAYMENT. The client has no right to use the work if a balance remains.
+5. Revision Policy: Max 2 rounds of minor revisions. Major changes require a new SOW.
+6. Governing Law: Use ${freelancerCountry} law. If India, reference the Information Technology Act 2000.
+7. Dispute Resolution: Mandatory 14-day mediation before any legal action.
+8. Electronic Signatures: Explicitly state that e-signatures through this platform are legally binding and enforceable.
+
+Format the output in clean Markdown with clear headings and a Signature Block at the end.`;
 
   const rateCheck = checkAIRateLimit(user.id);
   if (!rateCheck.ok) {

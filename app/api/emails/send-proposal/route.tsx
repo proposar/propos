@@ -98,12 +98,19 @@ export async function POST(request: Request): Promise<NextResponse<SendProposalE
     },
   };
 
-  const doc = <ProposalPDFDocument {...docProps} />;
-  const buffer = await pdf(doc).toBuffer();
-  const safeName = proposal.client_name.replace(/[^a-zA-Z0-9-_]/g, "-").slice(0, 50);
-  const filename = `Proposal-${safeName}-${new Date().toISOString().slice(0, 10)}.pdf`;
+  let attachments: any[] = [];
+  let pdfError = false;
 
-  const attachments = [{ filename, content: buffer as any }];
+  try {
+    const doc = <ProposalPDFDocument {...docProps} />;
+    const buffer = await pdf(doc).toBuffer();
+    const safeName = proposal.client_name.replace(/[^a-zA-Z0-9-_]/g, "-").slice(0, 50);
+    const filename = `Proposal-${safeName}-${new Date().toISOString().slice(0, 10)}.pdf`;
+    attachments = [{ filename, content: buffer as any }];
+  } catch (err) {
+    console.error("[Email] PDF Generation failed:", err);
+    pdfError = true;
+  }
 
   try {
     await sendProposalToClient(
@@ -116,11 +123,19 @@ export async function POST(request: Request): Promise<NextResponse<SendProposalE
       attachments,
       proposal.share_id ?? undefined
     );
-    await sendProposalSentConfirmation(user.email!, proposal.client_name, proposalLink);
+
+    // Notify freelancer that proposal was sent, mentioning if PDF attachment failed
+    const confirmationText = pdfError
+      ? `Your proposal has been sent to ${proposal.client_name}, but the PDF attachment generation failed. They can still view the full proposal via the secure link.`
+      : undefined;
+
+    await sendProposalSentConfirmation(user.email!, proposal.client_name, proposalLink, confirmationText);
+
     await supabase
       .from("proposals")
       .update({ sent_at: new Date().toISOString(), status: "sent" })
       .eq("id", proposalId);
+
     return NextResponse.json({ sent: true });
   } catch (e) {
     console.error("Send proposal email error:", e);

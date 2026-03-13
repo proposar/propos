@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { TableSkeleton } from "@/components/ui/TableSkeleton";
 
 const statusStyles: Record<string, string> = {
   draft: "bg-[#1e1e2e] text-[#888890]",
@@ -32,7 +33,9 @@ export default function InvoicesPage() {
       </div>
       <div className="rounded-xl border border-[#1e1e2e] bg-[#12121e] overflow-hidden">
         {loading ? (
-          <div className="p-8 text-center text-[#888890]">Loading...</div>
+          <div className="p-4">
+            <TableSkeleton rows={5} cols={7} />
+          </div>
         ) : invoices.length === 0 ? (
           <div className="p-8 text-center text-[#888890]">
             <p>No invoices yet.</p>

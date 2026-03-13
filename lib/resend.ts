@@ -91,10 +91,10 @@ export async function sendWelcomeEmail(to: string, name?: string) {
 }
 
 // 2. Proposal sent confirmation (to freelancer)
-export async function sendProposalSentConfirmation(to: string, clientName: string, proposalLink: string) {
+export async function sendProposalSentConfirmation(to: string, clientName: string, proposalLink: string, customText?: string) {
   const html = baseLayout(`
     <h1 style="font-size:22px;margin:0 0 16px;color:#faf8f4;">Proposal sent to ${clientName} ✓</h1>
-    <p style="margin:0 0 24px;line-height:1.6;color:#c4c4cc;">Your proposal has been sent. We'll notify you when they open it.</p>
+    <p style="margin:0 0 24px;line-height:1.6;color:#c4c4cc;">${customText ?? "Your proposal has been sent. We'll notify you when they open it."}</p>
     <p style="margin:0 0 24px;line-height:1.6;color:#c4c4cc;"><a href="${proposalLink}" style="color:#D4AF37;">View proposal</a></p>
   `);
   return sendEmail({ to, subject: `Proposal sent to ${clientName} ✓`, html });

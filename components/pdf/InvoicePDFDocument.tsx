@@ -9,10 +9,10 @@ import {
 
 const styles = StyleSheet.create({
   page: {
-    padding: 50,
+    padding: 60,
     fontFamily: "Helvetica",
-    fontSize: 11,
-    color: "#2c2c2c",
+    fontSize: 10.5,
+    color: "#374151",
     lineHeight: 1.6,
     backgroundColor: "#FFFFFF",
   },
@@ -55,9 +55,10 @@ const styles = StyleSheet.create({
   },
   invoiceNumber: {
     fontSize: 24,
-    fontWeight: "bold",
-    color: "#1a1a1a",
+    fontFamily: "Helvetica-Bold",
+    color: "#111827",
     marginBottom: 8,
+    letterSpacing: -1,
   },
   headerText: {
     fontSize: 10,
@@ -74,17 +75,17 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
   sectionLabel: {
-    fontSize: 9,
-    color: "#999",
+    fontSize: 8.5,
+    color: "#9CA3AF",
     marginBottom: 8,
     textTransform: "uppercase",
-    letterSpacing: 1,
-    fontWeight: "bold",
+    letterSpacing: 1.2,
+    fontFamily: "Helvetica-Bold",
   },
   clientName: {
     fontSize: 14,
-    fontWeight: "bold",
-    color: "#1a1a1a",
+    fontFamily: "Helvetica-Bold",
+    color: "#111827",
     marginBottom: 4,
   },
   detailText: {
