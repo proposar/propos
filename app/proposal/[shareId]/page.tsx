@@ -42,12 +42,13 @@ export default async function PublicProposalPage({
     signature_text?: string;
     logo_url?: string;
     brand_color?: string;
+    gdpr_compliant_mode?: boolean;
   } | null = null;
   try {
     const admin = createAdminClient();
     const { data } = await admin
       .from("profiles")
-      .select("full_name, business_name, signature_text, logo_url, brand_color")
+      .select("full_name, business_name, signature_text, logo_url, brand_color, gdpr_compliant_mode")
       .eq("id", (proposal as { user_id: string }).user_id)
       .single();
     profile = data;
@@ -75,6 +76,7 @@ export default async function PublicProposalPage({
     signature: profile?.signature_text ?? "",
     logoUrl: profile?.logo_url ?? "",
     brandColor: profile?.brand_color ?? "#D4AF37",
+    gdprCompliantMode: profile?.gdpr_compliant_mode ?? false,
   } as const;
 
   return (

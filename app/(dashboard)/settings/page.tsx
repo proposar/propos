@@ -55,6 +55,7 @@ type ProfileData = {
   proposals_used_this_month?: number | null;
   stripe_subscription_id?: string | null;
   stripe_customer_id?: string | null;
+  gdpr_compliant_mode?: boolean | null;
 };
 
 export default function SettingsPage() {
@@ -99,6 +100,7 @@ export default function SettingsPage() {
           notify_proposal_expired: d?.notify_proposal_expired ?? true,
           notify_weekly_summary: d?.notify_weekly_summary ?? true,
           notify_product_updates: d?.notify_product_updates ?? false,
+          gdpr_compliant_mode: d?.gdpr_compliant_mode ?? false,
         });
       })
       .catch(() => setProfile(null))
@@ -245,8 +247,20 @@ export default function SettingsPage() {
             </div>
             <div>
               <label className="block text-sm text-[#888890] mb-1">Country</label>
-              <input value={form.country ?? ""} onChange={(e) => setForm((f) => ({ ...f, country: e.target.value }))} className="w-full rounded-lg border border-[#1e1e2e] bg-[#0a0a14] px-3 py-2 text-[#faf8f4]" />
+              <input value={form.country ?? ""} onChange={(e) => setForm((f) => ({ ...f, country: e.target.value }))} placeholder="e.g. United States, India" className="w-full rounded-lg border border-[#1e1e2e] bg-[#0a0a14] px-3 py-2 text-[#faf8f4]" />
             </div>
+          </div>
+          <div className="pt-4 border-t border-[#1e1e2e]">
+             <label className="flex items-center gap-2 text-sm text-[#faf8f4] cursor-pointer group">
+               <input 
+                 type="checkbox" 
+                 checked={form.gdpr_compliant_mode ?? false} 
+                 onChange={(e) => setForm((f) => ({ ...f, gdpr_compliant_mode: e.target.checked }))}
+                 className="rounded border-[#1e1e2e] bg-[#0a0a14] text-gold focus:ring-gold"
+               />
+               <span>Enable GDPR/Globalization Compliance Mode</span>
+               <span className="text-xs text-[#888890] group-hover:text-gold/80 transition-colors">(Adds privacy notices & handles data as per international standards)</span>
+             </label>
           </div>
           <button type="button" onClick={() => saveProfile(form)} disabled={saving} className="rounded-lg bg-gold px-4 py-2 text-sm font-medium text-[#0a0a14] disabled:opacity-50">Save</button>
         </div>

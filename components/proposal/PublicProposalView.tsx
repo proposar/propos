@@ -38,6 +38,7 @@ interface PublicProposalViewProps {
     signature: string;
     logoUrl: string;
     brandColor: string;
+    gdprCompliantMode?: boolean;
   };
   lineItems?: LineItem[];
 }
@@ -548,7 +549,15 @@ export function PublicProposalView({
                 </p>
               </div>
             </div>
-            <div className="mt-6 pt-4 border-t border-gray-50 text-center">
+            <div className="mt-6 pt-4 border-t border-gray-50 text-center space-y-3">
+              {proposal.gdprCompliantMode && (
+                <div className="max-w-xl mx-auto py-3 px-4 rounded-lg bg-gray-50/50 border border-gray-100/50 text-left">
+                  <p className="text-[10px] text-gray-400 leading-relaxed italic">
+                    <span className="font-semibold uppercase tracking-tight not-italic">Privacy & Data Handling (GDPR/Compliance Mode):</span> 
+                    This proposal is handled via Proposar&apos;s secure Infrastructure. By viewing this, your engagement data (time spent and view count) is recorded for {proposal.businessName || proposal.freelancerName} to assist in the business workflow. No sensitive data is sold to third parties. All communication remains confidential between the parties involved.
+                  </p>
+                </div>
+              )}
               <p className="text-[10px] text-gray-300 tracking-wide">
                 Powered by <span className="font-medium">Proposar</span>
               </p>
