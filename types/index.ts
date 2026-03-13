@@ -8,6 +8,14 @@ export type ProposalStatus =
   | "declined"
   | "expired";
 
+/** Custom section shape used in proposal.custom_sections */
+export interface ProposalSection {
+  id: string;
+  title: string;
+  content: string;
+  order?: number;
+}
+
 export interface Profile {
   id: string;
   email: string;
@@ -33,6 +41,8 @@ export interface Profile {
   proposals_used_this_month: number;
   proposals_reset_date: string | null;
   onboarding_completed: boolean;
+  /** Email tracking — prevents duplicate welcome emails (Migration 012) */
+  welcome_email_sent: boolean;
   /** Branding & Defaults (Migration 002) */
   brand_color: string;
   default_payment_terms: string | null;
@@ -48,6 +58,10 @@ export interface Profile {
   notify_proposal_expired: boolean;
   notify_weekly_summary: boolean;
   notify_product_updates: boolean;
+  /** Referral Program (Migration 012) */
+  referral_code: string | null;
+  referral_earnings: number;
+  referral_count: number;
   created_at: string;
   updated_at: string;
 }
@@ -92,7 +106,8 @@ export interface Proposal {
   executive_summary: string | null;
   tone: string;
   template_id: string | null;
-  custom_sections: unknown;
+  /** Structured additional sections added to a proposal */
+  custom_sections: ProposalSection[] | null;
   sent_at: string | null;
   viewed_at: string | null;
   view_count: number;
@@ -185,12 +200,15 @@ export interface Referral {
   id: string;
   referrer_id: string;
   referral_code: string;
+  referee_email: string;
   referee_id: string | null;
   referred_at: string;
-  completed_at: string | null;
-  reward_claimed: boolean;
+  completed_signup_at: string | null;
+  completed_upgrade_at: string | null;
   commission_amount: number | null;
+  reward_claimed: boolean;
   created_at: string;
+  updated_at: string;
 }
 
 /** Component-level types */

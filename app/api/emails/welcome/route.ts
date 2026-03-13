@@ -16,7 +16,7 @@ export async function POST(): Promise<NextResponse<WelcomeEmailResponse>> {
   try {
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
-      .select("full_name, onboarding_completed")
+      .select("full_name, onboarding_completed, welcome_email_sent")
       .eq("id", user.id)
       .single();
 
@@ -27,11 +27,23 @@ export async function POST(): Promise<NextResponse<WelcomeEmailResponse>> {
       );
     }
 
+    // Idempotency guard: never send twice — belt-and-suspenders
+    if (profile?.welcome_email_sent) {
+      return NextResponse.json({ sent: false, reason: "already sent" });
+    }
+
     if (profile?.onboarding_completed) {
       return NextResponse.json({ sent: false, reason: "already onboarded" });
     }
 
     await sendWelcomeEmail(user.email!, profile?.full_name ?? undefined);
+
+    // Mark as sent in DB so it can never fire again, even across sessions
+    await supabase
+      .from("profiles")
+      .update({ welcome_email_sent: true })
+      .eq("id", user.id);
+
     return NextResponse.json({ sent: true });
   } catch (e) {
     console.error("Welcome email error:", e);

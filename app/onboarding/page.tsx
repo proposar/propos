@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { trackOnboardingCompleted } from "@/lib/analytics";
 import { useRouter } from "next/navigation";
@@ -9,6 +9,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { CURRENCIES } from "@/lib/constants";
 
+// 60+ countries covering all major global freelancer markets
 const COUNTRIES = [
   "United States",
   "United Kingdom",
@@ -17,6 +18,59 @@ const COUNTRIES = [
   "India",
   "Germany",
   "Netherlands",
+  "France",
+  "Spain",
+  "Italy",
+  "Portugal",
+  "Brazil",
+  "Mexico",
+  "Argentina",
+  "Colombia",
+  "Chile",
+  "Peru",
+  "Philippines",
+  "Indonesia",
+  "Pakistan",
+  "Bangladesh",
+  "Sri Lanka",
+  "Nigeria",
+  "Kenya",
+  "Ghana",
+  "South Africa",
+  "Egypt",
+  "Morocco",
+  "Poland",
+  "Ukraine",
+  "Romania",
+  "Czech Republic",
+  "Hungary",
+  "Sweden",
+  "Norway",
+  "Denmark",
+  "Finland",
+  "Switzerland",
+  "Austria",
+  "Belgium",
+  "Ireland",
+  "New Zealand",
+  "Singapore",
+  "Malaysia",
+  "Thailand",
+  "Vietnam",
+  "Japan",
+  "South Korea",
+  "China",
+  "Taiwan",
+  "Hong Kong",
+  "United Arab Emirates",
+  "Saudi Arabia",
+  "Israel",
+  "Turkey",
+  "Russia",
+  "Serbia",
+  "Croatia",
+  "Bulgaria",
+  "Greece",
   "Other",
 ];
 
@@ -42,6 +96,9 @@ export default function OnboardingPage() {
   const [address, setAddress] = useState("");
   const [city, setCity] = useState("");
 
+  // Guard ref: welcome email must fire exactly once per mount
+  const welcomeEmailSent = useRef(false);
+
   useEffect(() => {
     const supabase = createClient();
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -50,6 +107,9 @@ export default function OnboardingPage() {
   }, [router]);
 
   useEffect(() => {
+    // Only fire once — prevents duplicate emails on re-render or React Strict Mode double-invoke
+    if (welcomeEmailSent.current) return;
+    welcomeEmailSent.current = true;
     fetch("/api/emails/welcome", { method: "POST" }).catch(() => {});
   }, []);
 
@@ -141,6 +201,17 @@ export default function OnboardingPage() {
     }
   }
 
+  // Skip saves current step data so brand/profile data is never lost
+  async function handleSkip() {
+    if (step === 1) {
+      await saveStep1();
+      setStep(2);
+    } else if (step === 2) {
+      await saveStep2();
+      setStep(3);
+    }
+  }
+
   async function handleNext() {
     if (step === 1) {
       await saveStep1();
@@ -171,8 +242,9 @@ export default function OnboardingPage() {
           {step < 3 && (
             <button
               type="button"
-              onClick={() => (step === 1 ? setStep(2) : setStep(3))}
-              className="text-sm text-muted hover:text-foreground"
+              onClick={() => void handleSkip()}
+              disabled={saving}
+              className="text-sm text-muted hover:text-foreground disabled:opacity-50"
             >
               Skip
             </button>
@@ -411,8 +483,8 @@ export default function OnboardingPage() {
                   Enter client name, project type, and a few details. Proposar will generate a professional, persuasive proposal in about 60 seconds.
                 </p>
                 <ul className="text-left text-sm text-muted space-y-2 max-w-xs mx-auto">
-                  <li className="flex items-center gap-2">✓ AI writes executive summary & deliverables</li>
-                  <li className="flex items-center gap-2">✓ Share link & track when client opens it</li>
+                  <li className="flex items-center gap-2">✓ AI writes executive summary &amp; deliverables</li>
+                  <li className="flex items-center gap-2">✓ Share link &amp; track when client opens it</li>
                   <li className="flex items-center gap-2">✓ One-click accept or PDF export</li>
                 </ul>
                 <button
@@ -435,7 +507,7 @@ export default function OnboardingPage() {
                 disabled={saving}
                 className="rounded-lg bg-gold px-6 py-3 font-medium text-background hover:bg-gold-light disabled:opacity-50"
               >
-                {saving ? "Saving..." : step === 1 ? "Next" : "Next"}
+                {saving ? "Saving..." : "Next"}
               </button>
             </div>
           )}
