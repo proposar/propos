@@ -62,9 +62,9 @@ export function Sidebar() {
   }, []);
 
   useEffect(() => {
-    fetch("/api/proposals")
+    fetch("/api/proposals?count=1")
       .then((r) => r.json())
-      .then((d) => setProposalsCount(Array.isArray(d) ? d.length : 0))
+      .then((d) => setProposalsCount(typeof d?.count === "number" ? d.count : 0))
       .catch(() => {});
   }, []);
 

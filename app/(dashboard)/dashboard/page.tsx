@@ -44,7 +44,7 @@ export default function DashboardPage() {
   useEffect(() => {
     async function load() {
       try {
-        const res = await fetch("/api/proposals");
+        const res = await fetch("/api/proposals?summary=1");
         const data = await res.json();
         if (Array.isArray(data)) {
           setProposals(data.slice(0, 5));

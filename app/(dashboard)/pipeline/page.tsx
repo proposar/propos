@@ -27,7 +27,7 @@ export default function PipelinePage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/proposals")
+    fetch("/api/proposals?summary=1")
       .then((r) => r.json())
       .then((d) => { setProposals(Array.isArray(d) ? d : []); })
       .finally(() => setLoading(false));
