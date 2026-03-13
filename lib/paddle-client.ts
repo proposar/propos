@@ -1,4 +1,63 @@
+import { initializePaddle, type Paddle } from "@paddle/paddle-js";
+
 export type PaddlePlan = "starter" | "pro" | "agency";
+
+const PRICE_IDS: Record<PaddlePlan, string> = {
+  starter:
+    process.env.NEXT_PUBLIC_PADDLE_STARTER_PRICE_ID ??
+    "pri_01kkb4b6emz06m4e04r88781d1",
+  pro:
+    process.env.NEXT_PUBLIC_PADDLE_PRO_PRICE_ID ??
+    "pri_01kkb4nc7avgf32vvav6neaerc",
+  agency:
+    process.env.NEXT_PUBLIC_PADDLE_AGENCY_PRICE_ID ??
+    "pri_01kkb4r14m0n6v88w20tf6hwjz",
+};
+
+let paddleInstancePromise: Promise<Paddle | null> | null = null;
+
+async function getPaddleInstance(): Promise<Paddle | null> {
+  if (typeof window === "undefined") return null;
+
+  if (!paddleInstancePromise) {
+    const token = process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN;
+    if (!token) return null;
+
+    paddleInstancePromise = initializePaddle({
+      token,
+      environment: "production",
+    }).then((paddle) => paddle ?? null);
+  }
+
+  return paddleInstancePromise;
+}
+
+async function startClientCheckout(
+  plan: PaddlePlan,
+  successUrl: string,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const paddle = await getPaddleInstance();
+  if (!paddle) {
+    return { ok: false, error: "Paddle client is not configured" };
+  }
+
+  const priceId = PRICE_IDS[plan];
+  if (!priceId) {
+    return { ok: false, error: "Selected plan is not configured" };
+  }
+
+  paddle.Checkout.open({
+    items: [{ priceId, quantity: 1 }],
+    settings: {
+      displayMode: "overlay",
+      successUrl,
+      theme: "dark",
+      locale: "en",
+    },
+  });
+
+  return { ok: true };
+}
 
 async function startServerCheckout(
   plan: PaddlePlan,
@@ -35,11 +94,12 @@ export async function openCheckout(
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   try {
     const successUrl = options?.successUrl ?? `${window.location.origin}/billing`;
-    console.log("[openCheckout] Starting server-side checkout for plan:", plan, "successUrl:", successUrl);
+    const clientResult = await startClientCheckout(plan, successUrl);
+    if (clientResult.ok) {
+      return clientResult;
+    }
 
-    // Always use server-side checkout via our API route.
-    // This avoids any environment mismatch between Paddle.js (sandbox vs live)
-    // and keeps all secrets on the server.
+    console.warn("[openCheckout] Client checkout fallback:", clientResult.error);
     return await startServerCheckout(plan, successUrl);
   } catch (error) {
     console.error("[openCheckout] Error:", error);
