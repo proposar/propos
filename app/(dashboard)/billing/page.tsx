@@ -1,12 +1,18 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { useUser } from "@/hooks/useUser";
 import { useSubscription } from "@/hooks/useSubscription";
-import { openCheckout } from "@/lib/paddle-client";
+import type { Paddle } from "@paddle/paddle-js";
 import Link from "next/link";
+
+const PADDLE_PRICE_IDS: Record<string, string> = {
+  starter: process.env.NEXT_PUBLIC_PADDLE_STARTER_PRICE_ID ?? "pri_01kkb4b6emz06m4e04r88781d1",
+  pro:     process.env.NEXT_PUBLIC_PADDLE_PRO_PRICE_ID     ?? "pri_01kkb4nc7avgf32vvav6neaerc",
+  agency:  process.env.NEXT_PUBLIC_PADDLE_AGENCY_PRICE_ID  ?? "pri_01kkb4r14m0n6v88w20tf6hwjz",
+};
 
 const PLANS = {
   free: {
@@ -99,6 +105,18 @@ export default function BillingPage() {
   const [upgradeLoading, setUpgradeLoading] = useState<string | null>(null);
   const [portalLoading, setPortalLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const paddleRef = useRef<Paddle | null>(null);
+
+  // Initialize Paddle.js once
+  useEffect(() => {
+    const token = process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN;
+    if (!token || paddleRef.current) return;
+    import("@paddle/paddle-js").then(({ initializePaddle }) => {
+      initializePaddle({ token, environment: "production" }).then((p) => {
+        if (p) paddleRef.current = p;
+      });
+    });
+  }, []);
 
   useEffect(() => {
     if (!profileLoading && !profile) {
@@ -108,29 +126,41 @@ export default function BillingPage() {
 
   const handleUpgrade = useCallback(async (targetPlan: string) => {
     if (targetPlan === plan) return;
-    
+    if (!["starter", "pro", "agency"].includes(targetPlan)) return;
+
+    const priceId = PADDLE_PRICE_IDS[targetPlan];
+    if (!priceId) { alert("Plan not configured"); return; }
+
     setUpgradeLoading(targetPlan);
     try {
-      if (!["starter", "pro", "agency"].includes(targetPlan)) {
-        alert("Invalid plan selected");
+      let paddle = paddleRef.current;
+      if (!paddle) {
+        const { initializePaddle } = await import("@paddle/paddle-js");
+        const token = process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN ?? "";
+        paddle = (await initializePaddle({ token, environment: "production" })) ?? null;
+        paddleRef.current = paddle;
+      }
+      if (!paddle) {
+        alert("Payment system is loading. Please try again.");
         return;
       }
-      console.log("[Billing] Opening checkout for plan:", targetPlan);
-      const result = await openCheckout(targetPlan as "starter" | "pro" | "agency", {
-        // After checkout, always return to the billing page.
-        successUrl: `${window.location.origin}/billing`,
+      paddle.Checkout.open({
+        items: [{ priceId, quantity: 1 }],
+        customData: { user_id: profile?.id ?? "" },
+        settings: {
+          successUrl: `${window.location.origin}/billing`,
+          displayMode: "overlay",
+          theme: "dark",
+          locale: "en",
+        },
       });
-      console.log("[Billing] Checkout result:", result);
-      if (!result.ok) {
-        alert(result.error || "Failed to start checkout");
-      }
     } catch (err) {
       console.error("[Billing] Checkout error:", err);
-      alert("Failed to start checkout");
+      alert("Failed to start checkout. Please try again.");
     } finally {
       setUpgradeLoading(null);
     }
-  }, [plan]);
+  }, [plan, profile?.id]);
 
   // Handle plan parameter from URL and auto-trigger checkout
   useEffect(() => {

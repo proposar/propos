@@ -52,7 +52,9 @@ export async function middleware(request: NextRequest) {
   // post-checkout callback and send them to the billing page instead.
   const hasQueryParams = searchParams.toString().length > 0;
 
-  if (pathname === "/" && user && hasQueryParams) {
+  // Redirect logged-in users from homepage with query params to billing,
+  // but NOT when it's a Paddle checkout overlay (_ptxn) — that must stay on /.
+  if (pathname === "/" && user && hasQueryParams && !searchParams.has("_ptxn")) {
     const billingUrl = url.clone();
     billingUrl.pathname = "/billing";
     billingUrl.search = "";
