@@ -17,9 +17,6 @@ if (typeof window !== 'undefined') {
       capture_pageview: true,
       capture_exceptions: true,
     });
-    console.log("🛡️ PostHog Shield Initialized");
-  } else {
-    console.warn("⚠️ PostHog Shield: Missing Keys - Check Environment Variables");
   }
 }
 
