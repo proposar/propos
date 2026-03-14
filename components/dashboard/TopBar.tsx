@@ -5,28 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-
-function useProfileAvatar() {
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [initial, setInitial] = useState("U");
-  useEffect(() => {
-    function load() {
-      fetch("/api/profile", { cache: "no-store" })
-        .then((r) => r.json())
-        .then((d) => {
-          setAvatarUrl(d?.avatar_url ?? null);
-          if (d?.full_name) setInitial(d.full_name.charAt(0).toUpperCase());
-          else if (d?.email) setInitial(d.email.charAt(0).toUpperCase());
-        })
-        .catch(() => {});
-    }
-    load();
-    const onUpdate = () => load();
-    window.addEventListener("profile-updated", onUpdate);
-    return () => window.removeEventListener("profile-updated", onUpdate);
-  }, []);
-  return { avatarUrl, initial };
-}
+import { useProfile } from "@/contexts/ProfileContext";
 
 const titles: Record<string, string> = {
   "/dashboard": "Dashboard",
@@ -79,7 +58,13 @@ export function TopBar() {
   }, []);
 
   const title = getPageTitle(pathname);
-  const { avatarUrl, initial } = useProfileAvatar();
+  const { profile } = useProfile();
+  const avatarUrl = profile?.avatar_url ?? null;
+  const initial = profile?.full_name
+    ? profile.full_name.charAt(0).toUpperCase()
+    : profile?.email
+      ? profile.email.charAt(0).toUpperCase()
+      : "U";
 
   return (
     <header className="h-16 border-b border-[#1e1e2e] bg-[#0a0a14] flex items-center justify-between px-4 md:px-6 shrink-0">

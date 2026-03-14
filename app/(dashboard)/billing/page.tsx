@@ -3,8 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { useUser } from "@/hooks/useUser";
-import { useSubscription } from "@/hooks/useSubscription";
+import { useProfile } from "@/contexts/ProfileContext";
 import type { Paddle } from "@paddle/paddle-js";
 import Link from "next/link";
 
@@ -99,23 +98,14 @@ const planOrder = ["free", "starter", "pro", "agency"];
 
 export default function BillingPage() {
   const router = useRouter();
-  const { user: profile, loading: profileLoading } = useUser();
-  const { plan, loading: subscriptionLoading } = useSubscription();
+  const { profile, loading: profileLoading } = useProfile();
+  const plan = (profile?.subscription_plan as "free" | "starter" | "pro" | "agency") || "free";
   const [billing, setBilling] = useState<"monthly" | "annual">("monthly");
   const [upgradeLoading, setUpgradeLoading] = useState<string | null>(null);
   const [portalLoading, setPortalLoading] = useState(false);
   const paddleRef = useRef<Paddle | null>(null);
 
-  // Initialize Paddle.js once
-  useEffect(() => {
-    const token = process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN;
-    if (!token || paddleRef.current) return;
-    import("@paddle/paddle-js").then(({ initializePaddle }) => {
-      initializePaddle({ token, environment: "production" }).then((p) => {
-        if (p) paddleRef.current = p;
-      });
-    });
-  }, []);
+  // Paddle loads lazily on first Upgrade or Manage click (see handleUpgrade / openPortal)
 
   useEffect(() => {
     if (!profileLoading && !profile) {
@@ -179,7 +169,7 @@ export default function BillingPage() {
     }
   };
 
-  if (profileLoading || subscriptionLoading) {
+  if (profileLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold"></div>

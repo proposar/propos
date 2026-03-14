@@ -3,15 +3,29 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
+const ONBOARDING_CACHE_KEY = "Proposar_onboarding_completed";
+
 export function OnboardingGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [status, setStatus] = useState<"loading" | "ok" | "redirect">("loading");
 
   useEffect(() => {
+    // Fast path: skip API if we've cached that user completed onboarding this session
+    if (typeof window !== "undefined") {
+      const cached = sessionStorage.getItem(ONBOARDING_CACHE_KEY);
+      if (cached === "1") {
+        setStatus("ok");
+        return;
+      }
+    }
+
     fetch("/api/auth/onboarding-status", { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : { onboarding_completed: false }))
       .then((d) => {
         if (d?.onboarding_completed) {
+          if (typeof window !== "undefined") {
+            sessionStorage.setItem(ONBOARDING_CACHE_KEY, "1");
+          }
           setStatus("ok");
         } else {
           setStatus("redirect");

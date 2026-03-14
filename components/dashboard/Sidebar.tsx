@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { PLAN_LIMITS } from "@/lib/config";
+import { useProfile } from "@/contexts/ProfileContext";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: "📊" },
@@ -25,41 +26,19 @@ const navItems = [
 
 export function Sidebar() {
   const pathname = usePathname();
-  const [plan, setPlan] = useState<"free" | "starter" | "pro" | "agency">("free");
+  const { profile } = useProfile();
   const [proposalsCount, setProposalsCount] = useState(0);
-  const [proposalsUsed, setProposalsUsed] = useState(0);
-  const [userName, setUserName] = useState("User");
-  const [userInitial, setUserInitial] = useState("U");
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [logoUrl, setLogoUrl] = useState<string | null>(null);
 
-  function loadProfile() {
-    fetch("/api/profile", { cache: "no-store" })
-      .then((r) => r.json())
-      .then((d) => {
-        setPlan((d?.subscription_plan as "free"|"starter"|"pro"|"agency") || "free");
-        if (d?.proposals_used_this_month != null) setProposalsUsed(d.proposals_used_this_month);
-        if (d?.full_name) {
-          setUserName(d.full_name);
-          setUserInitial(d.full_name.charAt(0).toUpperCase());
-        } else if (d?.email) setUserInitial(d.email.charAt(0).toUpperCase());
-        setAvatarUrl(d?.avatar_url ?? null);
-        setLogoUrl(d?.logo_url ?? null);
-      })
-      .catch(() => {});
-  }
-
-  useEffect(() => {
-    loadProfile();
-  }, []);
-
-  useEffect(() => {
-    function onProfileUpdated() {
-      loadProfile();
-    }
-    window.addEventListener("profile-updated", onProfileUpdated);
-    return () => window.removeEventListener("profile-updated", onProfileUpdated);
-  }, []);
+  const plan = (profile?.subscription_plan as "free" | "starter" | "pro" | "agency") || "free";
+  const proposalsUsed = profile?.proposals_used_this_month ?? 0;
+  const userName = profile?.full_name || "User";
+  const userInitial = profile?.full_name
+    ? profile.full_name.charAt(0).toUpperCase()
+    : profile?.email
+      ? profile.email.charAt(0).toUpperCase()
+      : "U";
+  const avatarUrl = profile?.avatar_url ?? null;
+  const logoUrl = profile?.logo_url ?? null;
 
   useEffect(() => {
     fetch("/api/proposals?count=1")

@@ -202,6 +202,9 @@ export default function OnboardingPage() {
           updated_at: new Date().toISOString(),
         })
         .eq("id", user.id);
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem("Proposar_onboarding_completed", "1");
+      }
       trackOnboardingCompleted();
       router.push("/proposals/new");
     } catch {
