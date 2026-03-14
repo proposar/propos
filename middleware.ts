@@ -12,34 +12,37 @@ export async function middleware(request: NextRequest) {
     return response;
   }
 
-  const supabase = createServerClient(
-    supabaseUrl,
-    supabaseAnonKey,
-    {
-      cookies: {
-        get(name: string) {
-          return request.cookies.get(name)?.value;
-        },
-        set(name: string, value: string, options: object) {
-          request.cookies.set({ name, value, ...options });
-          response = NextResponse.next({ request: { headers: request.headers } });
-          response.cookies.set({ name, value, ...options });
-        },
-        remove(name: string, options: object) {
-          request.cookies.set({ name, value: "", ...options });
-          response = NextResponse.next({ request: { headers: request.headers } });
-          response.cookies.set({ name, value: "", ...options });
-        },
-      },
-    }
-  );
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
   const url = request.nextUrl;
   const { pathname, searchParams } = url;
+
+  const hasAuthCookie = request.cookies.getAll().some((c) => c.name.startsWith("sb-") && c.name.endsWith("-auth-token"));
+  let user: { id: string } | null = null;
+
+  if (hasAuthCookie) {
+    const supabase = createServerClient(
+      supabaseUrl,
+      supabaseAnonKey,
+      {
+        cookies: {
+          get(name: string) {
+            return request.cookies.get(name)?.value;
+          },
+          set(name: string, value: string, options: object) {
+            request.cookies.set({ name, value, ...options });
+            response = NextResponse.next({ request: { headers: request.headers } });
+            response.cookies.set({ name, value, ...options });
+          },
+          remove(name: string, options: object) {
+            request.cookies.set({ name, value: "", ...options });
+            response = NextResponse.next({ request: { headers: request.headers } });
+            response.cookies.set({ name, value: "", ...options });
+          },
+        },
+      }
+    );
+    const { data } = await supabase.auth.getUser();
+    user = data.user;
+  }
 
   if (pathname === "/dashboard/billing") {
     const billingUrl = url.clone();

@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
+import dynamic from "next/dynamic";
 import { Playfair_Display, DM_Sans } from "next/font/google";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { PostHogProvider } from "@/app/providers/posthog-provider";
-import ProductChatbot from "@/components/ProductChatbot";
-import NPSSurvey from "@/components/NPSSurvey";
 import { businessSchema } from "@/lib/seo";
+
+const ProductChatbot = dynamic(() => import("@/components/ProductChatbot"), { ssr: false });
+const NPSSurvey = dynamic(() => import("@/components/NPSSurvey"), { ssr: false });
 import "./globals.css";
 
 const playfair = Playfair_Display({
