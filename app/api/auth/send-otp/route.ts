@@ -35,10 +35,8 @@ export async function POST(req: NextRequest) {
     const existingAuthUser = allUsers?.find(u => u.email?.toLowerCase() === email);
 
     if (existingAuthUser) {
-      // Auth user exists (could be from Google, password, or previous OTP)
-      // Don't allow signing up again - they should sign in instead
       return NextResponse.json(
-        { error: "Email already registered. Please sign in instead." },
+        { error: "This email is already in use. Please sign in instead." },
         { status: 400 }
       );
     }

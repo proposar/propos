@@ -34,16 +34,10 @@ export default function SignupPage() {
     if (!fullName.trim()) errs.fullName = "Name is required";
     const emailValidation = validateEmail(email);
     if (!emailValidation.valid) errs.email = emailValidation.error || "Invalid email";
-    if (!agreeTerms) errs.agreeTerms = "You must agree to the Terms of Service";
-    setFieldErrors(errs);
-    return Object.keys(errs).length === 0;
-  }
-
-  function validateStep2(): boolean {
-    const errs: Record<string, string> = {};
     if (password.length < 8) errs.password = "Password must be at least 8 characters";
     else if (password !== confirmPassword) errs.confirmPassword = "Passwords do not match";
-    setFieldErrors((prev) => ({ ...prev, ...errs }));
+    if (!agreeTerms) errs.agreeTerms = "You must agree to the Terms of Service";
+    setFieldErrors(errs);
     return Object.keys(errs).length === 0;
   }
 
@@ -88,7 +82,6 @@ export default function SignupPage() {
       setError("Please enter a 6-digit code");
       return;
     }
-    if (!validateStep2()) return;
     
     setLoading(true);
     setError(null);
@@ -219,10 +212,6 @@ export default function SignupPage() {
         </div>
       </div>
 
-      <p className="text-xs text-muted mb-4 text-center">
-        You&apos;ll receive a verification code, then set a password for future logins.
-      </p>
-
       {!otpSent ? (
         <form onSubmit={handleSendOTP} className="space-y-4">
           <div>
@@ -276,69 +265,6 @@ export default function SignupPage() {
             </select>
           </div>
 
-          <label className="flex items-start gap-2">
-            <input
-              type="checkbox"
-              checked={agreeTerms}
-              onChange={(e) => setAgreeTerms(e.target.checked)}
-              className="mt-1 rounded border-border bg-surface text-gold focus:ring-gold/50"
-            />
-            <span className="text-sm text-muted">
-              I agree to the{" "}
-              <Link href="/terms" className="text-gold hover:underline">
-                Terms of Service
-              </Link>
-            </span>
-          </label>
-          {fieldErrors.agreeTerms && (
-            <p className="text-red-400 text-sm">{fieldErrors.agreeTerms}</p>
-          )}
-
-          {error && (
-            <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3">
-              <p className="text-red-400 text-sm mb-2">{error}</p>
-              {error.includes("already registered") && (
-                <Link href="/login" className="text-gold hover:underline text-sm">
-                  Go to sign in →
-                </Link>
-              )}
-            </div>
-          )}
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-lg bg-gold py-3 font-medium text-background hover:bg-gold-light transition-colors disabled:opacity-50"
-          >
-            {loading ? "Sending verification code..." : "Continue"}
-          </button>
-        </form>
-      ) : (
-        <form onSubmit={handleVerifyOTP} className="space-y-4">
-          <div className="bg-gold/10 border border-gold/20 rounded-lg p-4">
-            <p className="text-sm text-foreground mb-2">
-              ✓ Email: <strong>{email}</strong>
-            </p>
-            <p className="text-sm text-muted">
-              Enter the 6-digit code from your email and set a password. You&apos;ll use email + password to log in next time.
-            </p>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-2">
-              Verification Code
-            </label>
-            <input
-              type="text"
-              value={otpCode}
-              onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-              placeholder="000000"
-              maxLength={6}
-              className="w-full rounded-lg border border-border bg-surface px-4 py-3 text-foreground text-center text-2xl font-mono tracking-widest focus:outline-none focus:ring-2 focus:ring-gold/50"
-              required
-            />
-          </div>
-
           <div>
             <label className="block text-sm font-medium text-foreground mb-2">
               Password
@@ -352,7 +278,7 @@ export default function SignupPage() {
                   fieldErrors.password ? "border-red-500/50 bg-surface" : "border-border bg-surface"
                 }`}
                 required
-                placeholder="At least 8 characters (for future logins)"
+                placeholder="At least 8 characters"
                 minLength={8}
               />
               <button
@@ -384,11 +310,77 @@ export default function SignupPage() {
             {fieldErrors.confirmPassword && <p className="text-red-400 text-sm mt-1">{fieldErrors.confirmPassword}</p>}
           </div>
 
+          <label className="flex items-start gap-2">
+            <input
+              type="checkbox"
+              checked={agreeTerms}
+              onChange={(e) => setAgreeTerms(e.target.checked)}
+              className="mt-1 rounded border-border bg-surface text-gold focus:ring-gold/50"
+            />
+            <span className="text-sm text-muted">
+              I agree to the{" "}
+              <Link href="/terms" className="text-gold hover:underline">
+                Terms of Service
+              </Link>
+            </span>
+          </label>
+          {fieldErrors.agreeTerms && (
+            <p className="text-red-400 text-sm">{fieldErrors.agreeTerms}</p>
+          )}
+
+          {error && (
+            <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3">
+              <p className="text-red-400 text-sm mb-2">{error}</p>
+              {error.includes("already registered") && (
+                <Link href="/login" className="text-gold hover:underline text-sm">
+                  Go to sign in →
+                </Link>
+              )}
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={loading || password.length < 8 || password !== confirmPassword}
+            className="w-full rounded-lg bg-gold py-3 font-medium text-background hover:bg-gold-light transition-colors disabled:opacity-50"
+          >
+            {loading ? "Sending verification code..." : "Continue"}
+          </button>
+        </form>
+      ) : (
+        <form onSubmit={handleVerifyOTP} className="space-y-4">
+          <div className="bg-gold/10 border border-gold/20 rounded-lg p-4">
+            <p className="text-sm text-foreground mb-2">
+              Check your email: <strong>{email}</strong>
+            </p>
+            <p className="text-sm text-muted">
+              Enter the 6-digit verification code we sent to complete signup.
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-2">
+              Verification Code
+            </label>
+            <input
+              type="text"
+              value={otpCode}
+              onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+              placeholder="000000"
+              maxLength={6}
+              className="w-full rounded-lg border border-border bg-surface px-4 py-3 text-foreground text-center text-2xl font-mono tracking-widest focus:outline-none focus:ring-2 focus:ring-gold/50"
+              required
+            />
+            <p className="text-xs text-muted mt-2 text-center">
+              Check spam if you don&apos;t see it
+            </p>
+          </div>
+
           {error && <p className="text-red-400 text-sm">{error}</p>}
 
           <button
             type="submit"
-            disabled={loading || otpCode.length !== 6 || password.length < 8 || password !== confirmPassword}
+            disabled={loading || otpCode.length !== 6}
             className="w-full rounded-lg bg-gold py-3 font-medium text-background hover:bg-gold-light transition-colors disabled:opacity-50"
           >
             {loading ? "Creating account..." : "Create account"}
@@ -401,7 +393,7 @@ export default function SignupPage() {
               setOtpCode("");
               setError(null);
             }}
-            className="w-full text-sm text-gold hover:underline"
+            className="w-full text-sm text-gold hover:underline mt-2"
           >
             Use a different email
           </button>
