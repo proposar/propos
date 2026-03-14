@@ -219,6 +219,10 @@ export default function SignupPage() {
         </div>
       </div>
 
+      <p className="text-xs text-muted mb-4 text-center">
+        You&apos;ll receive a verification code, then set a password for future logins.
+      </p>
+
       {!otpSent ? (
         <form onSubmit={handleSendOTP} className="space-y-4">
           <div>

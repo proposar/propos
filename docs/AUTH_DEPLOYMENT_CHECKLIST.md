@@ -49,7 +49,15 @@ You should see:
 
 ---
 
-## 4. Supabase URL Configuration (OAuth)
+## 4. Password Storage (Supabase Auth)
+
+Passwords are stored by **Supabase Auth** in the `auth.users` table (`encrypted_password` column), not in our `profiles` table. This is managed by Supabase—no custom migration is required.
+
+When you use `admin.createUser({ email, password })` or `admin.updateUserById(id, { password })`, Supabase hashes the password (bcrypt) and stores it in `auth.users`. Our app never touches or reads password values.
+
+---
+
+## 5. Supabase URL Configuration (OAuth)
 
 Authentication → URL Configuration:
 
@@ -58,7 +66,7 @@ Authentication → URL Configuration:
 
 ---
 
-## 5. Environment Variables
+## 6. Environment Variables
 
 Ensure in production:
 
