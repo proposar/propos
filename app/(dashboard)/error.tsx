@@ -12,12 +12,18 @@ export default function DashboardError({
   reset: () => void;
 }) {
   useEffect(() => {
-    posthog.captureException(error, {
-      source: "dashboard_error_boundary",
-      digest: error.digest,
-      message: error.message,
-    });
     console.error(error);
+    try {
+      if (typeof posthog !== "undefined" && posthog.captureException) {
+        posthog.captureException(error, {
+          source: "dashboard_error_boundary",
+          digest: error.digest,
+          message: error.message,
+        });
+      }
+    } catch (_) {
+      // PostHog not ready or failed to capture
+    }
   }, [error]);
 
   return (

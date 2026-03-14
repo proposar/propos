@@ -12,9 +12,18 @@ export default function GlobalError({
   reset: () => void
 }) {
   useEffect(() => {
-    // Capture root-level exceptions
-    posthog.captureException(error)
-  }, [error])
+    try {
+      if (typeof posthog !== "undefined" && posthog.captureException) {
+        posthog.captureException(error, {
+          source: "global_error_boundary",
+          digest: error.digest,
+          message: error.message,
+        });
+      }
+    } catch (_) {
+      // PostHog not ready or failed to capture
+    }
+  }, [error]);
 
   return (
     <html>

@@ -12,9 +12,18 @@ export default function Error({
   reset: () => void;
 }) {
   useEffect(() => {
-    // Track error in PostHog
-    posthog.captureException(error);
     console.error(error);
+    try {
+      if (typeof posthog !== "undefined" && posthog.captureException) {
+        posthog.captureException(error, {
+          source: "error_boundary",
+          digest: error.digest,
+          message: error.message,
+        });
+      }
+    } catch (_) {
+      // PostHog not ready or failed to capture
+    }
   }, [error]);
 
   return (
