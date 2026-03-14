@@ -1,19 +1,47 @@
-import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/server";
-import { NextResponse } from "next/server";
+import { createServerClient } from "@supabase/ssr";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
   const next = searchParams.get("next") ?? "/dashboard";
 
+  const safeNext = next.startsWith("/") ? next : "/dashboard";
+
+  const buildErrorRedirect = () => {
+    const url = new URL("/login", origin);
+    url.searchParams.set("error", "google_auth_failed");
+    return url;
+  };
+
   if (code) {
     try {
-      const supabase = await createClient();
+      const redirectUrl = new URL(safeNext, origin);
+      const response = NextResponse.redirect(redirectUrl);
+
+      const supabase = createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+          cookies: {
+            getAll() {
+              return request.cookies.getAll();
+            },
+            setAll(cookiesToSet: Array<{ name: string; value: string; options?: Record<string, unknown> }>) {
+              cookiesToSet.forEach(({ name, value, options }) => {
+                response.cookies.set(name, value, options);
+              });
+            },
+          },
+        }
+      );
+
       const { error } = await supabase.auth.exchangeCodeForSession(code);
       
       if (error) {
-        return NextResponse.redirect(`${origin}/login?error=auth`);
+        console.error("OAuth code exchange error:", error);
+        return NextResponse.redirect(buildErrorRedirect());
       }
 
       // Get the authenticated user
@@ -21,7 +49,7 @@ export async function GET(request: Request) {
       
       if (user) {
         // Ensure profile exists for this user (important for Google OAuth)
-        const adminClient = await createAdminClient();
+        const adminClient = createAdminClient();
         const { data: existingProfile } = await adminClient
           .from("profiles")
           .select("id")
@@ -47,12 +75,12 @@ export async function GET(request: Request) {
         }
       }
 
-      return NextResponse.redirect(`${origin}${next}`);
+      return response;
     } catch (err) {
       console.error("Callback error:", err);
-      return NextResponse.redirect(`${origin}/login?error=auth`);
+      return NextResponse.redirect(buildErrorRedirect());
     }
   }
 
-  return NextResponse.redirect(`${origin}/login?error=auth`);
+  return NextResponse.redirect(buildErrorRedirect());
 }

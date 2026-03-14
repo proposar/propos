@@ -158,10 +158,14 @@ export default function SignupPage() {
       const supabase = createClient();
       const callbackUrl = new URL(`${window.location.origin}/auth/callback`);
       callbackUrl.searchParams.set("next", "/onboarding");
-      await supabase.auth.signInWithOAuth({
+      const { error: oauthError } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: { redirectTo: callbackUrl.toString() },
       });
+
+      if (oauthError) {
+        setError(oauthError.message || "Google sign-up failed. Please try again.");
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Sign up failed");
     } finally {

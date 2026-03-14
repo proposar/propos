@@ -177,10 +177,14 @@ export default function LoginPage() {
       const callbackUrl = new URL(`${window.location.origin}/auth/callback`);
       callbackUrl.searchParams.set("next", redirectTo);
       
-      await supabase.auth.signInWithOAuth({
+      const { error: oauthError } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: { redirectTo: callbackUrl.toString() },
       });
+
+      if (oauthError) {
+        setError(oauthError.message || "Google sign-in failed. Please try again.");
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Sign in failed");
     } finally {
