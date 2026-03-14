@@ -102,7 +102,17 @@ export default function OnboardingPage() {
   useEffect(() => {
     const supabase = createClient();
     supabase.auth.getUser().then(({ data: { user } }) => {
-      if (!user) router.replace("/login");
+      if (!user) {
+        router.replace("/login");
+        return;
+      }
+      // Redirect if already completed onboarding
+      fetch("/api/auth/onboarding-status", { cache: "no-store" })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((d) => {
+          if (d?.onboarding_completed) router.replace("/dashboard");
+        })
+        .catch(() => {});
     });
   }, [router]);
 

@@ -12,14 +12,15 @@ export async function GET(request: Request) {
   }
 
   try {
-    // Get all proposals for this user
+    // Limit to last 500 proposals for performance (metrics remain representative)
     const { data: proposals } = await supabase
       .from("proposals")
       .select(
         "id, status, budget_amount, created_at, sent_at, accepted_at, declined_at, viewed_at, project_type, template_id"
       )
       .eq("user_id", user.id)
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending: false })
+      .limit(500);
 
     if (!proposals || proposals.length === 0) {
       return NextResponse.json({

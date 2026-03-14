@@ -24,11 +24,14 @@ export async function GET(request: Request): Promise<NextResponse<unknown[] | { 
     ? "id, share_id, title, project_type, status, client_name, budget_amount, budget_currency, sent_at, accepted_at, created_at"
     : "id, share_id, title, project_type, status, client_name, client_email, client_company, budget_amount, budget_currency, deliverables, sent_at, accepted_at, created_at";
 
+  const limit = Math.min(Number(url.searchParams.get("limit")) || 200, 500);
+
   const { data, error } = await supabase
     .from("proposals")
     .select(selectColumns)
     .eq("user_id", user.id)
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .range(0, limit - 1);
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json(data ?? []);
