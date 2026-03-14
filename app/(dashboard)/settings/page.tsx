@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import posthog from "posthog-js";
 import {
   TONE_OPTIONS,
   PROPOSAL_SECTIONS,
