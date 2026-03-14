@@ -47,6 +47,7 @@ export default function ResetPasswordPage() {
       const supabase = createClient();
       const { error: updateError } = await supabase.auth.updateUser({ password });
       if (updateError) throw updateError;
+      await fetch("/api/auth/mark-password-set", { method: "POST" });
       setSuccess(true);
       setTimeout(() => router.push("/dashboard"), 2000);
     } catch (err) {

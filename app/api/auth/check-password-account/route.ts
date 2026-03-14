@@ -36,10 +36,9 @@ export async function POST(request: Request) {
       });
     }
 
-    // Check if user has password auth (they would have app_metadata with providers)
-    const hasPassword = 
-      !user.app_metadata?.providers || 
-      user.app_metadata.providers.includes("email");
+    // Use app_metadata.has_password when set (password signup or reset-password).
+    // Otherwise assume no password (Google/OTP) to avoid misleading "Invalid password".
+    const hasPassword = user.app_metadata?.has_password === true;
 
     return NextResponse.json({
       exists: true,

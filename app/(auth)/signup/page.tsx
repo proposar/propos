@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { validateEmail } from "@/lib/email-validation";
+import { PasswordStrength } from "@/components/auth/PasswordStrength";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -15,6 +16,12 @@ export default function SignupPage() {
   const [email, setEmail] = useState("");
   const [businessType, setBusinessType] = useState("freelancer");
   const [agreeTerms, setAgreeTerms] = useState(false);
+  
+  // Signup mode: "otp" (email code) or "password"
+  const [signupMode, setSignupMode] = useState<"otp" | "password">("otp");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   
   // Step 2: OTP verification
   const [otpCode, setOtpCode] = useState("");
@@ -34,10 +41,70 @@ export default function SignupPage() {
       errs.email = emailValidation.error || "Invalid email";
     }
     
+    if (signupMode === "password") {
+      if (password.length < 8) errs.password = "Password must be at least 8 characters";
+      else if (password !== confirmPassword) errs.confirmPassword = "Passwords do not match";
+    }
+    
     if (!agreeTerms) errs.agreeTerms = "You must agree to the Terms of Service";
     
     setFieldErrors(errs);
     return Object.keys(errs).length === 0;
+  }
+
+  async function handlePasswordSignup(e: React.FormEvent) {
+    e.preventDefault();
+    if (!validateStep1()) return;
+    
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const normalizedEmail = email.trim().toLowerCase();
+      const supabase = createClient();
+      
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email: normalizedEmail,
+        password,
+        options: {
+          data: { full_name: fullName.trim(), business_type: businessType },
+        },
+      });
+      
+      if (signUpError) {
+        if (signUpError.message.toLowerCase().includes("already")) {
+          setError("Email already registered. Please sign in instead.");
+        } else {
+          setError(signUpError.message || "Sign up failed");
+        }
+        setLoading(false);
+        return;
+      }
+      
+      if (data.user && data.session) {
+        await fetch("/api/auth/create-profile", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userId: data.user.id,
+            email: normalizedEmail,
+            fullName: fullName.trim(),
+            businessType,
+            hasPassword: true,
+          }),
+        });
+        router.refresh();
+        router.push("/onboarding");
+      } else if (data.user) {
+        setError("Check your email to confirm your account, then sign in.");
+      } else {
+        setError("Sign up failed. Please try again.");
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Sign up failed");
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function handleSendOTP(e: React.FormEvent) {
@@ -211,8 +278,33 @@ export default function SignupPage() {
         </div>
       </div>
 
+      <div className="flex gap-2 mb-4">
+        <button
+          type="button"
+          onClick={() => setSignupMode("otp")}
+          className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
+            signupMode === "otp"
+              ? "bg-gold/20 text-gold border border-gold/50"
+              : "border border-border text-muted hover:bg-surface"
+          }`}
+        >
+          Send code to email
+        </button>
+        <button
+          type="button"
+          onClick={() => setSignupMode("password")}
+          className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
+            signupMode === "password"
+              ? "bg-gold/20 text-gold border border-gold/50"
+              : "border border-border text-muted hover:bg-surface"
+          }`}
+        >
+          Create with password
+        </button>
+      </div>
+
       {!otpSent ? (
-        <form onSubmit={handleSendOTP} className="space-y-4">
+        <form onSubmit={signupMode === "password" ? handlePasswordSignup : handleSendOTP} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-foreground mb-2">
               Full Name
@@ -264,6 +356,59 @@ export default function SignupPage() {
             </select>
           </div>
 
+          {signupMode === "password" && (
+            <>
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Password
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className={`w-full rounded-lg border px-4 py-3 text-foreground pr-10 focus:outline-none focus:ring-2 focus:ring-gold/50 ${
+                      fieldErrors.password ? "border-red-500/50 bg-surface" : "border-border bg-surface"
+                    }`}
+                    required={signupMode === "password"}
+                    placeholder="At least 8 characters"
+                    minLength={8}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-foreground"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? "Hide" : "Show"}
+                  </button>
+                </div>
+                <PasswordStrength password={password} />
+                {fieldErrors.password && (
+                  <p className="text-red-400 text-sm mt-1">{fieldErrors.password}</p>
+                )}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Confirm Password
+                </label>
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className={`w-full rounded-lg border px-4 py-3 text-foreground focus:outline-none focus:ring-2 focus:ring-gold/50 ${
+                    fieldErrors.confirmPassword ? "border-red-500/50 bg-surface" : "border-border bg-surface"
+                  }`}
+                  required={signupMode === "password"}
+                  placeholder="Repeat your password"
+                />
+                {fieldErrors.confirmPassword && (
+                  <p className="text-red-400 text-sm mt-1">{fieldErrors.confirmPassword}</p>
+                )}
+              </div>
+            </>
+          )}
+
           <label className="flex items-start gap-2">
             <input
               type="checkbox"
@@ -295,10 +440,16 @@ export default function SignupPage() {
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || (signupMode === "password" && (password.length < 8 || password !== confirmPassword))}
             className="w-full rounded-lg bg-gold py-3 font-medium text-background hover:bg-gold-light transition-colors disabled:opacity-50"
           >
-            {loading ? "Sending verification code..." : "Continue"}
+            {loading
+              ? signupMode === "password"
+                ? "Creating account..."
+                : "Sending verification code..."
+              : signupMode === "password"
+                ? "Create account"
+                : "Continue"}
           </button>
         </form>
       ) : (
