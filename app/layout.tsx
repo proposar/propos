@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Playfair_Display, DM_Sans } from "next/font/google";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { PostHogProvider } from "@/app/providers/posthog-provider";
 import ProductChatbot from "@/components/ProductChatbot";
 import NPSSurvey from "@/components/NPSSurvey";
 import { businessSchema } from "@/lib/seo";
@@ -114,10 +115,12 @@ export default function RootLayout({
         ))}
       </head>
       <body className="min-h-screen bg-background font-sans text-foreground antialiased">
-        {children}
-        <ProductChatbot />
-        <NPSSurvey />
-        <Analytics />
+        <PostHogProvider>
+          {children}
+          <ProductChatbot />
+          <NPSSurvey />
+          <Analytics />
+        </PostHogProvider>
         <SpeedInsights />
       </body>
     </html>
