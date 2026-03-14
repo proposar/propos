@@ -143,7 +143,7 @@ export function Sidebar() {
       {plan === "free" && (
         <div className="p-3 border-t border-[#1e1e2e]">
           <Link
-            href="/billing?plan=pro"
+            href="/billing"
             className="block rounded-lg border border-gold/50 bg-gold/10 p-3 text-sm text-gold hover:bg-gold/20 transition-colors"
           >
             <p className="font-medium">You&apos;re on Free.</p>
