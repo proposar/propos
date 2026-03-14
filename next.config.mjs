@@ -1,4 +1,4 @@
-
+import { withPostHogConfig } from "@posthog/nextjs-config";
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -37,4 +37,12 @@ const nextConfig = {
   },
 };
 
-export default nextConfig;
+export default withPostHogConfig(nextConfig, {
+  personalApiKey: process.env.POSTHOG_PERSONAL_API_KEY,
+  envId: "342573", 
+  host: "https://us.i.posthog.com",
+  sourcemaps: {
+    enabled: true,
+    project: "proposar",
+  },
+});
