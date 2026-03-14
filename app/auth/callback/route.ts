@@ -78,7 +78,6 @@ export async function GET(request: NextRequest) {
               email: user.email,
               full_name: user.user_metadata?.full_name || user.email?.split("@")[0] || "User",
               business_type: "freelancer", // Default for OAuth users
-              auth_provider: "google", // Track the provider
             });
 
           if (profileError) {

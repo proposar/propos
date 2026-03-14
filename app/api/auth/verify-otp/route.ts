@@ -92,7 +92,14 @@ export async function POST(req: NextRequest) {
 
       if (authError) {
         console.error("Auth user creation error:", authError);
-        return NextResponse.json({ error: "Failed to create account" }, { status: 500 });
+        const msg =
+          authError.message?.toLowerCase().includes("already") ||
+          authError.message?.toLowerCase().includes("exists")
+            ? "This email is already registered. Please sign in instead."
+            : authError.message?.toLowerCase().includes("database")
+              ? "Account creation failed. Please try again or use Google sign-in."
+              : "Failed to create account. Please try again.";
+        return NextResponse.json({ error: msg }, { status: 500 });
       }
 
       userId = data.user.id;
