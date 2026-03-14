@@ -166,6 +166,7 @@ export async function POST(req: NextRequest) {
         email,
         isNewUser,
         token_hash: linkData.properties.hashed_token,
+        email_otp: linkData.properties.email_otp,
         message: "Email verified successfully",
       },
       { status: 200 }

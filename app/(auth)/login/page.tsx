@@ -132,12 +132,25 @@ export default function LoginPage() {
           return;
         }
         
-        // Use the token_hash returned by server to establish a real session
         const supabase = createClient();
-        const { error: sessionError } = await supabase.auth.verifyOtp({
-          token_hash: data.token_hash,
-          type: "magiclink",
-        });
+        let sessionError: Error | null = null;
+
+        if (data.token_hash) {
+          const result = await supabase.auth.verifyOtp({
+            token_hash: data.token_hash,
+            type: "magiclink",
+          });
+          sessionError = result.error;
+        }
+
+        if (sessionError && data.email_otp) {
+          const fallback = await supabase.auth.verifyOtp({
+            email: normalizedEmail,
+            token: data.email_otp,
+            type: "email",
+          });
+          sessionError = fallback.error;
+        }
 
         if (sessionError) {
           console.error("Session error:", sessionError);

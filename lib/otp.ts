@@ -109,7 +109,12 @@ export async function verifyOTP(
 }> {
   try {
     const normalizedEmail = email.trim().toLowerCase();
+    const normalizedCode = String(code).trim().replace(/\D/g, "").slice(0, 6);
     const supabase = createAdminClient();
+
+    if (normalizedCode.length !== 6) {
+      return { valid: false, error: "Please enter a valid 6-digit code." };
+    }
 
     // Fetch OTP from database
     const { data: stored, error: dbError } = await supabase
@@ -118,13 +123,18 @@ export async function verifyOTP(
       .eq("email", normalizedEmail)
       .single();
 
+    if (dbError && dbError.code !== "PGRST116") {
+      console.error("[OTP VERIFY] Database error:", dbError);
+      return { valid: false, error: "Failed to verify OTP. Please try again." };
+    }
+
     console.log(`\n${'='.repeat(60)}`);
-    console.log(`[OTP VERIFY] Email: ${normalizedEmail} | Code: ${code}`);
+    console.log(`[OTP VERIFY] Email: ${normalizedEmail} | Code: ${normalizedCode}`);
     console.log(`[OTP VERIFY] Found in database: ${!!stored}`);
     
     if (stored) {
       console.log(`[OTP VERIFY] Stored code: ${stored.code}`);
-      console.log(`[OTP VERIFY] Code match: ${stored.code === code}`);
+      console.log(`[OTP VERIFY] Code match: ${String(stored.code).trim() === normalizedCode}`);
       console.log(`[OTP VERIFY] Expires at: ${stored.expires_at}`);
       console.log(`[OTP VERIFY] Now: ${new Date().toISOString()}`);
       console.log(`[OTP VERIFY] Expired: ${new Date() > new Date(stored.expires_at)}`);
@@ -159,14 +169,14 @@ export async function verifyOTP(
     }
 
     // Check code match
-    if (stored.code !== code) {
+    if (String(stored.code).trim() !== normalizedCode) {
       // Increment attempts
       await supabase
         .from("otp_codes")
         .update({ attempts: stored.attempts + 1 })
         .eq("email", normalizedEmail);
       const remaining = stored.max_attempts - stored.attempts - 1;
-      console.log(`[OTP] Wrong code for ${normalizedEmail}. Expected: ${stored.code}, Got: ${code}`);
+      console.log(`[OTP] Wrong code for ${normalizedEmail}. Expected: ${stored.code}, Got: ${normalizedCode}`);
       return { 
         valid: false, 
         error: `Invalid code. You have ${remaining} attempt${remaining === 1 ? '' : 's'} left.`
