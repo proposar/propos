@@ -1,5 +1,11 @@
 import { Resend } from "resend";
 import { createAdminClient } from "@/lib/supabase/server";
+import {
+  otpStoreSet,
+  otpStoreGet,
+  otpStoreIncrAttempts,
+  otpStoreDelete,
+} from "@/lib/otp-store";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -7,16 +13,17 @@ const resend = new Resend(process.env.RESEND_API_KEY);
  * Generate a 6-digit OTP code
  */
 export function generateOTP(): string {
-  // Ensure exactly 6 digits
   const code = Math.floor(100000 + Math.random() * 900000).toString();
   if (code.length !== 6) {
-    console.warn(`[OTP] Generated code length mismatch: ${code} (length: ${code.length})`);
+    console.warn(`[OTP] Generated code length mismatch: ${code}`);
   }
   return code;
 }
 
 /**
- * Send OTP via Resend email
+ * Send OTP via Resend email.
+ * Uses Upstash Redis when configured (KV_REST_* or UPSTASH_*) — nothing in Supabase until auth.
+ * Otherwise falls back to otp_codes table.
  */
 export async function sendOTP(email: string, fullName?: string): Promise<{
   success: boolean;
@@ -25,38 +32,15 @@ export async function sendOTP(email: string, fullName?: string): Promise<{
   try {
     const normalizedEmail = email.trim().toLowerCase();
     const otp = generateOTP();
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
-    const supabase = createAdminClient();
-
-    // Delete any existing OTP for this email (to reset attempts)
-    await supabase
-      .from("otp_codes")
-      .delete()
-      .eq("email", normalizedEmail);
-
-    // Store OTP in database
-    const { error: dbError } = await supabase
-      .from("otp_codes")
-      .insert({
-        email: normalizedEmail,
-        code: otp,
-        expires_at: expiresAt.toISOString(),
-        attempts: 0,
-      });
-
-    if (dbError) {
-      console.error("[OTP SEND] Database error:", dbError);
+    const stored = await otpStoreSet(normalizedEmail, otp);
+    if (!stored) {
+      console.error("[OTP SEND] Failed to store OTP");
       return { success: false, error: "Failed to send OTP" };
     }
 
-    console.log(`\n${'='.repeat(60)}`);
-    console.log(`[OTP SEND] Email: ${normalizedEmail}`);
-    console.log(`[OTP SEND] Code: ${otp} (length: ${otp.length})`);
-    console.log(`[OTP SEND] Expires: ${expiresAt.toISOString()}`);
-    console.log(`${'='.repeat(60)}\n`);
+    console.log(`[OTP SEND] Email: ${normalizedEmail} | Code: ${otp}`);
 
-    // Send via Resend
     const { error } = await resend.emails.send({
       from: "Proposar <noreply@proposar.com>",
       to: email,
@@ -79,11 +63,7 @@ export async function sendOTP(email: string, fullName?: string): Promise<{
 
     if (error) {
       console.error("[OTP SEND] Resend error:", error);
-      // Clean up the OTP from database if email send failed
-      await supabase
-        .from("otp_codes")
-        .delete()
-        .eq("email", normalizedEmail);
+      await otpStoreDelete(normalizedEmail);
       return { success: false, error: error.message };
     }
 
@@ -98,7 +78,8 @@ export async function sendOTP(email: string, fullName?: string): Promise<{
 }
 
 /**
- * Verify OTP code
+ * Verify OTP code.
+ * User and profile are created ONLY after OTP is valid (in verify-otp route).
  */
 export async function verifyOTP(
   email: string,
@@ -110,88 +91,36 @@ export async function verifyOTP(
   try {
     const normalizedEmail = email.trim().toLowerCase();
     const normalizedCode = String(code).trim().replace(/\D/g, "").slice(0, 6);
-    const supabase = createAdminClient();
 
     if (normalizedCode.length !== 6) {
       return { valid: false, error: "Please enter a valid 6-digit code." };
     }
 
-    // Fetch OTP from database (case-insensitive email match)
-    const { data: rows, error: dbError } = await supabase
-      .from("otp_codes")
-      .select("*")
-      .ilike("email", normalizedEmail);
-
-    const stored = Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
-
-    if (dbError && dbError.code !== "PGRST116") {
-      console.error("[OTP VERIFY] Database error:", dbError);
-      return { valid: false, error: "Failed to verify OTP. Please try again." };
-    }
-
-    console.log(`\n${'='.repeat(60)}`);
-    console.log(`[OTP VERIFY] Email: ${normalizedEmail} | Code: ${normalizedCode}`);
-    console.log(`[OTP VERIFY] Found in database: ${!!stored}`);
-    
-    if (stored) {
-      console.log(`[OTP VERIFY] Stored code: ${stored.code}`);
-      console.log(`[OTP VERIFY] Code match: ${String(stored.code).trim() === normalizedCode}`);
-      console.log(`[OTP VERIFY] Expires at: ${stored.expires_at}`);
-      console.log(`[OTP VERIFY] Now: ${new Date().toISOString()}`);
-      console.log(`[OTP VERIFY] Expired: ${new Date() > new Date(stored.expires_at)}`);
-      console.log(`[OTP VERIFY] Attempts: ${stored.attempts} / ${stored.max_attempts}`);
-    }
-    console.log(`${'='.repeat(60)}\n`);
+    const stored = await otpStoreGet(normalizedEmail);
 
     if (!stored) {
-      return { valid: false, error: `No verification code found for ${normalizedEmail}. Please request a new code.` };
-    }
-
-    // Check expiration
-    if (new Date() > new Date(stored.expires_at)) {
-      // Delete expired OTP (use id for reliability)
-      await supabase
-        .from("otp_codes")
-        .delete()
-        .eq("id", stored.id);
-      console.log(`[OTP] Code expired for ${normalizedEmail}`);
-      return { valid: false, error: "Verification code expired. Please request a new one." };
-    }
-
-    // Check attempt limit
-    if (stored.attempts >= stored.max_attempts) {
-      // Delete OTP if max attempts exceeded
-      await supabase
-        .from("otp_codes")
-        .delete()
-        .eq("id", stored.id);
-      console.log(`[OTP] Too many attempts for ${normalizedEmail}`);
-      return { valid: false, error: "Too many attempts. Please request a new code." };
-    }
-
-    // Compare codes - normalize stored code same way as input (handles number/whitespace)
-    const storedCodeNorm = String(stored.code).trim().replace(/\D/g, "").slice(0, 6);
-
-    if (normalizedCode !== storedCodeNorm) {
-      // Increment attempts
-      await supabase
-        .from("otp_codes")
-        .update({ attempts: stored.attempts + 1 })
-        .eq("id", stored.id);
-      const remaining = stored.max_attempts - stored.attempts - 1;
-      console.log(`[OTP] Wrong code for ${normalizedEmail}. Expected: ${stored.code}, Got: ${normalizedCode}`);
-      return { 
-        valid: false, 
-        error: `Invalid code. You have ${remaining} attempt${remaining === 1 ? '' : 's'} left.`
+      return {
+        valid: false,
+        error: `No verification code found for ${normalizedEmail}. Please request a new code.`,
       };
     }
 
-    // OTP is valid, delete it
-    await supabase
-      .from("otp_codes")
-      .delete()
-      .eq("id", stored.id);
-    console.log(`[OTP] ✓ Successfully verified for ${normalizedEmail}`);
+    const storedCodeNorm = String(stored.code).trim().replace(/\D/g, "").slice(0, 6);
+
+    if (normalizedCode !== storedCodeNorm) {
+      const updated = await otpStoreIncrAttempts(normalizedEmail);
+      if (!updated) {
+        return { valid: false, error: "Too many attempts. Please request a new code." };
+      }
+      const remaining = updated.maxAttempts - updated.attempts;
+      return {
+        valid: false,
+        error: `Invalid code. You have ${remaining} attempt${remaining === 1 ? "" : "s"} left.`,
+      };
+    }
+
+    await otpStoreDelete(normalizedEmail);
+    console.log(`[OTP] ✓ Verified for ${normalizedEmail}`);
     return { valid: true };
   } catch (err) {
     console.error("[OTP VERIFY] Error:", err);
@@ -203,10 +132,13 @@ export async function verifyOTP(
 }
 
 /**
- * Clear expired OTPs from database
+ * Clear expired OTPs (Supabase fallback only; Redis expires automatically)
  */
 export async function clearExpiredOTPs(): Promise<void> {
   try {
+    const redis = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
+    if (redis) return;
+
     const supabase = createAdminClient();
     await supabase
       .from("otp_codes")
@@ -216,6 +148,3 @@ export async function clearExpiredOTPs(): Promise<void> {
     console.error("[OTP] Error clearing expired codes:", err);
   }
 }
-
-// Run cleanup every 5 minutes
-setInterval(clearExpiredOTPs, 5 * 60 * 1000);
