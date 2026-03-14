@@ -14,6 +14,7 @@ function initPostHog() {
 
   posthog.init(key, {
     api_host: host,
+    defaults: "2026-01-30",
     person_profiles: "identified_only",
     capture_pageview: true,
     capture_exceptions: true,
