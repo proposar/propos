@@ -41,8 +41,11 @@ const nextConfig = {
 export default withPostHogConfig(nextConfig, {
   personalApiKey: process.env.POSTHOG_PERSONAL_API_KEY,
   envId: "342573", 
-  host: "https://us.i.posthog.com",
+  host: process.env.NEXT_PUBLIC_POSTHOG_HOST ?? "https://us.i.posthog.com",
   sourcemaps: {
-    enabled: true,
+    enabled:
+      process.env.VERCEL === "1" &&
+      process.env.NODE_ENV === "production" &&
+      !!process.env.POSTHOG_PERSONAL_API_KEY,
   },
 });

@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
+import posthog from "posthog-js";
 
 export default function DashboardError({
   error,
@@ -11,6 +12,11 @@ export default function DashboardError({
   reset: () => void;
 }) {
   useEffect(() => {
+    posthog.captureException(error, {
+      source: "dashboard_error_boundary",
+      digest: error.digest,
+      message: error.message,
+    });
     console.error(error);
   }, [error]);
 

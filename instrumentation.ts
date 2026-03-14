@@ -6,6 +6,7 @@ export const onRequestError = async (err: any, request: any, context: any) => {
   if (process.env.NEXT_RUNTIME === 'nodejs') {
     const { getPostHogServer } = await import('./lib/posthog-server')
     const posthog = getPostHogServer()
+    if (!posthog) return
     
     let distinctId = null
     
