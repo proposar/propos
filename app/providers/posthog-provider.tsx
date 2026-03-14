@@ -6,21 +6,23 @@ import posthog from "posthog-js";
 import { PostHogProvider as CSPostHogProvider } from "posthog-js/react";
 import { useEffect } from "react";
 
-export function PostHogProvider({ children }: { children: React.ReactNode }) {
-  useEffect(() => {
-    // Only initialize PostHog if the keys are available
-    if (
-      process.env.NEXT_PUBLIC_POSTHOG_KEY &&
-      process.env.NEXT_PUBLIC_POSTHOG_HOST
-    ) {
-      posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY, {
-        api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
-        person_profiles: "identified_only", 
-        capture_pageview: true, // Enable automatic pageviews for instant tracking
-        capture_exceptions: true, // This is the 'Error Tracking' code to replace Sentry
-      });
-    }
-  }, []);
+if (typeof window !== 'undefined') {
+  if (
+    process.env.NEXT_PUBLIC_POSTHOG_KEY &&
+    process.env.NEXT_PUBLIC_POSTHOG_HOST
+  ) {
+    posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY, {
+      api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
+      person_profiles: "identified_only", 
+      capture_pageview: true,
+      capture_exceptions: true,
+    });
+    console.log("🛡️ PostHog Shield Initialized");
+  } else {
+    console.warn("⚠️ PostHog Shield: Missing Keys - Check Environment Variables");
+  }
+}
 
+export function PostHogProvider({ children }: { children: React.ReactNode }) {
   return <CSPostHogProvider client={posthog}>{children}</CSPostHogProvider>;
 }
