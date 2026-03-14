@@ -486,7 +486,12 @@ export default function SettingsPage() {
                 type="button"
                 onClick={() => {
                   console.log("💣 Triggering Test Error for PostHog...");
-                  throw new Error("🚀 Proposar Monitoring Test: Success! PostHog is tracking errors.");
+                  try {
+                    throw new Error("🚀 Proposar Monitoring Test: Success! PostHog is tracking errors.");
+                  } catch (e: any) {
+                    posthog.captureException(e);
+                    throw e; // Still throw to trigger the UI error boundary
+                  }
                 }}
                 className="text-xs font-semibold px-3 py-1.5 rounded bg-red-900/20 text-red-400 border border-red-900/30 hover:bg-red-900/30 transition-all"
               >
