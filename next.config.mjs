@@ -5,6 +5,7 @@ const nextConfig = {
   transpilePackages: ["next-mdx-remote"],
   experimental: {
     serverComponentsExternalPackages: ["@react-pdf/renderer"],
+    instrumentationHook: true,
   },
   images: {
     remotePatterns: [
@@ -43,6 +44,5 @@ export default withPostHogConfig(nextConfig, {
   host: "https://us.i.posthog.com",
   sourcemaps: {
     enabled: true,
-    project: "proposar",
   },
 });
