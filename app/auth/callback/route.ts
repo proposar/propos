@@ -6,14 +6,27 @@ export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
   const next = searchParams.get("next") ?? "/dashboard";
+  const errorFromOAuth = searchParams.get("error");
+  const errorDescription = searchParams.get("error_description");
 
   const safeNext = next.startsWith("/") ? next : "/dashboard";
 
-  const buildErrorRedirect = () => {
+  const buildErrorRedirect = (errorType = "google_auth_failed", desc?: string | null) => {
     const url = new URL("/login", origin);
-    url.searchParams.set("error", "google_auth_failed");
+    url.searchParams.set("error", errorType);
+    if (desc) url.searchParams.set("error_description", desc);
     return url;
   };
+
+  // Supabase/Google may return error in query string on auth failure
+  if (errorFromOAuth && !code) {
+    return NextResponse.redirect(
+      buildErrorRedirect(
+        errorFromOAuth === "access_denied" ? "access_denied" : "google_auth_failed",
+        errorDescription
+      )
+    );
+  }
 
   if (code) {
     try {

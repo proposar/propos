@@ -19,6 +19,15 @@ export default function LoginPage() {
     if (redirectParam) {
       setRedirectTo(redirectParam);
     }
+    // Show error when redirected back from failed Google OAuth
+    const errorParam = params.get("error");
+    if (errorParam === "google_auth_failed") {
+      setError("Google sign-in failed. Please try again or use another sign-in method.");
+    } else if (errorParam === "access_denied") {
+      setError("Google sign-in was cancelled.");
+    } else if (params.get("error_description")) {
+      setError(params.get("error_description") || "Sign-in failed. Please try again.");
+    }
   }, []);
   const [activeTab, setActiveTab] = useState<"password" | "otp">("password");
   
@@ -176,10 +185,13 @@ export default function LoginPage() {
       const supabase = createClient();
       const callbackUrl = new URL(`${window.location.origin}/auth/callback`);
       callbackUrl.searchParams.set("next", redirectTo);
-      
+
       const { error: oauthError } = await supabase.auth.signInWithOAuth({
         provider: "google",
-        options: { redirectTo: callbackUrl.toString() },
+        options: {
+          redirectTo: callbackUrl.toString(),
+          queryParams: { access_type: "offline", prompt: "consent" },
+        },
       });
 
       if (oauthError) {

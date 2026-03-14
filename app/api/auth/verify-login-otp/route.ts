@@ -26,12 +26,12 @@ export async function POST(req: NextRequest) {
 
     const adminClient = createAdminClient();
 
-    // Get user via profile
-    const { data: profile } = await adminClient
+    // Get user via profile (case-insensitive email match)
+    const { data: profiles } = await adminClient
       .from("profiles")
       .select("id")
-      .eq("email", email)
-      .single();
+      .ilike("email", email);
+    const profile = Array.isArray(profiles) && profiles.length > 0 ? profiles[0] : null;
 
     if (!profile) {
       return NextResponse.json(

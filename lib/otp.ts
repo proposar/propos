@@ -116,12 +116,13 @@ export async function verifyOTP(
       return { valid: false, error: "Please enter a valid 6-digit code." };
     }
 
-    // Fetch OTP from database
-    const { data: stored, error: dbError } = await supabase
+    // Fetch OTP from database (case-insensitive email match)
+    const { data: rows, error: dbError } = await supabase
       .from("otp_codes")
       .select("*")
-      .eq("email", normalizedEmail)
-      .single();
+      .ilike("email", normalizedEmail);
+
+    const stored = Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
 
     if (dbError && dbError.code !== "PGRST116") {
       console.error("[OTP VERIFY] Database error:", dbError);
@@ -148,11 +149,11 @@ export async function verifyOTP(
 
     // Check expiration
     if (new Date() > new Date(stored.expires_at)) {
-      // Delete expired OTP
+      // Delete expired OTP (use id for reliability)
       await supabase
         .from("otp_codes")
         .delete()
-        .eq("email", normalizedEmail);
+        .eq("id", stored.id);
       console.log(`[OTP] Code expired for ${normalizedEmail}`);
       return { valid: false, error: "Verification code expired. Please request a new one." };
     }
@@ -163,18 +164,20 @@ export async function verifyOTP(
       await supabase
         .from("otp_codes")
         .delete()
-        .eq("email", normalizedEmail);
+        .eq("id", stored.id);
       console.log(`[OTP] Too many attempts for ${normalizedEmail}`);
       return { valid: false, error: "Too many attempts. Please request a new code." };
     }
 
-    // Check code match
-    if (String(stored.code).trim() !== normalizedCode) {
+    // Compare codes - normalize stored code same way as input (handles number/whitespace)
+    const storedCodeNorm = String(stored.code).trim().replace(/\D/g, "").slice(0, 6);
+
+    if (normalizedCode !== storedCodeNorm) {
       // Increment attempts
       await supabase
         .from("otp_codes")
         .update({ attempts: stored.attempts + 1 })
-        .eq("email", normalizedEmail);
+        .eq("id", stored.id);
       const remaining = stored.max_attempts - stored.attempts - 1;
       console.log(`[OTP] Wrong code for ${normalizedEmail}. Expected: ${stored.code}, Got: ${normalizedCode}`);
       return { 
@@ -187,7 +190,7 @@ export async function verifyOTP(
     await supabase
       .from("otp_codes")
       .delete()
-      .eq("email", normalizedEmail);
+      .eq("id", stored.id);
     console.log(`[OTP] ✓ Successfully verified for ${normalizedEmail}`);
     return { valid: true };
   } catch (err) {

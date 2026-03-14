@@ -22,13 +22,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Check if email exists
+    // Check if email exists (case-insensitive - profile may have different casing)
     const adminClient = createAdminClient();
-    const { data: profile } = await adminClient
+    const { data: profiles } = await adminClient
       .from("profiles")
       .select("id")
-      .eq("email", email)
-      .single();
+      .ilike("email", email);
+    const profile = Array.isArray(profiles) && profiles.length > 0 ? profiles[0] : null;
 
     if (!profile) {
       return NextResponse.json(

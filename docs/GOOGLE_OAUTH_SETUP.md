@@ -53,12 +53,23 @@
 
 ## Step 4: Configure Supabase
 
+### 4a. Add Redirect URLs (Critical – required or Google login will redirect back to sign-in)
+
 1. Go to [Supabase Dashboard](https://app.supabase.com/)
 2. Select your Proposar project
-3. Go to **Authentication** → **Providers**
-4. Find **Google** in the list
-5. Click to enable it
-6. You'll see a form:
+3. Go to **Authentication** → **URL Configuration**
+4. Under **Redirect URLs**, add:
+   - `http://localhost:3000/auth/callback` (for local dev)
+   - `https://yourdomain.com/auth/callback` (replace with your production domain)
+   - `https://yourdomain.vercel.app/auth/callback` (if using Vercel)
+5. Set **Site URL** to your main domain (e.g. `https://yourdomain.com` or `http://localhost:3000` for dev)
+
+### 4b. Enable Google Provider
+
+1. Go to **Authentication** → **Providers**
+2. Find **Google** in the list
+3. Click to enable it
+4. You'll see a form:
    - **Client ID**: Copy from Google Cloud Console (OAuth 2.0 Client IDs)
      - Find your "Proposar Web" OAuth credentials
      - Copy the **Client ID**
@@ -111,7 +122,7 @@ Once you're ready to go live:
 
 | Issue | Solution |
 |-------|----------|
-| **"Redirect URI mismatch" error** | Make sure your redirect URI in Google Cloud matches exactly (including `https://` vs `http://`) |
+| **Redirects back to sign-in after Google** | Add `https://yourdomain.com/auth/callback` to **Supabase** → Authentication → URL Configuration → Redirect URLs |
 | **"Invalid credentials" error** | Verify Client ID and Client Secret are correct in Supabase |
 | **Button doesn't work** | Check browser console for errors; make sure auth/callback route exists |
 | **New users not created after Google signin** | Supabase should auto-create profile; check if auth trigger is set up |
