@@ -40,8 +40,10 @@ const nextConfig = {
 
 export default withPostHogConfig(nextConfig, {
   personalApiKey: process.env.POSTHOG_PERSONAL_API_KEY,
-  envId: "342573", 
-  host: process.env.NEXT_PUBLIC_POSTHOG_HOST ?? "https://us.i.posthog.com",
+  envId: "342573",
+  // Sourcemap upload is a build-time API call — must always go directly to PostHog,
+  // NOT through the reverse proxy (NEXT_PUBLIC_POSTHOG_HOST may be ph.proposar.com).
+  host: "https://us.i.posthog.com",
   sourcemaps: {
     enabled:
       process.env.VERCEL === "1" &&
