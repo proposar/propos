@@ -1,22 +1,39 @@
--- Fix "Database error: saving new user" when signing up with Google OAuth
--- The handle_new_user trigger inserts into profiles, but RLS blocks it because
--- auth.uid() is NULL during user creation. Add a policy that allows profile
--- creation for newly created auth users (id exists in auth.users).
+-- ============================================================
+-- Migration 014: Fix OAuth/OTP signup - "Database error: saving new user"
+-- CRITICAL: Required for Google OAuth and email OTP signup to work
+-- ============================================================
+-- Root cause: handle_new_user trigger fails when inserting into profiles because:
+-- 1. RLS blocks insert (auth.uid() is NULL during user creation)
+-- 2. Trigger may run with empty search_path, so "profiles" table not found
+-- ============================================================
 
--- Drop the restrictive insert policy and replace with one that allows trigger
+-- Part 1: RLS - Allow profile creation when auth.uid() is NULL (trigger context)
+DROP POLICY IF EXISTS "Allow profile creation for new auth users" ON profiles;
 DROP POLICY IF EXISTS "Users can insert own profile" ON profiles;
 
--- Policy 1: Users can insert their own profile when logged in (auth.uid() = id)
 CREATE POLICY "Users can insert own profile" ON profiles
   FOR INSERT
   WITH CHECK (auth.uid() = id);
 
--- Policy 2: Allow profile creation for new auth users (trigger context)
--- When handle_new_user runs, auth.uid() is NULL. This policy allows insert
--- when the id exists in auth.users (i.e. we're creating profile for a valid new user).
 CREATE POLICY "Allow profile creation for new auth users" ON profiles
   FOR INSERT
-  WITH CHECK (
-    auth.uid() IS NULL
-    AND id IN (SELECT id FROM auth.users)
+  WITH CHECK (auth.uid() IS NULL);
+
+-- Part 2: Fix handle_new_user trigger - set search_path and use public.profiles
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  INSERT INTO public.profiles (id, email, full_name, referral_code)
+  VALUES (
+    NEW.id,
+    NEW.email,
+    COALESCE(NEW.raw_user_meta_data->>'full_name', ''),
+    generate_referral_code(NEW.id)
   );
+  RETURN NEW;
+END;
+$$;

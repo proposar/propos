@@ -24,6 +24,7 @@ Set these in Vercel Dashboard → Project → Settings → Environment Variables
 
 ## 2. Supabase Production Setup
 
+- [ ] **Run all migrations** (especially 014) – see [AUTH_DEPLOYMENT_CHECKLIST.md](docs/AUTH_DEPLOYMENT_CHECKLIST.md) to prevent OAuth/OTP signup failures
 - [ ] **Email confirmation**: Enable in Supabase Dashboard → Authentication → Providers → Email
 - [ ] **Custom SMTP (Resend)**: Configure in Authentication → SMTP Settings
   - Host: `smtp.resend.com`, Port: 465

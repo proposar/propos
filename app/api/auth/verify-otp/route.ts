@@ -80,23 +80,39 @@ export async function POST(req: NextRequest) {
         }
       }
     } else {
-      // Create brand new auth user
-      const { data, error: authError } = await adminClient.auth.admin.createUser({
-        email,
-        email_confirm: true,
-        user_metadata: {
-          full_name: fullName,
-          business_type: businessType,
-        },
-      });
+      // Create brand new auth user (with retry - database/trigger errors can be transient)
+      let data: Awaited<ReturnType<typeof adminClient.auth.admin.createUser>>["data"] | null = null;
+      let authError: Awaited<ReturnType<typeof adminClient.auth.admin.createUser>>["error"] = null;
 
-      if (authError) {
-        console.error("Auth user creation error:", authError);
+      for (let attempt = 1; attempt <= 2; attempt++) {
+        const result = await adminClient.auth.admin.createUser({
+          email,
+          email_confirm: true,
+          user_metadata: {
+            full_name: fullName,
+            business_type: businessType,
+          },
+        });
+        data = result.data ?? null;
+        authError = result.error;
+        if (!authError) break;
+        const isRetryable =
+          authError.message?.toLowerCase().includes("database") ||
+          authError.message?.toLowerCase().includes("saving new user");
+        if (!isRetryable || attempt === 2) break;
+        await new Promise((r) => setTimeout(r, 500));
+      }
+
+      if (authError || !data?.user) {
+        if (authError) {
+          console.error("[Auth] createUser failed:", authError.message, authError);
+        }
         const msg =
-          authError.message?.toLowerCase().includes("already") ||
-          authError.message?.toLowerCase().includes("exists")
+          authError?.message?.toLowerCase().includes("already") ||
+          authError?.message?.toLowerCase().includes("exists")
             ? "This email is already registered. Please sign in instead."
-            : authError.message?.toLowerCase().includes("database")
+            : authError?.message?.toLowerCase().includes("database") ||
+                authError?.message?.toLowerCase().includes("saving new user")
               ? "Account creation failed. Please try again or use Google sign-in."
               : "Failed to create account. Please try again.";
         return NextResponse.json({ error: msg }, { status: 500 });
