@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import posthog from "posthog-js";
 import {
   TONE_OPTIONS,
   PROPOSAL_SECTIONS,
@@ -478,25 +477,6 @@ export default function SettingsPage() {
                 className="text-gold text-sm hover:underline"
               >
                 Send password reset email
-              </button>
-            </div>
-            <div className="rounded-lg border border-red-900/20 bg-red-900/5 p-4">
-              <h3 className="text-sm font-medium text-red-400 mb-2">Monitoring Test (PostHog)</h3>
-              <p className="text-xs text-[#888890] mb-3">Click this button to trigger a test error and verify that our Iron Shield monitoring is working.</p>
-              <button
-                type="button"
-                onClick={() => {
-                  console.log("💣 Triggering Test Error for PostHog...");
-                  try {
-                    throw new Error("🚀 Proposar Monitoring Test: Success! PostHog is tracking errors.");
-                  } catch (e: any) {
-                    posthog.captureException(e);
-                    throw e; // Still throw to trigger the UI error boundary
-                  }
-                }}
-                className="text-xs font-semibold px-3 py-1.5 rounded bg-red-900/20 text-red-400 border border-red-900/30 hover:bg-red-900/30 transition-all"
-              >
-                Trigger Test Error
               </button>
             </div>
             <div>
