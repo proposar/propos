@@ -29,18 +29,10 @@ export default function LoginPage() {
       setError(params.get("error_description") || "Sign-in failed. Please try again.");
     }
   }, []);
-  const [activeTab, setActiveTab] = useState<"password" | "otp">("password");
-  
-  // Password login state
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  
-  // OTP login state
-  const [otpEmail, setOtpEmail] = useState("");
-  const [otpCode, setOtpCode] = useState("");
-  const [otpSent, setOtpSent] = useState(false);
   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -67,7 +59,7 @@ export default function LoginPage() {
         const { exists, hasPassword } = await checkRes.json();
 
         if (exists && !hasPassword) {
-          setError("This account was created with Google or email code login. Please use that method above.");
+          setError("This account uses Google. Please use Continue with Google above.");
         } else {
           setError("Invalid email or password");
         }
@@ -89,92 +81,6 @@ export default function LoginPage() {
       setError(err instanceof Error ? err.message : "Invalid credentials");
     } finally {
       setLoading(false);
-    }
-  }
-
-  async function handleOtpSignIn(e: React.FormEvent) {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-    
-    // Normalize email for consistency
-    const normalizedEmail = otpEmail.trim().toLowerCase();
-    
-    if (!otpSent) {
-      // Send OTP
-      try {
-        const res = await fetch("/api/auth/send-login-otp", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: normalizedEmail }),
-        });
-        
-        const data = await res.json();
-        
-        if (!res.ok) {
-          setError(data.error || "Failed to send OTP");
-          setLoading(false);
-          return;
-        }
-        
-        setOtpSent(true);
-        setError(null);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to send OTP");
-      } finally {
-        setLoading(false);
-      }
-    } else {
-      // Verify OTP
-      try {
-        const res = await fetch("/api/auth/verify-login-otp", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: normalizedEmail, code: otpCode }),
-        });
-        
-        const data = await res.json();
-        
-        if (!res.ok) {
-          setError(data.error || "Failed to verify code");
-          setLoading(false);
-          return;
-        }
-        
-        const supabase = createClient();
-        let sessionError: Error | null = null;
-
-        if (data.token_hash) {
-          const result = await supabase.auth.verifyOtp({
-            token_hash: data.token_hash,
-            type: "magiclink",
-          });
-          sessionError = result.error;
-        }
-
-        if (sessionError && data.email_otp) {
-          const fallback = await supabase.auth.verifyOtp({
-            email: normalizedEmail,
-            token: data.email_otp,
-            type: "email",
-          });
-          sessionError = fallback.error;
-        }
-
-        if (sessionError) {
-          console.error("Session error:", sessionError);
-          setError("Verification succeeded but sign-in failed. Please try again.");
-          setLoading(false);
-          return;
-        }
-        
-        router.refresh();
-        router.push(redirectTo);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to verify code");
-      } finally {
-        setLoading(false);
-      }
     }
   }
 
@@ -250,40 +156,12 @@ export default function LoginPage() {
           </div>
           <div className="relative flex justify-center text-sm">
             <span className="bg-[#0a0a14] px-4 text-muted">
-              Or continue with email
+              Or sign in with email and password
             </span>
           </div>
         </div>
 
-        {/* Tab Buttons */}
-        <div className="flex gap-2 mb-6 border-b border-border">
-          <button
-            type="button"
-            onClick={() => setActiveTab("password")}
-            className={`px-4 py-2 font-medium border-b-2 transition-colors ${
-              activeTab === "password"
-                ? "border-gold text-gold"
-                : "border-transparent text-muted hover:text-foreground"
-            }`}
-          >
-            Password
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab("otp")}
-            className={`px-4 py-2 font-medium border-b-2 transition-colors ${
-              activeTab === "otp"
-                ? "border-gold text-gold"
-                : "border-transparent text-muted hover:text-foreground"
-            }`}
-          >
-            Email Code
-          </button>
-        </div>
-
-        {/* Password Tab */}
-        {activeTab === "password" && (
-          <form onSubmit={handlePasswordSubmit} className="space-y-4">
+        <form onSubmit={handlePasswordSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-foreground mb-2">
                 Email
@@ -354,66 +232,6 @@ export default function LoginPage() {
               {loading ? "Signing in..." : "Sign in"}
             </button>
           </form>
-        )}
-
-        {/* OTP Tab */}
-        {activeTab === "otp" && (
-          <form onSubmit={handleOtpSignIn} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Email
-              </label>
-              <input
-                type="email"
-                value={otpEmail}
-                onChange={(e) => setOtpEmail(e.target.value)}
-                disabled={otpSent}
-                className="w-full rounded-lg border border-border bg-surface px-4 py-3 text-foreground focus:outline-none focus:ring-2 focus:ring-gold/50 disabled:opacity-50"
-                required
-              />
-            </div>
-            
-            {otpSent && (
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  Enter the 6-digit code sent to your email
-                </label>
-                <input
-                  type="text"
-                  value={otpCode}
-                  onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                  placeholder="000000"
-                  maxLength={6}
-                  className="w-full rounded-lg border border-border bg-surface px-4 py-3 text-foreground text-center text-2xl font-mono tracking-widest focus:outline-none focus:ring-2 focus:ring-gold/50"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => {
-                    setOtpSent(false);
-                    setOtpCode("");
-                    setError(null);
-                  }}
-                  className="mt-2 text-sm text-gold hover:underline"
-                >
-                  Use a different email
-                </button>
-              </div>
-            )}
-            
-            {error && (
-              <p className="text-red-400 text-sm">{error}</p>
-            )}
-            
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full rounded-lg bg-gold py-3 font-medium text-background hover:bg-gold-light transition-colors disabled:opacity-50"
-            >
-              {loading ? (otpSent ? "Verifying..." : "Sending code...") : (otpSent ? "Verify code" : "Send code")}
-            </button>
-          </form>
-        )}
 
         <p className="mt-6 text-center text-sm text-muted">
           Don&apos;t have an account?{" "}

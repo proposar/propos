@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
   try {
-    let { email, code, fullName, businessType } = await req.json();
+    let { email, code, fullName, businessType, password } = await req.json();
     
     email = email?.trim().toLowerCase();
     fullName = fullName?.trim();
@@ -31,6 +31,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    if (!password || typeof password !== "string" || password.length < 8) {
+      return NextResponse.json(
+        { error: "Password must be at least 8 characters" },
+        { status: 400 }
+      );
+    }
+
     // **VERIFY OTP FIRST** - Only proceed if OTP is valid
     const otpResult = await verifyOTP(email, code);
     if (!otpResult.valid) {
@@ -50,9 +57,17 @@ export async function POST(req: NextRequest) {
     let isNewUser = true;
 
     if (existingAuthUser) {
-      // Auth user already exists — reuse it
+      // Auth user already exists — reuse, set password, mark has_password
       userId = existingAuthUser.id;
-      
+      const { error: pwdErr } = await adminClient.auth.admin.updateUserById(userId, {
+        password,
+        app_metadata: { ...existingAuthUser.app_metadata, has_password: true },
+      });
+      if (pwdErr) {
+        console.error("Password update error:", pwdErr);
+        return NextResponse.json({ error: "Failed to set password" }, { status: 500 });
+      }
+
       // Check if profile exists
       const { data: existingProfile } = await adminClient
         .from("profiles")
@@ -87,6 +102,7 @@ export async function POST(req: NextRequest) {
       for (let attempt = 1; attempt <= 2; attempt++) {
         const result = await adminClient.auth.admin.createUser({
           email,
+          password,
           email_confirm: true,
           user_metadata: {
             full_name: fullName,
@@ -163,6 +179,14 @@ export async function POST(req: NextRequest) {
         console.error("Profile upsert error:", profileError);
         await adminClient.auth.admin.deleteUser(userId);
         return NextResponse.json({ error: "Failed to create profile" }, { status: 500 });
+      }
+
+      // Mark user as having password auth
+      const { data: u } = await adminClient.auth.admin.getUserById(userId);
+      if (u?.user) {
+        await adminClient.auth.admin.updateUserById(userId, {
+          app_metadata: { ...u.user.app_metadata, has_password: true },
+        });
       }
     }
 
