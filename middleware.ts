@@ -65,7 +65,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // Protect dashboard and app routes (including billing)
-  const protectedPaths = ["/dashboard", "/proposals", "/templates", "/clients", "/settings", "/onboarding", "/analytics", "/pipeline", "/contracts", "/invoices"];
+  const protectedPaths = ["/dashboard", "/proposals", "/templates", "/clients", "/settings", "/onboarding", "/analytics", "/pipeline", "/contracts", "/invoices", "/billing"];
   const isProtected = protectedPaths.some((p) => pathname === p || pathname.startsWith(p + "/"));
   if (isProtected && !user) {
     const loginUrl = new URL("/login", request.url);
