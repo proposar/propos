@@ -479,6 +479,19 @@ export default function SettingsPage() {
                 Send password reset email
               </button>
             </div>
+            <div className="rounded-lg border border-red-900/20 bg-red-900/5 p-4">
+              <h3 className="text-sm font-medium text-red-400 mb-2">Monitoring Test (PostHog)</h3>
+              <p className="text-xs text-[#888890] mb-3">Click this button to trigger a test error and verify that our Iron Shield monitoring is working.</p>
+              <button
+                type="button"
+                onClick={() => {
+                  throw new Error("🚀 Proposar Monitoring Test: Success! PostHog is tracking errors.");
+                }}
+                className="text-xs font-semibold px-3 py-1.5 rounded bg-red-900/20 text-red-400 border border-red-900/30 hover:bg-red-900/30 transition-all"
+              >
+                Trigger Test Error
+              </button>
+            </div>
             <div>
               <h3 className="text-sm font-medium text-[#faf8f4] mb-2">Change email</h3>
               <p className="text-sm text-[#888890]">Contact support to change your email address.</p>
