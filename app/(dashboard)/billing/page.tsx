@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { useUser } from "@/hooks/useUser";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -99,6 +99,7 @@ const planOrder = ["free", "starter", "pro", "agency"];
 
 export default function BillingPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user: profile, loading: profileLoading } = useUser();
   const { plan, loading: subscriptionLoading } = useSubscription();
   const [billing, setBilling] = useState<"monthly" | "annual">("monthly");
@@ -169,7 +170,7 @@ export default function BillingPage() {
       return;
     }
 
-    const planParam = new URLSearchParams(window.location.search).get("plan");
+    const planParam = searchParams.get("plan");
     if (
       planParam &&
       ["starter", "pro", "agency"].includes(planParam) &&
@@ -177,10 +178,14 @@ export default function BillingPage() {
       plan &&
       planParam !== plan
     ) {
-      console.log("[Billing] Auto-triggering checkout for plan:", planParam);
+      // Clear param immediately to prevent re-trigger on refresh or Strict Mode double-run
+      const url = new URL(window.location.href);
+      url.searchParams.delete("plan");
+      router.replace(url.pathname + (url.search || ""), { scroll: false });
+
       handleUpgrade(planParam);
     }
-  }, [subscriptionLoading, plan, mounted, handleUpgrade]);
+  }, [subscriptionLoading, plan, mounted, handleUpgrade, searchParams, router]);
 
   const openPortal = async () => {
     setPortalLoading(true);
