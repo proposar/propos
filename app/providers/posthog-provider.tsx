@@ -17,6 +17,7 @@ export function PostHogProvider({ children }: { children: React.ReactNode }) {
         api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
         person_profiles: "identified_only", 
         capture_pageview: true, // Enable automatic pageviews for instant tracking
+        capture_exceptions: true, // This is the 'Error Tracking' code to replace Sentry
       });
     }
   }, []);
