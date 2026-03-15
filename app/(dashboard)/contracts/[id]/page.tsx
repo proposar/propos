@@ -147,6 +147,14 @@ export default function ContractDetailPage() {
             </p>
           </div>
         </div>
+        <div>
+          <a
+            href={`/api/contracts/${id}/proof`}
+            className="inline-flex items-center rounded-lg border border-gold px-4 py-2 text-xs font-medium text-gold hover:bg-gold/10"
+          >
+            Download Legal Proof Bundle
+          </a>
+        </div>
       </div>
 
       <div className="flex gap-3">
