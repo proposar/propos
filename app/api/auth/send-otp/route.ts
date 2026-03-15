@@ -1,6 +1,7 @@
 import { sendOTP } from "@/lib/otp";
 import { validateEmail } from "@/lib/email-validation";
 import { createAdminClient } from "@/lib/supabase/server";
+import { checkRateLimit, getRequestIp } from "@/lib/rate-limit";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
@@ -16,6 +17,31 @@ export async function POST(req: NextRequest) {
 
     if (!fullName) {
       return NextResponse.json({ error: "Full name required" }, { status: 400 });
+    }
+
+    const ip = getRequestIp(req);
+    const ipLimit = await checkRateLimit({
+      key: `rl:signup-otp:ip:${ip}`,
+      limit: 12,
+      windowSec: 10 * 60,
+    });
+    if (!ipLimit.allowed) {
+      return NextResponse.json(
+        { error: "Too many requests. Please try again shortly." },
+        { status: 429, headers: { "Retry-After": String(ipLimit.retryAfter) } }
+      );
+    }
+
+    const emailLimit = await checkRateLimit({
+      key: `rl:signup-otp:email:${email}`,
+      limit: 4,
+      windowSec: 10 * 60,
+    });
+    if (!emailLimit.allowed) {
+      return NextResponse.json(
+        { error: "Too many OTP requests for this email. Please wait and try again." },
+        { status: 429, headers: { "Retry-After": String(emailLimit.retryAfter) } }
+      );
     }
 
     // Validate email

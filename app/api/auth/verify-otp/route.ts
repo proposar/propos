@@ -1,5 +1,6 @@
 import { verifyOTP } from "@/lib/otp";
 import { createAdminClient } from "@/lib/supabase/server";
+import { checkRateLimit, getRequestIp } from "@/lib/rate-limit";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
@@ -35,6 +36,31 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         { error: "Password must be at least 8 characters" },
         { status: 400 }
+      );
+    }
+
+    const ip = getRequestIp(req);
+    const ipLimit = await checkRateLimit({
+      key: `rl:verify-signup-otp:ip:${ip}`,
+      limit: 25,
+      windowSec: 10 * 60,
+    });
+    if (!ipLimit.allowed) {
+      return NextResponse.json(
+        { error: "Too many verification attempts. Please wait and try again." },
+        { status: 429, headers: { "Retry-After": String(ipLimit.retryAfter) } }
+      );
+    }
+
+    const emailLimit = await checkRateLimit({
+      key: `rl:verify-signup-otp:email:${email}`,
+      limit: 12,
+      windowSec: 10 * 60,
+    });
+    if (!emailLimit.allowed) {
+      return NextResponse.json(
+        { error: "Too many verification attempts for this email. Please request a new OTP." },
+        { status: 429, headers: { "Retry-After": String(emailLimit.retryAfter) } }
       );
     }
 
