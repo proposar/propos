@@ -20,6 +20,10 @@ export async function GET(request: NextRequest) {
 
   // Supabase/Google may return error in query string on auth failure
   if (errorFromOAuth && !code) {
+    console.error("OAuth provider returned error:", {
+      error: errorFromOAuth,
+      error_description: errorDescription,
+    });
     return NextResponse.redirect(
       buildErrorRedirect(
         errorFromOAuth === "access_denied" ? "access_denied" : "google_auth_failed",
@@ -94,5 +98,9 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  return NextResponse.redirect(buildErrorRedirect());
+  console.error("OAuth callback missing code and error params", {
+    pathname: new URL(request.url).pathname,
+    search: new URL(request.url).search,
+  });
+  return NextResponse.redirect(buildErrorRedirect("google_auth_failed", "OAuth callback did not return an authorization code."));
 }
