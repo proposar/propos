@@ -27,31 +27,27 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Check if email already has an account (via ANY method: Google, OTP, password)
+    // Fast check: existing profile means account already exists
     const adminClient = createAdminClient();
-    
-    // First check if auth user exists with this email (regardless of provider)
-    const { data: { users: allUsers } } = await adminClient.auth.admin.listUsers({ perPage: 1000 });
-    const existingAuthUser = allUsers?.find(u => u.email?.toLowerCase() === email);
+    const { data: existingProfiles, error: existingProfilesError } = await adminClient
+      .from("profiles")
+      .select("id")
+      .ilike("email", email)
+      .limit(1);
 
-    if (existingAuthUser) {
+    if (existingProfilesError) {
+      console.error("Send OTP profile lookup error:", existingProfilesError);
+      return NextResponse.json(
+        { error: "Failed to process request" },
+        { status: 500 }
+      );
+    }
+
+    if (Array.isArray(existingProfiles) && existingProfiles.length > 0) {
       return NextResponse.json(
         { error: "This email is already in use. Please sign in instead." },
         { status: 400 }
       );
-    }
-
-    // Also check for orphaned profiles (have profile but no auth user)
-    const { data: existing } = await adminClient
-      .from("profiles")
-      .select("id")
-      .eq("email", email)
-      .single();
-
-    if (existing) {
-      // Orphaned profile (no auth user) — clean it up silently
-      await adminClient.from("profiles").delete().eq("id", existing.id);
-      console.log(`[Signup] Cleaned orphaned profile for ${email}`);
     }
 
     // Send OTP

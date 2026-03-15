@@ -49,145 +49,92 @@ export async function POST(req: NextRequest) {
 
     const adminClient = createAdminClient();
 
-    // Check if auth user already exists by email (handles orphaned auth users)
-    const { data: { users: existingUsers } } = await adminClient.auth.admin.listUsers({ perPage: 1000 });
-    const existingAuthUser = existingUsers?.find(u => u.email?.toLowerCase() === email);
+    // Create brand new auth user only AFTER OTP success
+    let data: Awaited<ReturnType<typeof adminClient.auth.admin.createUser>>["data"] | null = null;
+    let authError: Awaited<ReturnType<typeof adminClient.auth.admin.createUser>>["error"] = null;
 
-    let userId: string;
-    let isNewUser = true;
-
-    if (existingAuthUser) {
-      // Auth user already exists — reuse, set password, mark has_password
-      userId = existingAuthUser.id;
-      const { error: pwdErr } = await adminClient.auth.admin.updateUserById(userId, {
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      const result = await adminClient.auth.admin.createUser({
+        email,
         password,
-        app_metadata: { ...existingAuthUser.app_metadata, has_password: true },
+        email_confirm: true,
+        user_metadata: {
+          full_name: fullName,
+          business_type: businessType,
+        },
+        app_metadata: {
+          has_password: true,
+        },
       });
-      if (pwdErr) {
-        console.error("Password update error:", pwdErr);
-        return NextResponse.json({ error: "Failed to set password" }, { status: 500 });
-      }
+      data = result.data ?? null;
+      authError = result.error;
+      if (!authError) break;
+      const isRetryable =
+        authError.message?.toLowerCase().includes("database") ||
+        authError.message?.toLowerCase().includes("saving new user");
+      if (!isRetryable || attempt === 2) break;
+      await new Promise((r) => setTimeout(r, 250));
+    }
 
-      // Check if profile exists
-      const { data: existingProfile } = await adminClient
+    if (authError || !data?.user) {
+      if (authError) {
+        console.error("[Auth] createUser failed:", authError.message, authError);
+      }
+      const msg =
+        authError?.message?.toLowerCase().includes("already") ||
+        authError?.message?.toLowerCase().includes("exists")
+          ? "This email is already registered. Please sign in instead."
+          : authError?.message?.toLowerCase().includes("database") ||
+              authError?.message?.toLowerCase().includes("saving new user")
+            ? "Account creation failed. Please try again or use Google sign-in."
+            : "Failed to create account. Please try again.";
+      return NextResponse.json({ error: msg }, { status: 500 });
+    }
+
+    const userId = data.user.id;
+    const isNewUser = true;
+
+    // handle_new_user trigger inserts a profile; update fields and fallback insert if needed
+    const { data: existingProfile, error: profileLookupError } = await adminClient
+      .from("profiles")
+      .select("id")
+      .eq("id", userId)
+      .maybeSingle();
+
+    if (profileLookupError) {
+      console.error("Profile lookup error after user creation:", profileLookupError);
+    }
+
+    let profileError = null;
+
+    if (existingProfile) {
+      const { error } = await adminClient
         .from("profiles")
-        .select("id")
-        .eq("id", userId)
-        .single();
-
-      isNewUser = !existingProfile;
-
-      if (!existingProfile) {
-        // Create missing profile
-        const { error: profileError } = await adminClient
-          .from("profiles")
-          .insert({
-            id: userId,
-            email,
-            full_name: fullName,
-            business_type: businessType,
-            onboarding_completed: false,
-          });
-
-        if (profileError) {
-          console.error("Profile creation error:", profileError);
-          return NextResponse.json({ error: "Failed to create profile" }, { status: 500 });
-        }
-      }
-    } else {
-      // Create brand new auth user (with retry - database/trigger errors can be transient)
-      let data: Awaited<ReturnType<typeof adminClient.auth.admin.createUser>>["data"] | null = null;
-      let authError: Awaited<ReturnType<typeof adminClient.auth.admin.createUser>>["error"] = null;
-
-      for (let attempt = 1; attempt <= 2; attempt++) {
-        const result = await adminClient.auth.admin.createUser({
+        .update({
           email,
-          password,
-          email_confirm: true,
-          user_metadata: {
-            full_name: fullName,
-            business_type: businessType,
-          },
-        });
-        data = result.data ?? null;
-        authError = result.error;
-        if (!authError) break;
-        const isRetryable =
-          authError.message?.toLowerCase().includes("database") ||
-          authError.message?.toLowerCase().includes("saving new user");
-        if (!isRetryable || attempt === 2) break;
-        await new Promise((r) => setTimeout(r, 500));
-      }
-
-      if (authError || !data?.user) {
-        if (authError) {
-          console.error("[Auth] createUser failed:", authError.message, authError);
-        }
-        const msg =
-          authError?.message?.toLowerCase().includes("already") ||
-          authError?.message?.toLowerCase().includes("exists")
-            ? "This email is already registered. Please sign in instead."
-            : authError?.message?.toLowerCase().includes("database") ||
-                authError?.message?.toLowerCase().includes("saving new user")
-              ? "Account creation failed. Please try again or use Google sign-in."
-              : "Failed to create account. Please try again.";
-        return NextResponse.json({ error: msg }, { status: 500 });
-      }
-
-      userId = data.user.id;
-      isNewUser = true;
-
-      // Because of the auth trigger (handle_new_user), a basic profile row is already created.
-      // Update it with the latest data; if somehow missing, insert it.
-      const { data: existingProfile, error: profileLookupError } = await adminClient
+          full_name: fullName,
+          business_type: businessType,
+          onboarding_completed: false,
+        })
+        .eq("id", userId);
+      profileError = error;
+    } else {
+      const { error } = await adminClient
         .from("profiles")
-        .select("id")
-        .eq("id", userId)
-        .maybeSingle();
-
-      if (profileLookupError) {
-        console.error("Profile lookup error after user creation:", profileLookupError);
-      }
-
-      let profileError = null;
-
-      if (existingProfile) {
-        const { error } = await adminClient
-          .from("profiles")
-          .update({
-            email,
-            full_name: fullName,
-            business_type: businessType,
-            onboarding_completed: false,
-          })
-          .eq("id", userId);
-        profileError = error;
-      } else {
-        const { error } = await adminClient
-          .from("profiles")
-          .insert({
-            id: userId,
-            email,
-            full_name: fullName,
-            business_type: businessType,
-            onboarding_completed: false,
-          });
-        profileError = error;
-      }
-
-      if (profileError) {
-        console.error("Profile upsert error:", profileError);
-        await adminClient.auth.admin.deleteUser(userId);
-        return NextResponse.json({ error: "Failed to create profile" }, { status: 500 });
-      }
-
-      // Mark user as having password auth
-      const { data: u } = await adminClient.auth.admin.getUserById(userId);
-      if (u?.user) {
-        await adminClient.auth.admin.updateUserById(userId, {
-          app_metadata: { ...u.user.app_metadata, has_password: true },
+        .insert({
+          id: userId,
+          email,
+          full_name: fullName,
+          business_type: businessType,
+          onboarding_completed: false,
         });
-      }
+      profileError = error;
+    }
+
+    if (profileError) {
+      console.error("Profile upsert error:", profileError);
+      await adminClient.auth.admin.deleteUser(userId);
+      return NextResponse.json({ error: "Failed to create profile" }, { status: 500 });
     }
 
     console.log(`[Auth] User verified: ${email} (ID: ${userId}, new: ${isNewUser})`);
