@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { generateContractWithOpenAI } from "@/lib/openai";
 import { checkAIRateLimit } from "@/lib/rate-limit";
+import { getMarketRules } from "@/lib/global-market-rules";
 
 export async function POST(request: Request) {
   const supabase = await createClient();
@@ -32,31 +33,45 @@ export async function POST(request: Request) {
   const freelancerName = profile?.full_name ?? "Freelancer";
   const businessName = profile?.business_name ?? "";
   const freelancerCountry = profile?.country ?? "Freelancer's jurisdiction";
-  const prompt = `Act as a Senior Legal Counsel specializing in Freelance and Agency Law. Generate a high-performance, premium Service Agreement between:
+  const rules = getMarketRules(profile?.country);
 
-Lessor/Service Provider (Freelancer): ${freelancerName}, ${businessName} (Located in: ${freelancerCountry})
-Lessee/Client: ${proposal.client_name}, ${proposal.client_company ?? "Individual"}
+  const prompt = `Act as a Senior Legal Counsel specializing in freelance and agency service agreements. Generate a premium Service Agreement between:
+
+Service Provider (Freelancer): ${freelancerName}, ${businessName} (Located in: ${freelancerCountry})
+Client: ${proposal.client_name}, ${proposal.client_company ?? "Individual"}
 Project: ${proposal.project_type}
 Scope: ${proposal.project_scope}
 Contract Value: ${proposal.budget_currency ?? "USD"} ${proposal.budget_amount ?? 0}
 Timeline: ${proposal.timeline ?? "To be defined in milestones"}
 
-CORE OBJECTIVE: Protect the Freelancer/Agency from 'Ghosting', Scope Creep, and Non-Payment.
+Jurisdiction pack selected: ${rules.displayCountry}
+Governing law guidance: ${rules.contract.governingLaw}
+Late fee guidance: ${rules.contract.lateFeeClause}
+E-sign guidance: ${rules.contract.eSignatureClause}
+Mediation window: ${rules.contract.mediationDays} days
 
-The contract MUST include these specific clauses in professional legal language:
-1. Detailed Scope & Deliverables: Based on the provided project description.
-2. Anti-Ghosting Payment Schedule:
-   - Mandatory Upfront Deposit: 50% required before work commences.
-   - Milestone Payments: Clear triggers for remaining 50% (e.g., 25% on first draft, 25% on final delivery).
-   - Late Payment Terms: 5% weekly interest on overdue invoices.
-3. Kill-Fee / Early Termination: If the client terminates for convenience or disappears (ghosts) for >14 days, a 25% "Kill Fee" of the remaining contract value is immediately due plus payment for all work done.
-4. Intellectual Property (IP) Protection: Crucial - IP transfer ONLY happens upon receipt of FULL AND FINAL PAYMENT. The client has no right to use the work if a balance remains.
-5. Revision Policy: Max 2 rounds of minor revisions. Major changes require a new SOW.
-6. Governing Law: Use ${freelancerCountry} law. If India, reference the Information Technology Act 2000.
-7. Dispute Resolution: Mandatory 14-day mediation before any legal action.
-8. Electronic Signatures: Explicitly state that e-signatures through this platform are legally binding and enforceable.
+CORE OBJECTIVE: Protect the Freelancer/Agency from ghosting, scope creep, IP misuse, and non-payment while remaining commercially fair.
 
-Format the output in clean Markdown with clear headings and a Signature Block at the end.`;
+The contract MUST include these clauses in professional legal language:
+1. Detailed Scope & Deliverables aligned to provided project context.
+2. Anti-ghosting payment schedule:
+   - Mandatory upfront deposit: 50% before work starts.
+   - Milestone triggers for remaining balance.
+   - Late-payment clause aligned with this guidance: ${rules.contract.lateFeeClause}
+3. Kill-fee / early termination: 25% of remaining contract value if client terminates for convenience or is unresponsive for >14 days, plus payment for completed work.
+4. IP transfer only after full and final payment.
+5. Revision policy: maximum 2 minor rounds; major changes require new SOW.
+6. Governing law clause aligned to: ${rules.contract.governingLaw}
+7. Dispute resolution with ${rules.contract.mediationDays}-day mediation before formal proceedings.
+8. E-signature enforceability clause aligned to: ${rules.contract.eSignatureClause}
+9. Professional legal caution note at the end using this wording:
+   "${rules.contract.cautionNote}"
+
+Formatting requirements:
+- Use clean Markdown headings.
+- Use numbered clauses and bullet points for obligations.
+- Add a signature block for both Freelancer and Client.
+- Avoid placeholder markers like [Insert] or TODO.`;
 
   const rateCheck = checkAIRateLimit(user.id);
   if (!rateCheck.ok) {

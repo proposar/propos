@@ -173,6 +173,46 @@ export interface Template {
   created_at: string;
 }
 
+export interface Contract {
+  id: string;
+  proposal_id: string | null;
+  user_id: string;
+  share_id: string;
+  title: string;
+  content: string;
+  status: "draft" | "sent" | "signed" | "declined";
+  client_name: string;
+  client_email: string | null;
+  freelancer_signature: string | null;
+  client_signature: string | null;
+  freelancer_signed_at: string | null;
+  client_signed_at: string | null;
+  sent_at: string | null;
+  created_at: string;
+}
+
+export interface Invoice {
+  id: string;
+  proposal_id: string | null;
+  contract_id: string | null;
+  user_id: string;
+  share_id: string;
+  invoice_number: string;
+  title: string;
+  client_name: string;
+  client_email: string | null;
+  status: "draft" | "sent" | "paid" | "overdue";
+  subtotal: number | null;
+  discount_percent: number | null;
+  tax_percent: number | null;
+  total: number | null;
+  currency: string;
+  due_date: string | null;
+  notes: string | null;
+  sent_at: string | null;
+  created_at: string;
+}
+
 /** Activity types for audit trail */
 export type ActivityEventType =
   | "proposal_created"

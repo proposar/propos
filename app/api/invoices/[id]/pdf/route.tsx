@@ -47,7 +47,7 @@ export async function GET(
   const { data: profile } = await supabase
     .from("profiles")
     .select(
-      "full_name, business_name, email, logo_url, brand_color, website, phone, address, city, country"
+      "full_name, business_name, email, logo_url, brand_color, website, phone, address, city, country, default_payment_terms"
     )
     .eq("id", user.id)
     .single();
@@ -89,6 +89,7 @@ export async function GET(
           address: profile.address,
           city: profile.city,
           country: profile.country,
+          default_payment_terms: profile.default_payment_terms,
         }}
       />
     );

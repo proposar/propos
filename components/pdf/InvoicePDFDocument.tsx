@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Image,
 } from "@react-pdf/renderer";
+import { getMarketRules } from "@/lib/global-market-rules";
 
 const styles = StyleSheet.create({
   page: {
@@ -278,6 +279,7 @@ export interface InvoicePDFProps {
     address: string | null;
     city: string | null;
     country: string | null;
+    default_payment_terms?: string | null;
   };
 }
 
@@ -287,6 +289,7 @@ export function InvoicePDFDocument({
   profile,
 }: InvoicePDFProps) {
   const brandColor = profile.brand_color || "#c9a84c";
+  const marketRules = getMarketRules(profile.country);
   const dateFormatted = new Date().toLocaleDateString("en-US", {
     year: "numeric",
     month: "long",
@@ -471,7 +474,7 @@ export function InvoicePDFDocument({
             {!!invoice.tax_percent && invoice.tax_percent > 0 && (
               <View style={styles.footerRow}>
                 <Text style={styles.footerLabel}>
-                  Tax ({invoice.tax_percent}%):
+                  {marketRules.invoice.taxLabel} ({invoice.tax_percent}%):
                 </Text>
                 <Text style={styles.footerValue}>
                   +{cSym}
@@ -514,9 +517,9 @@ export function InvoicePDFDocument({
             </Text>
           )}
           <Text style={styles.paymentText}>
-            Thank you for your business. Please remit payment by the due date to
-            the account details below.
+            {profile.default_payment_terms?.trim() || marketRules.invoice.paymentTermsDefault}
           </Text>
+          <Text style={styles.paymentText}>{marketRules.invoice.legalNote}</Text>
         </View>
 
         {/* Footer */}
