@@ -114,10 +114,10 @@ export default function ContractDetailPage() {
             </Link>
           ) : (
             <Link
-              href="/invoices/new"
+              href={`/invoices/new?title=${encodeURIComponent(contract.title)}&clientName=${encodeURIComponent(contract.client_name)}&clientEmail=${encodeURIComponent(contract.client_email ?? "")}`}
               className="inline-flex items-center rounded-lg bg-gold px-4 py-2 text-xs font-medium text-[#0a0a14] hover:bg-[#e8c76a]"
             >
-              Create Invoice
+              Create Invoice (Manual)
             </Link>
           )}
         </div>

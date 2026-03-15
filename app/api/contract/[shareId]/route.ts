@@ -15,10 +15,30 @@ export async function GET(
 
   const { data, error } = await admin
     .from("contracts")
-    .select("id, share_id, title, content, status, client_name, client_signature, freelancer_signature, client_signed_at, freelancer_signed_at")
+    .select("id, user_id, share_id, title, content, status, client_name, client_signature, freelancer_signature, client_signed_at, freelancer_signed_at")
     .eq("share_id", shareId)
     .single();
 
   if (error || !data) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  return NextResponse.json(data);
+
+  const { data: profile } = await admin
+    .from("profiles")
+    .select("full_name, business_name, logo_url, email, phone")
+    .eq("id", data.user_id)
+    .single();
+
+  const logoPublicUrl = profile?.logo_url
+    ? profile.logo_url.startsWith("http")
+      ? profile.logo_url
+      : admin.storage.from("logos").getPublicUrl(profile.logo_url).data.publicUrl
+    : null;
+
+  return NextResponse.json({
+    ...data,
+    freelancer_name: profile?.full_name ?? null,
+    business_name: profile?.business_name ?? null,
+    logo_url: logoPublicUrl,
+    business_email: profile?.email ?? null,
+    business_phone: profile?.phone ?? null,
+  });
 }

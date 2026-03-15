@@ -127,6 +127,14 @@ export default function ProposalsPage() {
                       <Link href={`/proposals/${p.id}`} className="text-gold hover:underline text-xs">View</Link>
                       <span className="mx-1 text-[#1e1e2e]">|</span>
                       <a href={`/api/proposals/${p.id}/pdf`} target="_blank" rel="noopener noreferrer" className="text-gold hover:underline text-xs">PDF</a>
+                      {p.status === "accepted" && (
+                        <>
+                          <span className="mx-1 text-[#1e1e2e]">|</span>
+                          <Link href={`/contracts/new?proposalId=${p.id}`} className="text-emerald-400 hover:underline text-xs">Contract</Link>
+                          <span className="mx-1 text-[#1e1e2e]">|</span>
+                          <Link href={`/invoices/new?proposalId=${p.id}`} className="text-emerald-400 hover:underline text-xs">Invoice</Link>
+                        </>
+                      )}
                     </td>
                   </tr>
                 ))}

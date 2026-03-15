@@ -21,6 +21,12 @@ export default function PublicInvoicePage() {
     due_date: string | null;
     status: string;
     payment_link: string | null;
+    freelancer_name?: string | null;
+    business_name?: string | null;
+    business_email?: string | null;
+    business_phone?: string | null;
+    business_address?: string | null;
+    logo_url?: string | null;
   } | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -42,6 +48,19 @@ export default function PublicInvoicePage() {
     <div className="min-h-screen bg-gray-50 py-12 px-4">
       <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
         <header className="bg-amber-50 border-b border-amber-200 py-6 px-8">
+          <div className="flex items-start justify-between gap-4 mb-4">
+            <div>
+              {invoice.logo_url ? (
+                <img src={invoice.logo_url} alt={invoice.business_name ?? "Business logo"} className="h-10 w-auto object-contain" />
+              ) : (
+                <p className="font-serif text-lg font-bold text-gray-900">{invoice.business_name || invoice.freelancer_name || "Freelancer"}</p>
+              )}
+              <p className="text-sm text-gray-500 mt-1">{invoice.business_name || invoice.freelancer_name || ""}</p>
+              {invoice.business_email && <p className="text-xs text-gray-500">{invoice.business_email}</p>}
+              {invoice.business_phone && <p className="text-xs text-gray-500">{invoice.business_phone}</p>}
+              {invoice.business_address && <p className="text-xs text-gray-500">{invoice.business_address}</p>}
+            </div>
+          </div>
           <div className="flex justify-between items-start mb-4">
             <div>
               <h1 className="font-serif text-2xl font-bold text-gray-900">Invoice {invoice.invoice_number}</h1>

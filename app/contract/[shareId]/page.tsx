@@ -16,6 +16,11 @@ export default function PublicContractPage() {
     client_name: string;
     client_signature: string | null;
     freelancer_signature: string | null;
+    freelancer_name?: string | null;
+    business_name?: string | null;
+    logo_url?: string | null;
+    business_email?: string | null;
+    business_phone?: string | null;
   } | null>(null);
   const [loading, setLoading] = useState(true);
   const [clientName, setClientName] = useState("");
@@ -93,6 +98,17 @@ export default function PublicContractPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-200 py-4 px-6">
+        <div className="flex items-start justify-between gap-4 mb-2">
+          <div>
+            {contract.logo_url ? (
+              <img src={contract.logo_url} alt={contract.business_name ?? "Business logo"} className="h-9 w-auto object-contain" />
+            ) : (
+              <p className="font-semibold text-gray-900">{contract.business_name || contract.freelancer_name || "Freelancer"}</p>
+            )}
+            {contract.business_email && <p className="text-xs text-gray-500">{contract.business_email}</p>}
+            {contract.business_phone && <p className="text-xs text-gray-500">{contract.business_phone}</p>}
+          </div>
+        </div>
         <h1 className="font-serif text-xl font-bold text-gray-900">{contract.title}</h1>
         <p className="text-sm text-gray-500 mt-1">Prepared for {contract.client_name}</p>
       </header>

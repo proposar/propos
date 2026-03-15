@@ -7,6 +7,10 @@ import Link from "next/link";
 export default function NewInvoicePage() {
   const searchParams = useSearchParams();
   const proposalId = searchParams.get("proposalId");
+  const prefillTitle = searchParams.get("title") ?? "";
+  const prefillClientName = searchParams.get("clientName") ?? "";
+  const prefillClientEmail = searchParams.get("clientEmail") ?? "";
+
   const [proposals, setProposals] = useState<Array<{ id: string; title: string }>>([]);
   const [selectedProposal, setSelectedProposal] = useState(proposalId ?? "");
   const [title, setTitle] = useState("");
@@ -17,11 +21,15 @@ export default function NewInvoicePage() {
   const [discountPercent, setDiscountPercent] = useState(0);
   const [taxPercent, setTaxPercent] = useState(0);
   const [total, setTotal] = useState(0);
+  const [manualAmount, setManualAmount] = useState(0);
   const [currency, setCurrency] = useState("USD");
   const [dueDate, setDueDate] = useState("");
   const [paymentLink, setPaymentLink] = useState("");
+
   const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
+  const [savedInvoice, setSavedInvoice] = useState<{ id: string; share_id: string } | null>(null);
+  const [sendingEmail, setSendingEmail] = useState(false);
+  const [emailStatus, setEmailStatus] = useState<string>("");
 
   useEffect(() => {
     const d = new Date();
@@ -41,7 +49,22 @@ export default function NewInvoicePage() {
   }, [proposalId]);
 
   useEffect(() => {
-    if (!selectedProposal) return;
+    if (proposalId) return;
+    if (!title && prefillTitle) setTitle(prefillTitle);
+    if (!clientName && prefillClientName) setClientName(prefillClientName);
+    if (!clientEmail && prefillClientEmail) setClientEmail(prefillClientEmail);
+  }, [proposalId, prefillTitle, prefillClientName, prefillClientEmail, title, clientName, clientEmail]);
+
+  useEffect(() => {
+    if (!selectedProposal) {
+      setLineItems([]);
+      setSubtotal(manualAmount);
+      setDiscountPercent(0);
+      setTaxPercent(0);
+      setTotal(manualAmount);
+      return;
+    }
+
     fetch(`/api/invoices/from-proposal?proposalId=${selectedProposal}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
@@ -54,17 +77,19 @@ export default function NewInvoicePage() {
           setDiscountPercent(d.discountPercent ?? 0);
           setTaxPercent(d.taxPercent ?? 0);
           setTotal(d.total ?? 0);
+          setManualAmount(d.total ?? 0);
           setCurrency(d.currency ?? "USD");
         }
       })
       .catch(() => {});
-  }, [selectedProposal]);
+  }, [selectedProposal, manualAmount]);
 
   const save = async () => {
     if (!title.trim() || !clientName.trim()) return;
     setSaving(true);
+    setEmailStatus("");
     try {
-      const r = await fetch("/api/invoices", {
+      const response = await fetch("/api/invoices", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -72,21 +97,75 @@ export default function NewInvoicePage() {
           title: title.trim(),
           clientName: clientName.trim(),
           clientEmail: clientEmail || null,
-          lineItems,
-          subtotal,
-          discountPercent,
-          taxPercent,
-          total,
+          lineItems: selectedProposal
+            ? lineItems
+            : [
+                {
+                  item_name: title.trim(),
+                  quantity: 1,
+                  unit: "service",
+                  rate: manualAmount,
+                  amount: manualAmount,
+                },
+              ],
+          subtotal: selectedProposal ? subtotal : manualAmount,
+          discountPercent: selectedProposal ? discountPercent : 0,
+          taxPercent: selectedProposal ? taxPercent : 0,
+          total: selectedProposal ? total : manualAmount,
           currency,
           dueDate: dueDate || null,
           paymentLink: paymentLink || null,
         }),
       });
-      const d = await r.json();
-      if (d.id) setSaved(true);
+
+      const data = await response.json().catch(() => null);
+      if (response.ok && data?.id && data?.share_id) {
+        setSavedInvoice({ id: data.id, share_id: data.share_id });
+      }
     } finally {
       setSaving(false);
     }
+  };
+
+  const publicInvoiceUrl =
+    typeof window !== "undefined" && savedInvoice
+      ? `${window.location.origin}/invoice/${savedInvoice.share_id}`
+      : "";
+
+  const handleSendInvoiceEmail = async () => {
+    if (!savedInvoice) return;
+    const to = window.prompt("Client email", clientEmail);
+    if (!to?.trim()) return;
+    const message = window.prompt("Optional personal message", "") ?? "";
+
+    setSendingEmail(true);
+    setEmailStatus("");
+    try {
+      const response = await fetch("/api/emails/send-invoice", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          invoiceId: savedInvoice.id,
+          to: to.trim(),
+          message,
+        }),
+      });
+
+      const data = await response.json().catch(() => null);
+      if (response.ok && data?.sent) {
+        setEmailStatus("Invoice email sent successfully ✓");
+      } else {
+        setEmailStatus(data?.error ?? "Failed to send invoice email");
+      }
+    } finally {
+      setSendingEmail(false);
+    }
+  };
+
+  const handleSendInvoiceWhatsApp = () => {
+    if (!publicInvoiceUrl) return;
+    const text = `Hi ${clientName},\n\nPlease review your invoice:\n${publicInvoiceUrl}\n\nThanks.`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer");
   };
 
   return (
@@ -96,64 +175,131 @@ export default function NewInvoicePage() {
 
       <div className="rounded-xl border border-[#1e1e2e] bg-[#12121e] p-6 space-y-4">
         <div>
-          <label className="block text-sm font-medium text-[#faf8f4] mb-1">From proposal *</label>
+          <label className="block text-sm font-medium text-[#faf8f4] mb-1">From proposal (optional)</label>
           <select
             value={selectedProposal}
             onChange={(e) => setSelectedProposal(e.target.value)}
             className="w-full rounded-lg border border-[#1e1e2e] bg-[#0a0a14] px-3 py-2 text-[#faf8f4]"
           >
-            <option value="">Select an accepted proposal</option>
+            <option value="">No proposal (manual invoice)</option>
             {proposals.map((p) => (
               <option key={p.id} value={p.id}>{p.title}</option>
             ))}
           </select>
-          {proposals.length === 0 && (
-            <p className="text-sm text-[#888890] mt-2">
-              Invoices are created from accepted proposals. You have no accepted proposals yet.{" "}
-              <Link href="/proposals" className="text-gold hover:underline">View proposals</Link>
-            </p>
-          )}
         </div>
+
         <div>
           <label className="block text-sm text-[#888890] mb-1">Title *</label>
           <input value={title} onChange={(e) => setTitle(e.target.value)} className="w-full rounded-lg border border-[#1e1e2e] bg-[#0a0a14] px-3 py-2 text-[#faf8f4]" />
         </div>
+
         <div>
           <label className="block text-sm text-[#888890] mb-1">Client name *</label>
           <input value={clientName} onChange={(e) => setClientName(e.target.value)} className="w-full rounded-lg border border-[#1e1e2e] bg-[#0a0a14] px-3 py-2 text-[#faf8f4]" />
         </div>
+
         <div>
           <label className="block text-sm text-[#888890] mb-1">Client email</label>
           <input type="email" value={clientEmail} onChange={(e) => setClientEmail(e.target.value)} className="w-full rounded-lg border border-[#1e1e2e] bg-[#0a0a14] px-3 py-2 text-[#faf8f4]" />
         </div>
+
         <div>
           <label className="block text-sm text-[#888890] mb-1">Due date</label>
           <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className="w-full rounded-lg border border-[#1e1e2e] bg-[#0a0a14] px-3 py-2 text-[#faf8f4]" />
         </div>
+
         <div>
           <label className="block text-sm text-[#888890] mb-1">Payment link</label>
           <input value={paymentLink} onChange={(e) => setPaymentLink(e.target.value)} placeholder="Lemon Squeezy, PayPal, etc." className="w-full rounded-lg border border-[#1e1e2e] bg-[#0a0a14] px-3 py-2 text-[#faf8f4]" />
         </div>
+
         <div className="border-t border-[#1e1e2e] pt-4">
-          <p className="text-sm text-[#888890] mb-2">Line items (from proposal)</p>
-          <div className="space-y-2 max-h-40 overflow-y-auto">
-            {lineItems.map((item, i) => (
-              <div key={i} className="flex justify-between text-sm text-[#c4c4cc]">
-                <span>{item.item_name} × {item.quantity}</span>
-                <span>{currency} {item.amount?.toLocaleString()}</span>
+          {selectedProposal ? (
+            <>
+              <p className="text-sm text-[#888890] mb-2">Line items (from proposal)</p>
+              <div className="space-y-2 max-h-40 overflow-y-auto">
+                {lineItems.map((item, i) => (
+                  <div key={i} className="flex justify-between text-sm text-[#c4c4cc]">
+                    <span>{item.item_name} × {item.quantity}</span>
+                    <span>{currency} {item.amount?.toLocaleString()}</span>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-          <p className="text-sm font-medium text-[#faf8f4] mt-2">Total: {currency} {total.toLocaleString()}</p>
+            </>
+          ) : (
+            <div>
+              <label className="block text-sm text-[#888890] mb-1">Invoice amount *</label>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={manualAmount}
+                onChange={(e) => setManualAmount(Math.max(0, Number(e.target.value) || 0))}
+                className="w-full rounded-lg border border-[#1e1e2e] bg-[#0a0a14] px-3 py-2 text-[#faf8f4]"
+              />
+            </div>
+          )}
+          <p className="text-sm font-medium text-[#faf8f4] mt-2">Total: {currency} {(selectedProposal ? total : manualAmount).toLocaleString()}</p>
         </div>
+
         <button
           onClick={save}
-          disabled={saving || !selectedProposal || !title.trim() || !clientName.trim()}
+          disabled={saving || !title.trim() || !clientName.trim() || (!selectedProposal && manualAmount <= 0)}
           className="rounded-lg bg-gold px-4 py-2 text-sm font-medium text-[#0a0a14] disabled:opacity-50"
         >
-          {saving ? "Saving..." : saved ? "Saved" : "Create Invoice"}
+          {saving ? "Saving..." : savedInvoice ? "Saved" : "Create Invoice"}
         </button>
       </div>
+
+      {savedInvoice && (
+        <div className="rounded-xl border border-[#1e1e2e] bg-[#12121e] p-6 space-y-3">
+          <h3 className="font-semibold text-[#faf8f4]">Invoice saved. Share now</h3>
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href={`/invoice/${savedInvoice.share_id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-lg bg-gold px-4 py-2 text-sm font-medium text-[#0a0a14] hover:bg-[#e8c76a]"
+            >
+              Open Public Invoice
+            </Link>
+            <button
+              type="button"
+              onClick={handleSendInvoiceEmail}
+              disabled={sendingEmail}
+              className="rounded-lg border border-[#1e1e2e] px-4 py-2 text-sm text-[#888890] hover:text-[#faf8f4] disabled:opacity-50"
+            >
+              {sendingEmail ? "Sending..." : "Send Email"}
+            </button>
+            <button
+              type="button"
+              onClick={handleSendInvoiceWhatsApp}
+              className="rounded-lg border border-[#1e1e2e] px-4 py-2 text-sm text-[#888890] hover:text-[#faf8f4]"
+            >
+              Send WhatsApp
+            </button>
+            <button
+              type="button"
+              onClick={() => navigator.clipboard.writeText(publicInvoiceUrl)}
+              className="rounded-lg border border-[#1e1e2e] px-4 py-2 text-sm text-[#888890] hover:text-[#faf8f4]"
+            >
+              Copy Link
+            </button>
+            <a
+              href={`/api/invoices/${savedInvoice.id}/pdf`}
+              download
+              className="rounded-lg border border-[#1e1e2e] px-4 py-2 text-sm text-[#888890] hover:text-[#faf8f4]"
+            >
+              Download PDF
+            </a>
+          </div>
+          {!!emailStatus && (
+            <p className={`text-sm ${emailStatus.includes("successfully") ? "text-emerald-400" : "text-red-400"}`}>
+              {emailStatus}
+            </p>
+          )}
+        </div>
+      )}
     </div>
   );
 }
