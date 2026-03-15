@@ -246,6 +246,30 @@ export async function sendProposalToClient(
   return sendEmail({ to, subject: `Business Proposal: ${projectTitle}`, html, attachments });
 }
 
+export async function sendContractToClient(
+  to: string,
+  clientName: string,
+  contractTitle: string,
+  personalMessage: string,
+  contractLink: string,
+  freelancerName?: string,
+) {
+  const signOff = freelancerName ?? "Your freelancer";
+  const html = baseLayout(`
+    <h1 style="font-size:22px;margin:0 0 16px;color:#faf8f4;">Service Contract: ${contractTitle}</h1>
+    <p style="margin:0 0 16px;line-height:1.6;color:#c4c4cc;">Hi ${clientName},</p>
+    ${personalMessage ? `<p style="margin:0 0 24px;line-height:1.6;color:#c4c4cc;white-space:pre-wrap;">${personalMessage}</p>` : ""}
+    <div style="background:#0a0a14;border:1px solid #1e1e2e;border-radius:8px;padding:20px;margin:24px 0;">
+      <p style="margin:0 0 8px;font-weight:600;color:#faf8f4;">${contractTitle}</p>
+      <p style="margin:0;font-size:14px;color:#888890;">Please review and e-sign this contract to confirm project kickoff.</p>
+    </div>
+    <a href="${contractLink}" style="display:inline-block;background:#D4AF37;color:#0a0a14;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">Review & Sign Contract →</a>
+    <p style="margin:24px 0 0;font-size:14px;color:#888890;">Best,<br/>${signOff}</p>
+  `);
+
+  return sendEmail({ to, subject: `Contract for signature: ${contractTitle}`, html });
+}
+
 // 7.5 Proposal expiry reminder (to client)
 export async function sendExpiryReminderEmail(
   to: string,

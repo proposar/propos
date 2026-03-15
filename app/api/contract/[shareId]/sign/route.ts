@@ -26,12 +26,15 @@ export async function POST(
 
   const { data: contract } = await admin
     .from("contracts")
-    .select("id, status")
+    .select("id, status, freelancer_signature, client_signature")
     .eq("share_id", shareId)
     .single();
 
   if (!contract) return NextResponse.json({ error: "Not found" }, { status: 404 });
   if (contract.status === "signed") return NextResponse.json({ error: "Already signed" }, { status: 400 });
+  if (contract.client_signature) return NextResponse.json({ error: "Client already signed" }, { status: 400 });
+
+  const nextStatus = contract.freelancer_signature ? "signed" : "sent";
 
   const { error: updErr } = await admin
     .from("contracts")
@@ -40,10 +43,10 @@ export async function POST(
       client_signed_at: new Date().toISOString(),
       client_signed_ip: clientIp,
       client_signed_user_agent: clientUserAgent,
-      status: "signed",
+      status: nextStatus,
     })
     .eq("id", contract.id);
 
   if (updErr) return NextResponse.json({ error: updErr.message }, { status: 500 });
-  return NextResponse.json({ success: true });
+  return NextResponse.json({ success: true, status: nextStatus, fullySigned: nextStatus === "signed" });
 }

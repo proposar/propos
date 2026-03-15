@@ -15,7 +15,7 @@ export async function GET(
 
   const { data, error } = await admin
     .from("contracts")
-    .select("id, share_id, title, content, status, client_name, client_signature, freelancer_signature")
+    .select("id, share_id, title, content, status, client_name, client_signature, freelancer_signature, client_signed_at, freelancer_signed_at")
     .eq("share_id", shareId)
     .single();
 

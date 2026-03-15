@@ -35,6 +35,18 @@ export async function PATCH(
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await request.json().catch(() => ({}));
+
+  const { data: existingContract, error: existingError } = await supabase
+    .from("contracts")
+    .select("id, status, freelancer_signature, client_signature")
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .single();
+
+  if (existingError || !existingContract) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
   const allowed = ["title", "content", "status", "freelancer_signature", "freelancer_signed_at", "client_signature", "client_signed_at", "sent_at"];
   const updates: Record<string, unknown> = {};
   for (const k of allowed) {
@@ -43,6 +55,26 @@ export async function PATCH(
   if (updates.freelancer_signature && !updates.freelancer_signed_at) {
     updates.freelancer_signed_at = new Date().toISOString();
   }
+
+  const nextFreelancerSignature =
+    typeof updates.freelancer_signature === "string"
+      ? (updates.freelancer_signature as string)
+      : existingContract.freelancer_signature;
+  const nextClientSignature =
+    typeof updates.client_signature === "string"
+      ? (updates.client_signature as string)
+      : existingContract.client_signature;
+
+  if (nextFreelancerSignature && nextClientSignature) {
+    updates.status = "signed";
+  } else if (
+    (nextFreelancerSignature || nextClientSignature || updates.sent_at) &&
+    !updates.status &&
+    existingContract.status === "draft"
+  ) {
+    updates.status = "sent";
+  }
+
   if (Object.keys(updates).length === 0)
     return NextResponse.json({ error: "No valid updates" }, { status: 400 });
 

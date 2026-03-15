@@ -67,10 +67,11 @@ const styles = StyleSheet.create({
   topContent: {
     flexDirection: "row",
     justifyContent: "space-between",
+    gap: 16,
     marginBottom: 50,
   },
   clientSection: {
-    flex: 1,
+    width: "62%",
   },
   preparedFor: {
     fontSize: 9,
@@ -81,11 +82,19 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   clientName: {
-    fontSize: 32,
+    fontSize: 26,
     fontFamily: "Helvetica-Bold",
     color: "#111827",
     marginBottom: 8,
     letterSpacing: -0.5,
+    lineHeight: 1.2,
+  },
+  proposalTitle: {
+    fontSize: 12,
+    color: "#1a1a1a",
+    marginTop: 8,
+    lineHeight: 1.5,
+    fontWeight: "bold",
   },
   clientCompany: {
     fontSize: 13,
@@ -93,7 +102,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   freelancerSection: {
-    flex: 1,
+    width: "38%",
     alignItems: "flex-end",
   },
   freelancerName: {
@@ -335,35 +344,50 @@ export interface ProposalPDFProps {
 
 function parseContent(content: string) {
   if (!content?.trim()) return [];
+
+  const sanitizeInlineMarkdown = (text: string) =>
+    text
+      .replace(/\*\*(.*?)\*\*/g, "$1")
+      .replace(/\*(.*?)\*/g, "$1")
+      .replace(/`([^`]+)`/g, "$1")
+      .replace(/\s+/g, " ")
+      .trim();
+
   const blocks: Array<{ type: "h1" | "h2" | "h3" | "ul" | "p"; text?: string; items?: string[] }> = [];
   const lines = content.split(/\r?\n/);
   let i = 0;
   while (i < lines.length) {
     const line = lines[i];
     if (line.startsWith("# ") && !line.startsWith("## ")) {
-      blocks.push({ type: "h1", text: line.replace(/^#\s+/, "").trim() });
+      blocks.push({ type: "h1", text: sanitizeInlineMarkdown(line.replace(/^#\s+/, "").trim()) });
       i++;
     } else if (line.startsWith("## ")) {
-      blocks.push({ type: "h2", text: line.replace(/^##\s+/, "").trim() });
+      blocks.push({ type: "h2", text: sanitizeInlineMarkdown(line.replace(/^##\s+/, "").trim()) });
       i++;
     } else if (line.startsWith("### ")) {
-      blocks.push({ type: "h3", text: line.replace(/^###\s+/, "").trim() });
+      blocks.push({ type: "h3", text: sanitizeInlineMarkdown(line.replace(/^###\s+/, "").trim()) });
       i++;
-    } else if (line.match(/^[-*]\s+/)) {
+    } else if (line.match(/^[-*]\s+/) || line.match(/^\d+\.\s+/)) {
       const items: string[] = [];
-      while (i < lines.length && lines[i].match(/^[-*]\s+/)) {
-        items.push(lines[i].replace(/^[-*]\s+/, "").trim());
+      while (i < lines.length && (lines[i].match(/^[-*]\s+/) || lines[i].match(/^\d+\.\s+/))) {
+        items.push(sanitizeInlineMarkdown(lines[i].replace(/^[-*]\s+/, "").replace(/^\d+\.\s+/, "").trim()));
         i++;
       }
       blocks.push({ type: "ul", items });
     } else if (line.trim()) {
-      const para: string[] = [line.trim()];
+      const para: string[] = [sanitizeInlineMarkdown(line.trim())];
       i++;
-      while (i < lines.length && lines[i].trim() && !lines[i].startsWith("#") && !lines[i].match(/^[-*]\s+/)) {
-        para.push(lines[i].trim());
+      while (
+        i < lines.length &&
+        lines[i].trim() &&
+        !lines[i].startsWith("#") &&
+        !lines[i].match(/^[-*]\s+/) &&
+        !lines[i].match(/^\d+\.\s+/)
+      ) {
+        para.push(sanitizeInlineMarkdown(lines[i].trim()));
         i++;
       }
-      blocks.push({ type: "p", text: para.join(" ") });
+      blocks.push({ type: "p", text: sanitizeInlineMarkdown(para.join(" ")) });
     } else {
       i++;
     }
@@ -445,7 +469,7 @@ export function ProposalPDFDocument({
               </Text>
             )}
             {proposal.title && (
-              <Text style={[styles.clientCompany, { marginTop: 8, fontWeight: "bold", color: "#1a1a1a" }]}>
+              <Text style={styles.proposalTitle}>
                 {proposal.title}
               </Text>
             )}

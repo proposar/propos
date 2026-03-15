@@ -87,7 +87,10 @@ export default function NewContractPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ freelancer_signature: name.trim() }),
     });
-    if (r.ok) setSigned(true);
+    if (r.ok) {
+      const updated = await r.json().catch(() => null);
+      if (updated?.status === "signed") setSigned(true);
+    }
   };
 
   return (
@@ -148,12 +151,20 @@ export default function NewContractPage() {
                   Sign as Freelancer
                 </button>
                 {shareId && (
-                  <Link
-                    href={`/contract/${shareId}`}
-                    className="rounded-lg border border-[#1e1e2e] px-4 py-2 text-sm text-[#888890] hover:text-[#faf8f4]"
-                  >
-                    View & Send to Client
-                  </Link>
+                  <div className="flex gap-3">
+                    <Link
+                      href={`/contracts/${contractId}`}
+                      className="rounded-lg border border-[#1e1e2e] px-4 py-2 text-sm text-[#888890] hover:text-[#faf8f4]"
+                    >
+                      Manage & Send
+                    </Link>
+                    <Link
+                      href={`/contract/${shareId}`}
+                      className="rounded-lg border border-[#1e1e2e] px-4 py-2 text-sm text-[#888890] hover:text-[#faf8f4]"
+                    >
+                      Open Public Link
+                    </Link>
+                  </div>
                 )}
               </>
             )}

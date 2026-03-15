@@ -6,7 +6,14 @@ import { useParams } from "next/navigation";
 export default function PublicContractPage() {
   const params = useParams();
   const shareId = params.shareId as string;
-  const [contract, setContract] = useState<{ title: string; content: string; status: string; client_name: string; client_signature: string | null } | null>(null);
+  const [contract, setContract] = useState<{
+    title: string;
+    content: string;
+    status: string;
+    client_name: string;
+    client_signature: string | null;
+    freelancer_signature: string | null;
+  } | null>(null);
   const [loading, setLoading] = useState(true);
   const [clientName, setClientName] = useState("");
   const [agree, setAgree] = useState(false);
@@ -16,7 +23,10 @@ export default function PublicContractPage() {
   useEffect(() => {
     fetch(`/api/contract/${shareId}`)
       .then((r) => (r.ok ? r.json() : null))
-      .then((d) => { setContract(d); if (d?.status === "signed" && d?.client_signature) setSigned(true); })
+      .then((d) => {
+        setContract(d);
+        if (d?.status === "signed" && d?.client_signature && d?.freelancer_signature) setSigned(true);
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [shareId]);
@@ -30,7 +40,19 @@ export default function PublicContractPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ clientName: clientName.trim() }),
       });
-      if (r.ok) setSigned(true);
+      if (r.ok) {
+        const data = await r.json().catch(() => null);
+        setContract((prev) =>
+          prev
+            ? {
+                ...prev,
+                client_signature: clientName.trim(),
+                status: data?.status ?? prev.status,
+              }
+            : prev,
+        );
+        if (data?.fullySigned) setSigned(true);
+      }
     } finally {
       setSigning(false);
     }
@@ -39,7 +61,7 @@ export default function PublicContractPage() {
   if (loading) return <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">Loading...</div>;
   if (!contract) return <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">Contract not found.</div>;
 
-  if (signed || (contract.status === "signed" && contract.client_signature)) {
+  if (signed || (contract.status === "signed" && contract.client_signature && contract.freelancer_signature)) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
         <div className="text-center max-w-md">
@@ -61,31 +83,47 @@ export default function PublicContractPage() {
         <article className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 mb-8">
           <div className="prose prose-sm max-w-none whitespace-pre-wrap text-gray-800">{contract.content}</div>
         </article>
+        {contract.client_signature && !signed && (
+          <div className="bg-amber-50 rounded-lg shadow-sm border border-amber-200 p-4 mb-4">
+            <p className="text-sm text-amber-800">
+              Your signature has been recorded. This contract will be marked fully signed after the freelancer signs.
+            </p>
+          </div>
+        )}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h2 className="font-semibold text-gray-900 mb-4">Sign this contract</h2>
-          <input
-            type="text"
-            placeholder="Your full name"
-            value={clientName}
-            onChange={(e) => setClientName(e.target.value)}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 mb-4"
-          />
-          <label className="flex items-center gap-2 text-sm text-gray-700 mb-4">
-            <input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} />
-            I agree to the terms of this contract
-          </label>
-          <p className="text-xs text-gray-500 mb-4">
-            By typing your full name and clicking &quot;Sign&quot;, you agree that this is your electronic signature
-            and you are legally authorised to enter into this agreement.
-          </p>
-          <button
-            type="button"
-            onClick={handleSign}
-            disabled={!clientName.trim() || !agree || signing}
-            className="rounded-lg bg-amber-600 text-white px-6 py-2 font-medium hover:bg-amber-700 disabled:opacity-50"
-          >
-            {signing ? "Signing..." : "Sign"}
-          </button>
+          {!contract.client_signature ? (
+            <>
+              <h2 className="font-semibold text-gray-900 mb-4">Sign this contract</h2>
+              <input
+                type="text"
+                placeholder="Your full name"
+                value={clientName}
+                onChange={(e) => setClientName(e.target.value)}
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 mb-4 text-gray-900 placeholder:text-gray-400"
+              />
+              <label className="flex items-center gap-2 text-sm text-gray-700 mb-4">
+                <input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} />
+                I agree to the terms of this contract
+              </label>
+              <p className="text-xs text-gray-500 mb-4">
+                By typing your full name and clicking &quot;Sign&quot;, you agree that this is your electronic signature
+                and you are legally authorised to enter into this agreement.
+              </p>
+              <button
+                type="button"
+                onClick={handleSign}
+                disabled={!clientName.trim() || !agree || signing}
+                className="rounded-lg bg-amber-600 text-white px-6 py-2 font-medium hover:bg-amber-700 disabled:opacity-50"
+              >
+                {signing ? "Signing..." : "Sign"}
+              </button>
+            </>
+          ) : (
+            <>
+              <h2 className="font-semibold text-gray-900 mb-2">Client signature recorded</h2>
+              <p className="text-sm text-gray-600">Waiting for freelancer signature to complete this contract.</p>
+            </>
+          )}
           <p className="mt-4 text-[11px] leading-snug text-gray-400">
             Proposar is not a law firm and does not provide legal advice. Contract templates are for general
             informational purposes only. For large or complex deals, consider asking a lawyer in your country
