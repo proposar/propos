@@ -39,7 +39,7 @@ export async function sendOTP(email: string, fullName?: string): Promise<{
       return { success: false, error: "Failed to send OTP" };
     }
 
-    console.log(`[OTP SEND] Email: ${normalizedEmail} | Code: ${otp}`);
+    console.log(`[OTP SEND] Email: ${normalizedEmail} | OTP generated`);
 
     const { error } = await resend.emails.send({
       from: "Proposar <noreply@proposar.com>",

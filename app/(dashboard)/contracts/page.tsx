@@ -15,7 +15,7 @@ export default function ContractsPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/contracts")
+    fetch("/api/contracts?limit=200")
       .then((r) => r.json())
       .then((d) => { setContracts(Array.isArray(d) ? d : []); })
       .finally(() => setLoading(false));
