@@ -20,6 +20,7 @@ interface PublicProposalViewProps {
   shareId: string;
   proposal: {
     id: string;
+    status?: string;
     title: string;
     client_name: string;
     client_company: string | null;
@@ -48,7 +49,7 @@ export function PublicProposalView({
   proposal,
   lineItems = [],
 }: PublicProposalViewProps) {
-  const [accepted, setAccepted] = useState(false);
+  const [accepted, setAccepted] = useState(proposal.status === "accepted");
   const [accepting, setAccepting] = useState(false);
   const [confirmAccept, setConfirmAccept] = useState(false);
   const [declineOpen, setDeclineOpen] = useState(false);
@@ -101,6 +102,7 @@ export function PublicProposalView({
   }, [proposal.id]);
 
   const handleAccept = async () => {
+    if (accepted) return;
     setAccepting(true);
     try {
       const res = await fetch(`/api/proposal/${shareId}/accept`, {

@@ -15,12 +15,28 @@ const statusStyles: Record<string, string> = {
 export default function InvoicesPage() {
   const [invoices, setInvoices] = useState<Array<{ id: string; share_id: string; invoice_number: string; title: string; status: string; client_name: string; total: number; currency: string; due_date: string | null; created_at: string }>>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadInvoices = () => {
+    setLoading(true);
+    setError(null);
+    fetch("/api/invoices")
+      .then(async (r) => {
+        const d = await r.json().catch(() => null);
+        if (!r.ok) {
+          throw new Error(d?.error ?? "Unable to load invoices");
+        }
+        setInvoices(Array.isArray(d) ? d : []);
+      })
+      .catch((e) => {
+        setInvoices([]);
+        setError(e instanceof Error ? e.message : "Unable to load invoices");
+      })
+      .finally(() => setLoading(false));
+  };
 
   useEffect(() => {
-    fetch("/api/invoices")
-      .then((r) => r.json())
-      .then((d) => { setInvoices(Array.isArray(d) ? d : []); })
-      .finally(() => setLoading(false));
+    loadInvoices();
   }, []);
 
   return (
@@ -35,6 +51,17 @@ export default function InvoicesPage() {
         {loading ? (
           <div className="p-4">
             <TableSkeleton rows={5} cols={7} />
+          </div>
+        ) : error ? (
+          <div className="p-8 text-center text-[#888890]">
+            <p className="text-red-400">{error}</p>
+            <button
+              type="button"
+              onClick={loadInvoices}
+              className="mt-4 inline-block text-gold hover:underline"
+            >
+              Retry
+            </button>
           </div>
         ) : invoices.length === 0 ? (
           <div className="p-8 text-center text-[#888890]">

@@ -13,12 +13,28 @@ const statusStyles: Record<string, string> = {
 export default function ContractsPage() {
   const [contracts, setContracts] = useState<Array<{ id: string; title: string; status: string; client_name: string; created_at: string }>>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadContracts = () => {
+    setLoading(true);
+    setError(null);
+    fetch("/api/contracts?limit=200")
+      .then(async (r) => {
+        const d = await r.json().catch(() => null);
+        if (!r.ok) {
+          throw new Error(d?.error ?? "Unable to load contracts");
+        }
+        setContracts(Array.isArray(d) ? d : []);
+      })
+      .catch((e) => {
+        setContracts([]);
+        setError(e instanceof Error ? e.message : "Unable to load contracts");
+      })
+      .finally(() => setLoading(false));
+  };
 
   useEffect(() => {
-    fetch("/api/contracts?limit=200")
-      .then((r) => r.json())
-      .then((d) => { setContracts(Array.isArray(d) ? d : []); })
-      .finally(() => setLoading(false));
+    loadContracts();
   }, []);
 
   return (
@@ -32,6 +48,17 @@ export default function ContractsPage() {
       <div className="rounded-xl border border-[#1e1e2e] bg-[#12121e] overflow-hidden">
         {loading ? (
           <div className="p-8 text-center text-[#888890]">Loading...</div>
+        ) : error ? (
+          <div className="p-8 text-center text-[#888890]">
+            <p className="text-red-400">{error}</p>
+            <button
+              type="button"
+              onClick={loadContracts}
+              className="mt-4 inline-block text-gold hover:underline"
+            >
+              Retry
+            </button>
+          </div>
         ) : contracts.length === 0 ? (
           <div className="p-8 text-center text-[#888890]">
             <p>No contracts yet.</p>

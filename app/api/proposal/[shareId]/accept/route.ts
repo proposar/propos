@@ -17,12 +17,12 @@ export async function POST(
 
   const { data: proposal, error: fetchErr } = await supabase
     .from("proposals")
-    .select("id, user_id, title, budget_amount, budget_currency, client_name")
+    .select("id, user_id, title, budget_amount, budget_currency, client_name, status")
     .eq("share_id", shareId)
     .single();
 
   if (fetchErr || !proposal) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  if ((proposal as { status?: string }).status === "accepted") {
+  if (proposal.status === "accepted") {
     return NextResponse.json({ error: "Already accepted" }, { status: 400 });
   }
 

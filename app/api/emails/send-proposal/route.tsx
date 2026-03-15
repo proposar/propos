@@ -103,10 +103,23 @@ export async function POST(request: Request): Promise<NextResponse<SendProposalE
 
   try {
     const doc = <ProposalPDFDocument {...docProps} />;
-    const buffer = await pdf(doc).toBuffer();
+    const pdfOutput = await pdf(doc).toBuffer();
     const safeName = proposal.client_name.replace(/[^a-zA-Z0-9-_]/g, "-").slice(0, 50);
     const filename = `Proposal-${safeName}-${new Date().toISOString().slice(0, 10)}.pdf`;
-    attachments = [{ filename, content: buffer as any }];
+
+    const pdfBuffer =
+      Buffer.isBuffer(pdfOutput)
+        ? pdfOutput
+        : pdfOutput instanceof Uint8Array
+          ? Buffer.from(pdfOutput)
+          : null;
+
+    if (pdfBuffer) {
+      attachments = [{ filename, content: pdfBuffer }];
+    } else {
+      pdfError = true;
+      console.error("[Email] PDF output format unsupported for attachment. Sending without attachment.");
+    }
   } catch (err) {
     console.error("[Email] PDF Generation failed:", err);
     pdfError = true;
@@ -129,7 +142,9 @@ export async function POST(request: Request): Promise<NextResponse<SendProposalE
       ? `Your proposal has been sent to ${proposal.client_name}, but the PDF attachment generation failed. They can still view the full proposal via the secure link.`
       : undefined;
 
-    await sendProposalSentConfirmation(user.email!, proposal.client_name, proposalLink, confirmationText);
+    if (user.email) {
+      await sendProposalSentConfirmation(user.email, proposal.client_name, proposalLink, confirmationText);
+    }
 
     await supabase
       .from("proposals")

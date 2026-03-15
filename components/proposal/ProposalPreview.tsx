@@ -229,6 +229,17 @@ export function ProposalPreview({ proposalId }: ProposalPreviewProps) {
   }, [load]);
 
   useEffect(() => {
+    if (!proposalId || !proposal) return;
+    if (proposal.status === "accepted" || proposal.status === "declined") return;
+
+    const intervalId = setInterval(() => {
+      load().catch(() => {});
+    }, 10000);
+
+    return () => clearInterval(intervalId);
+  }, [proposalId, proposal, load]);
+
+  useEffect(() => {
     fetch("/api/profile")
       .then((r) => (r.ok ? r.json() : null))
       .then((p) => setProfile(p ?? null))

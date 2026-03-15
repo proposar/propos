@@ -58,6 +58,7 @@ export default async function PublicProposalPage({
 
   const payload = {
     id: proposal.id,
+    status: proposal.status,
     title: proposal.title,
     client_name: proposal.client_name,
     client_company: proposal.client_company,

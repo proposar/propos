@@ -33,8 +33,8 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
         }
       })
       .catch(() => {
-        setStatus("redirect");
-        router.replace("/onboarding");
+        // Avoid false redirects during transient network/API issues.
+        setStatus("ok");
       });
   }, [router]);
 
