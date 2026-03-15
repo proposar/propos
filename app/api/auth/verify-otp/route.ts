@@ -1,10 +1,14 @@
 import { verifyOTP } from "@/lib/otp";
 import { createAdminClient } from "@/lib/supabase/server";
 import { checkRateLimit, getRequestIp } from "@/lib/rate-limit";
+import { enforceSameOrigin } from "@/lib/request-guards";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
   try {
+    const guard = enforceSameOrigin(req);
+    if (guard) return guard;
+
     let { email, code, fullName, businessType, password } = await req.json();
     
     email = email?.trim().toLowerCase();
