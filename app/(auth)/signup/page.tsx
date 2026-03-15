@@ -111,17 +111,19 @@ export default function SignupPage() {
         return;
       }
 
-      const supabase = createClient();
-      const { error: sessionError } = await supabase.auth.signInWithPassword({
-        email: normalizedEmail,
-        password,
-      });
+      if (!data.sessionEstablished) {
+        const supabase = createClient();
+        const { error: sessionError } = await supabase.auth.signInWithPassword({
+          email: normalizedEmail,
+          password,
+        });
 
-      if (sessionError) {
-        console.error("Session error:", sessionError);
-        setError("Account verified and created, but sign-in failed. Please log in with your password.");
-        setLoading(false);
-        return;
+        if (sessionError) {
+          console.error("Session error:", sessionError);
+          setError("Account verified and created, but sign-in failed. Please log in with your password.");
+          setLoading(false);
+          return;
+        }
       }
 
       router.refresh();

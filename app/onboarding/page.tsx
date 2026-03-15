@@ -126,7 +126,7 @@ export default function OnboardingPage() {
         if (!response.ok) return;
         const data = await response.json().catch(() => null);
         if (data?.sent || data?.reason === "already sent") {
-          setWelcomeBanner("Welcome to Proposar! We sent a welcome email to your inbox.");
+          setWelcomeBanner("Welcome to Proposar");
         }
       })
       .catch(() => {});

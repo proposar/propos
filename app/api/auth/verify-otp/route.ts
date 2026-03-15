@@ -4,6 +4,7 @@ import { checkRateLimit, getRequestIp } from "@/lib/rate-limit";
 import { enforceSameOrigin } from "@/lib/request-guards";
 import { sendWelcomeIfEligible } from "@/lib/welcome";
 import { NextRequest, NextResponse } from "next/server";
+import { createServerClient } from "@supabase/ssr";
 
 export async function POST(req: NextRequest) {
   try {
@@ -158,16 +159,54 @@ export async function POST(req: NextRequest) {
       console.error("Manual signup welcome email error:", welcomeError);
     });
 
-    return NextResponse.json(
+    const cookiesToSet: Array<{ name: string; value: string; options?: Record<string, unknown> }> = [];
+    let sessionEstablished = false;
+
+    try {
+      const supabase = createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+          cookies: {
+            getAll() {
+              return req.cookies.getAll();
+            },
+            setAll(newCookies: Array<{ name: string; value: string; options?: Record<string, unknown> }>) {
+              cookiesToSet.push(...newCookies);
+            },
+          },
+        }
+      );
+
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (!signInError) {
+        sessionEstablished = true;
+      }
+    } catch (sessionError) {
+      console.error("Verify OTP server-side session error:", sessionError);
+    }
+
+    const response = NextResponse.json(
       {
         success: true,
         userId,
         email,
         isNewUser,
+        sessionEstablished,
         message: "Email verified successfully",
       },
       { status: 200 }
     );
+
+    cookiesToSet.forEach(({ name, value, options }) => {
+      response.cookies.set(name, value, options);
+    });
+
+    return response;
   } catch (error) {
     console.error("Verify OTP error:", error);
     return NextResponse.json(

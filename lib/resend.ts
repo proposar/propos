@@ -11,7 +11,7 @@ function createResend(): Resend {
 }
 export const resend = createResend();
 
-const FROM = process.env.RESEND_FROM_EMAIL ?? "Proposar <hello@proposar.com>";
+const FROM = process.env.RESEND_FROM_EMAIL ?? "Proposar <noreply@proposar.com>";
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://proposar.io";
 const UNSUBSCRIBE_URL = `${APP_URL}/settings?tab=notifications`;
 
