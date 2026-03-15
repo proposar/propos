@@ -32,7 +32,10 @@ export default function ContractDetailPage() {
   if (loading) return <div className="p-8 text-[#888890]">Loading...</div>;
   if (!contract) return <div className="p-8 text-[#888890]">Contract not found.</div>;
 
-  const shareUrl = typeof window !== "undefined" ? `${window.location.origin}/contract/${contract.share_id}` : "";
+  const publicShareUrl = typeof window !== "undefined" ? `${window.location.origin}/contract/${contract.share_id}` : "";
+  const ownerSigningUrl = publicShareUrl
+    ? `${publicShareUrl}?returnTo=${encodeURIComponent(`/contracts/${id}`)}`
+    : "";
   const clientEmail = contract.client_email ?? "";
   const canCreateInvoice = contract.status === "signed" && contract.proposal_id;
 
@@ -76,7 +79,7 @@ export default function ContractDetailPage() {
   };
 
   const handleSendWhatsApp = async () => {
-    const text = `Hi ${contract.client_name},\n\nPlease review and e-sign the contract:\n${shareUrl}\n\nThanks.`;
+    const text = `Hi ${contract.client_name},\n\nPlease review and e-sign the contract:\n${publicShareUrl}\n\nThanks.`;
     const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
     window.open(url, "_blank", "noopener,noreferrer");
 
@@ -126,6 +129,11 @@ export default function ContractDetailPage() {
         <Link href={`/contract/${contract.share_id}`} target="_blank" rel="noopener noreferrer" className="rounded-lg bg-gold px-4 py-2 text-sm font-medium text-[#0a0a14] hover:bg-[#e8c76a]">
           Open signing link
         </Link>
+        {ownerSigningUrl && (
+          <Link href={ownerSigningUrl} target="_blank" rel="noopener noreferrer" className="rounded-lg border border-gold px-4 py-2 text-sm font-medium text-gold">
+            Review as Freelancer
+          </Link>
+        )}
         <button
           type="button"
           onClick={handleSendEmail}
@@ -152,7 +160,7 @@ export default function ContractDetailPage() {
         )}
         <button
           type="button"
-          onClick={() => { navigator.clipboard.writeText(shareUrl); }}
+          onClick={() => { navigator.clipboard.writeText(publicShareUrl); }}
           className="rounded-lg border border-[#1e1e2e] px-4 py-2 text-sm text-[#888890] hover:text-[#faf8f4]"
         >
           Copy link

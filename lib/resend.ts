@@ -270,6 +270,48 @@ export async function sendContractToClient(
   return sendEmail({ to, subject: `Contract for signature: ${contractTitle}`, html });
 }
 
+export async function sendContractFullySignedToFreelancer(
+  to: string,
+  freelancerName: string,
+  clientName: string,
+  contractTitle: string,
+  contractLink: string,
+) {
+  const html = baseLayout(`
+    <h1 style="font-size:22px;margin:0 0 16px;color:#faf8f4;">Contract fully signed ✓</h1>
+    <p style="margin:0 0 16px;line-height:1.6;color:#c4c4cc;">Hi ${freelancerName || "there"},</p>
+    <p style="margin:0 0 24px;line-height:1.6;color:#c4c4cc;">Great news — both you and ${clientName} have signed <strong>${contractTitle}</strong>.</p>
+    <div style="background:#0a0a14;border:1px solid #1e1e2e;border-radius:8px;padding:20px;margin:24px 0;">
+      <p style="margin:0 0 8px;font-weight:600;color:#faf8f4;">Next step</p>
+      <p style="margin:0;font-size:14px;color:#888890;">Create and send the first invoice to start the project.</p>
+    </div>
+    <a href="${contractLink}" style="display:inline-block;background:#D4AF37;color:#0a0a14;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">View Signed Contract →</a>
+  `);
+
+  return sendEmail({ to, subject: `Contract fully signed: ${contractTitle}`, html });
+}
+
+export async function sendContractFullySignedToClient(
+  to: string,
+  clientName: string,
+  freelancerName: string,
+  contractTitle: string,
+  contractLink: string,
+) {
+  const html = baseLayout(`
+    <h1 style="font-size:22px;margin:0 0 16px;color:#faf8f4;">Agreement completed ✓</h1>
+    <p style="margin:0 0 16px;line-height:1.6;color:#c4c4cc;">Hi ${clientName},</p>
+    <p style="margin:0 0 24px;line-height:1.6;color:#c4c4cc;">Both parties have signed <strong>${contractTitle}</strong>. Your agreement with ${freelancerName || "your freelancer"} is now fully executed.</p>
+    <div style="background:#0a0a14;border:1px solid #1e1e2e;border-radius:8px;padding:20px;margin:24px 0;">
+      <p style="margin:0;font-size:14px;color:#888890;">You can keep this email as confirmation of completion.</p>
+    </div>
+    <a href="${contractLink}" style="display:inline-block;background:#D4AF37;color:#0a0a14;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">View Signed Contract →</a>
+    <p style="margin:24px 0 0;font-size:14px;color:#888890;">Best,<br/>Proposar</p>
+  `);
+
+  return sendEmail({ to, subject: `Agreement signed: ${contractTitle}`, html });
+}
+
 // 7.5 Proposal expiry reminder (to client)
 export async function sendExpiryReminderEmail(
   to: string,

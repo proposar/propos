@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import {
+  sendContractFullySignedToClient,
+  sendContractFullySignedToFreelancer,
+} from "@/lib/resend";
 
 export async function GET(
   _request: Request,
@@ -87,5 +91,38 @@ export async function PATCH(
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  if (existingContract.status !== "signed" && data?.status === "signed") {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("email, full_name")
+      .eq("id", user.id)
+      .single();
+
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://proposar.io";
+    const contractLink = `${appUrl}/contract/${data.share_id}`;
+    const freelancerName = profile?.full_name ?? "Freelancer";
+
+    if (profile?.email) {
+      sendContractFullySignedToFreelancer(
+        profile.email,
+        freelancerName,
+        data.client_name,
+        data.title,
+        contractLink,
+      ).catch(console.error);
+    }
+
+    if (data.client_email) {
+      sendContractFullySignedToClient(
+        data.client_email,
+        data.client_name,
+        freelancerName,
+        data.title,
+        contractLink,
+      ).catch(console.error);
+    }
+  }
+
   return NextResponse.json(data);
 }

@@ -1,11 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
+import Link from "next/link";
 
 export default function PublicContractPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const shareId = params.shareId as string;
+  const returnTo = searchParams.get("returnTo");
   const [contract, setContract] = useState<{
     title: string;
     content: string;
@@ -67,7 +70,21 @@ export default function PublicContractPage() {
         <div className="text-center max-w-md">
           <p className="text-4xl mb-4">✓</p>
           <h1 className="text-xl font-serif font-bold text-gray-900 mb-2">Contract Signed</h1>
-          <p className="text-gray-600">Thank you. The contract has been signed and recorded.</p>
+          <p className="text-gray-600 mb-5">Thank you. This agreement is fully signed by both parties.</p>
+          <div className="flex flex-col gap-2">
+            <Link
+              href={returnTo || "/contracts"}
+              className="rounded-lg bg-amber-600 text-white px-4 py-2 font-medium hover:bg-amber-700"
+            >
+              Continue to Contracts
+            </Link>
+            <Link
+              href="/invoices/new"
+              className="rounded-lg border border-gray-300 text-gray-700 px-4 py-2 font-medium hover:bg-white"
+            >
+              Create Invoice
+            </Link>
+          </div>
         </div>
       </div>
     );

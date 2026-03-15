@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
+import {
+  sendContractFullySignedToClient,
+  sendContractFullySignedToFreelancer,
+} from "@/lib/resend";
 
 export async function POST(
   request: Request,
@@ -26,7 +30,7 @@ export async function POST(
 
   const { data: contract } = await admin
     .from("contracts")
-    .select("id, status, freelancer_signature, client_signature")
+    .select("id, user_id, title, share_id, client_name, client_email, status, freelancer_signature, client_signature")
     .eq("share_id", shareId)
     .single();
 
@@ -48,5 +52,38 @@ export async function POST(
     .eq("id", contract.id);
 
   if (updErr) return NextResponse.json({ error: updErr.message }, { status: 500 });
+
+  if (nextStatus === "signed") {
+    const { data: profile } = await admin
+      .from("profiles")
+      .select("email, full_name")
+      .eq("id", contract.user_id)
+      .single();
+
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://proposar.io";
+    const contractLink = `${appUrl}/contract/${contract.share_id}`;
+    const freelancerName = profile?.full_name ?? "Freelancer";
+
+    if (profile?.email) {
+      sendContractFullySignedToFreelancer(
+        profile.email,
+        freelancerName,
+        contract.client_name,
+        contract.title,
+        contractLink,
+      ).catch(console.error);
+    }
+
+    if (contract.client_email) {
+      sendContractFullySignedToClient(
+        contract.client_email,
+        contract.client_name,
+        freelancerName,
+        contract.title,
+        contractLink,
+      ).catch(console.error);
+    }
+  }
+
   return NextResponse.json({ success: true, status: nextStatus, fullySigned: nextStatus === "signed" });
 }
