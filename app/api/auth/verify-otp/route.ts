@@ -44,11 +44,19 @@ export async function POST(req: NextRequest) {
     }
 
     const ip = getRequestIp(req);
-    const ipLimit = await checkRateLimit({
-      key: `rl:verify-signup-otp:ip:${ip}`,
-      limit: 25,
-      windowSec: 10 * 60,
-    });
+    const [ipLimit, emailLimit] = await Promise.all([
+      checkRateLimit({
+        key: `rl:verify-signup-otp:ip:${ip}`,
+        limit: 25,
+        windowSec: 10 * 60,
+      }),
+      checkRateLimit({
+        key: `rl:verify-signup-otp:email:${email}`,
+        limit: 12,
+        windowSec: 10 * 60,
+      }),
+    ]);
+
     if (!ipLimit.allowed) {
       return NextResponse.json(
         { error: "Too many verification attempts. Please wait and try again." },
@@ -56,11 +64,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const emailLimit = await checkRateLimit({
-      key: `rl:verify-signup-otp:email:${email}`,
-      limit: 12,
-      windowSec: 10 * 60,
-    });
     if (!emailLimit.allowed) {
       return NextResponse.json(
         { error: "Too many verification attempts for this email. Please request a new OTP." },
@@ -124,42 +127,19 @@ export async function POST(req: NextRequest) {
     const userId = data.user.id;
     const isNewUser = true;
 
-    // handle_new_user trigger inserts a profile; update fields and fallback insert if needed
-    const { data: existingProfile, error: profileLookupError } = await adminClient
+    const { error: profileError } = await adminClient
       .from("profiles")
-      .select("id")
-      .eq("id", userId)
-      .maybeSingle();
-
-    if (profileLookupError) {
-      console.error("Profile lookup error after user creation:", profileLookupError);
-    }
-
-    let profileError = null;
-
-    if (existingProfile) {
-      const { error } = await adminClient
-        .from("profiles")
-        .update({
-          email,
-          full_name: fullName,
-          business_type: businessType,
-          onboarding_completed: false,
-        })
-        .eq("id", userId);
-      profileError = error;
-    } else {
-      const { error } = await adminClient
-        .from("profiles")
-        .insert({
+      .upsert(
+        {
           id: userId,
           email,
           full_name: fullName,
           business_type: businessType,
           onboarding_completed: false,
-        });
-      profileError = error;
-    }
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "id" }
+      );
 
     if (profileError) {
       console.error("Profile upsert error:", profileError);

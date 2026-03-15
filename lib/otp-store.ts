@@ -72,11 +72,12 @@ export async function otpStoreGet(email: string): Promise<OtpRecord | null> {
     return null;
   }
   const supabase = createAdminClient();
-  const { data: rows } = await supabase
+  const normalizedEmail = email.toLowerCase();
+  const { data: row } = await supabase
     .from("otp_codes")
     .select("code, attempts, max_attempts, expires_at, id")
-    .ilike("email", email.toLowerCase());
-  const row = Array.isArray(rows) && rows[0] ? rows[0] : null;
+    .eq("email", normalizedEmail)
+    .maybeSingle();
   if (!row) return null;
   const r = row as { id: string; code: string; attempts: number; max_attempts: number; expires_at: string };
   if (new Date() > new Date(r.expires_at)) {
@@ -124,11 +125,12 @@ export async function otpStoreIncrAttempts(email: string): Promise<OtpRecord | n
     return rec;
   }
   const supabase = createAdminClient();
-  const { data: rows } = await supabase
+  const normalizedEmail = email.toLowerCase();
+  const { data: row } = await supabase
     .from("otp_codes")
     .select("id, code, attempts, max_attempts, expires_at")
-    .ilike("email", email.toLowerCase());
-  const row = Array.isArray(rows) && rows[0] ? rows[0] : null;
+    .eq("email", normalizedEmail)
+    .maybeSingle();
   if (!row) return null;
   const r = row as { id: string; code: string; attempts: number; max_attempts: number };
   const nextAttempts = (r.attempts ?? 0) + 1;
