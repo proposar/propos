@@ -89,6 +89,7 @@ export function ShareModal({
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState("");
+  const [sendSuccess, setSendSuccess] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [previewHtml, setPreviewHtml] = useState("");
   const [loadingPreview, setLoadingPreview] = useState(false);
@@ -103,6 +104,8 @@ export function ShareModal({
       setActiveTab(initialTab);
       setShowChaseCard(false);
       setChaseEnabled(true);
+      setSendSuccess(false);
+      setSendError("");
       if (clientEmail) setToEmail(clientEmail);
       if (clientPhone) setWhatsappPhone(clientPhone);
       setWhatsappMessage(
@@ -213,6 +216,12 @@ export function ShareModal({
         className={`rounded-xl border border-[#1e1e2e] bg-[#12121e] p-6 w-full max-h-[90vh] overflow-y-auto ${showPreview ? "max-w-2xl" : "max-w-md"}`}
         onClick={(e) => e.stopPropagation()}
       >
+        {sendSuccess && (
+          <div className="mb-4 rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-300">
+            Email sent successfully ✓
+          </div>
+        )}
+
         <div className="flex justify-between items-center mb-6">
           <h3 className="font-semibold text-[#faf8f4] text-lg">Share Proposal</h3>
           {showPreview && (
@@ -376,11 +385,15 @@ export function ShareModal({
                     const data = await res.json();
                     if (res.ok && data.sent) {
                       trackProposalSent();
-                      setShowChaseCard(true);
+                      setSendSuccess(true);
+                      setTimeout(() => setShowChaseCard(true), 700);
+                      setTimeout(() => setSendSuccess(false), 2200);
                     } else {
+                      setSendSuccess(false);
                       setSendError(data.error ?? "Failed to send");
                     }
                   } catch {
+                    setSendSuccess(false);
                     setSendError("Failed to send");
                   } finally {
                     setSending(false);
