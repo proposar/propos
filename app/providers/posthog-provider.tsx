@@ -2,13 +2,14 @@
 
 import posthog from "posthog-js";
 import { PostHogProvider as CSPostHogProvider } from "posthog-js/react";
+import { getPostHogHost } from "@/lib/posthog-config";
 let posthogInitialized = false;
 
 function initPostHog() {
   if (typeof window === "undefined" || posthogInitialized) return;
 
   const key = process.env.NEXT_PUBLIC_POSTHOG_KEY;
-  const host = process.env.NEXT_PUBLIC_POSTHOG_HOST;
+  const host = getPostHogHost();
 
   if (!key || !host) return;
 

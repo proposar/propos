@@ -190,20 +190,6 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Generate a sign-in token so the frontend can establish a session
-    const { data: linkData, error: linkError } = await adminClient.auth.admin.generateLink({
-      type: "magiclink",
-      email,
-    });
-
-    if (linkError) {
-      console.error("Generate link error:", linkError);
-      return NextResponse.json(
-        { error: "Failed to create session" },
-        { status: 500 }
-      );
-    }
-
     console.log(`[Auth] User verified: ${email} (ID: ${userId}, new: ${isNewUser})`);
 
     return NextResponse.json(
@@ -212,8 +198,6 @@ export async function POST(req: NextRequest) {
         userId,
         email,
         isNewUser,
-        token_hash: linkData.properties.hashed_token,
-        email_otp: linkData.properties.email_otp,
         message: "Email verified successfully",
       },
       { status: 200 }

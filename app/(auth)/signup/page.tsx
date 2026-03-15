@@ -112,28 +112,14 @@ export default function SignupPage() {
       }
 
       const supabase = createClient();
-      let sessionError: Error | null = null;
-
-      if (data.token_hash) {
-        const result = await supabase.auth.verifyOtp({
-          token_hash: data.token_hash,
-          type: "magiclink",
-        });
-        sessionError = result.error;
-      }
-
-      if (sessionError && data.email_otp) {
-        const fallback = await supabase.auth.verifyOtp({
-          email: normalizedEmail,
-          token: data.email_otp,
-          type: "email",
-        });
-        sessionError = fallback.error;
-      }
+      const { error: sessionError } = await supabase.auth.signInWithPassword({
+        email: normalizedEmail,
+        password,
+      });
 
       if (sessionError) {
         console.error("Session error:", sessionError);
-        setError("Account created, but auto sign-in failed. Please log in once.");
+        setError("Account verified and created, but sign-in failed. Please log in with your password.");
         setLoading(false);
         return;
       }

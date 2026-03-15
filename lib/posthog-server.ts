@@ -1,10 +1,11 @@
 import { PostHog } from 'posthog-node'
+import { getPostHogHost } from '@/lib/posthog-config'
 
 let posthogInstance: PostHog | null = null
 
 export function getPostHogServer() {
   const key = process.env.NEXT_PUBLIC_POSTHOG_KEY
-  const host = process.env.NEXT_PUBLIC_POSTHOG_HOST
+  const host = getPostHogHost()
 
   if (!key || !host) {
     return null

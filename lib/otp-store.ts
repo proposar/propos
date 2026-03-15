@@ -52,6 +52,16 @@ export async function otpStoreGet(email: string): Promise<OtpRecord | null> {
   if (redis) {
     const key = `otp:${email.toLowerCase()}`;
     const raw = await redis.get(key);
+    if (raw && typeof raw === "object") {
+      const rec = raw as Partial<OtpRecord>;
+      if (typeof rec.code === "string") {
+        return {
+          code: rec.code,
+          attempts: Number(rec.attempts ?? 0),
+          maxAttempts: Number(rec.maxAttempts ?? MAX_ATTEMPTS),
+        };
+      }
+    }
     if (typeof raw === "string") {
       try {
         return JSON.parse(raw) as OtpRecord;
@@ -85,13 +95,26 @@ export async function otpStoreIncrAttempts(email: string): Promise<OtpRecord | n
   if (redis) {
     const key = `otp:${email.toLowerCase()}`;
     const raw = await redis.get(key);
-    if (typeof raw !== "string") return null;
     let rec: OtpRecord;
-    try {
-      rec = JSON.parse(raw);
-    } catch {
+
+    if (raw && typeof raw === "object") {
+      const parsed = raw as Partial<OtpRecord>;
+      if (typeof parsed.code !== "string") return null;
+      rec = {
+        code: parsed.code,
+        attempts: Number(parsed.attempts ?? 0),
+        maxAttempts: Number(parsed.maxAttempts ?? MAX_ATTEMPTS),
+      };
+    } else if (typeof raw === "string") {
+      try {
+        rec = JSON.parse(raw);
+      } catch {
+        return null;
+      }
+    } else {
       return null;
     }
+
     rec.attempts += 1;
     if (rec.attempts >= rec.maxAttempts) {
       await redis.del(key);
