@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "test:smoke": "playwright test",
+    "test:smoke:auth": "playwright test tests/smoke/authenticated.spec.ts",
     "test:smoke:headed": "playwright test --headed",
     "test:smoke:report": "playwright show-report"
   },
