@@ -79,6 +79,7 @@ export default function OnboardingPage() {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [welcomeBanner, setWelcomeBanner] = useState<string | null>(null);
 
   // Step 1
   const [businessName, setBusinessName] = useState("");
@@ -120,7 +121,15 @@ export default function OnboardingPage() {
     // Only fire once — prevents duplicate emails on re-render or React Strict Mode double-invoke
     if (welcomeEmailSent.current) return;
     welcomeEmailSent.current = true;
-    fetch("/api/emails/welcome", { method: "POST" }).catch(() => {});
+    fetch("/api/emails/welcome", { method: "POST" })
+      .then(async (response) => {
+        if (!response.ok) return;
+        const data = await response.json().catch(() => null);
+        if (data?.sent) {
+          setWelcomeBanner("Welcome to Proposar! We sent a welcome email to your inbox.");
+        }
+      })
+      .catch(() => {});
   }, []);
 
   async function saveStep1() {
@@ -267,6 +276,11 @@ export default function OnboardingPage() {
 
       <main className="flex-1 flex items-center justify-center p-6">
         <div className="w-full max-w-lg">
+          {welcomeBanner && (
+            <div className="mb-4 rounded-lg border border-gold/40 bg-surface px-4 py-3 text-sm text-foreground">
+              {welcomeBanner}
+            </div>
+          )}
           <AnimatePresence mode="wait">
             {step === 1 && (
               <motion.div
