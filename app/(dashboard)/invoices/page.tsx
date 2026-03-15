@@ -99,7 +99,8 @@ export default function InvoicesPage() {
                     <td className="p-4 text-[#888890]">{inv.due_date ? new Date(inv.due_date).toLocaleDateString() : "—"}</td>
                     <td className="p-4">
                       <div className="flex gap-2">
-                        <Link href={`/invoice/${inv.share_id}`} target="_blank" rel="noopener noreferrer" className="text-gold hover:underline text-xs">View</Link>
+                        <Link href={`/invoices/${inv.id}`} className="text-gold hover:underline text-xs">Manage</Link>
+                        <Link href={`/invoice/${inv.share_id}`} target="_blank" rel="noopener noreferrer" className="text-gold hover:underline text-xs">Public</Link>
                         <a href={`/api/invoices/${inv.id}/pdf`} download className="text-gold hover:underline text-xs">PDF</a>
                       </div>
                     </td>

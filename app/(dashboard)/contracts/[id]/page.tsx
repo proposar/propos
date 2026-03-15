@@ -16,7 +16,9 @@ export default function ContractDetailPage() {
     client_name: string;
     client_email?: string | null;
     freelancer_signature?: string | null;
+    freelancer_signed_at?: string | null;
     client_signature?: string | null;
+    client_signed_at?: string | null;
     proposal_id?: string | null;
   } | null>(null);
   const [loading, setLoading] = useState(true);
@@ -125,6 +127,28 @@ export default function ContractDetailPage() {
       <div className="rounded-xl border border-[#1e1e2e] bg-[#12121e] p-6">
         <div className="prose prose-invert prose-sm max-w-none whitespace-pre-wrap">{contract.content}</div>
       </div>
+
+      <div className="rounded-xl border border-[#1e1e2e] bg-[#12121e] p-6 space-y-3">
+        <h3 className="font-semibold text-[#faf8f4]">Legal Proof Record</h3>
+        <p className="text-xs text-[#888890]">Use this as execution evidence if payment disputes happen.</p>
+        <div className="grid gap-3 md:grid-cols-2 text-sm">
+          <div className="rounded-lg border border-[#1e1e2e] bg-[#0a0a14] p-3">
+            <p className="text-[#888890] mb-1">Freelancer Signature</p>
+            <p className="text-[#faf8f4]">{contract.freelancer_signature || "Pending"}</p>
+            <p className="text-xs text-[#888890] mt-1">
+              {contract.freelancer_signed_at ? new Date(contract.freelancer_signed_at).toLocaleString() : "Not signed yet"}
+            </p>
+          </div>
+          <div className="rounded-lg border border-[#1e1e2e] bg-[#0a0a14] p-3">
+            <p className="text-[#888890] mb-1">Client Signature</p>
+            <p className="text-[#faf8f4]">{contract.client_signature || "Pending"}</p>
+            <p className="text-xs text-[#888890] mt-1">
+              {contract.client_signed_at ? new Date(contract.client_signed_at).toLocaleString() : "Not signed yet"}
+            </p>
+          </div>
+        </div>
+      </div>
+
       <div className="flex gap-3">
         <Link href={`/contract/${contract.share_id}`} target="_blank" rel="noopener noreferrer" className="rounded-lg bg-gold px-4 py-2 text-sm font-medium text-[#0a0a14] hover:bg-[#e8c76a]">
           Open signing link
