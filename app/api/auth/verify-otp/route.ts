@@ -2,6 +2,7 @@ import { verifyOTP } from "@/lib/otp";
 import { createAdminClient } from "@/lib/supabase/server";
 import { checkRateLimit, getRequestIp } from "@/lib/rate-limit";
 import { enforceSameOrigin } from "@/lib/request-guards";
+import { sendWelcomeIfEligible } from "@/lib/welcome";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
@@ -148,6 +149,14 @@ export async function POST(req: NextRequest) {
     }
 
     console.log(`[Auth] User verified: ${email} (ID: ${userId}, new: ${isNewUser})`);
+
+    void sendWelcomeIfEligible({
+      userId,
+      email,
+      fullName,
+    }).catch((welcomeError) => {
+      console.error("Manual signup welcome email error:", welcomeError);
+    });
 
     return NextResponse.json(
       {

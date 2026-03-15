@@ -124,8 +124,6 @@ export default function SignupPage() {
         return;
       }
 
-      void fetch("/api/emails/welcome", { method: "POST" }).catch(() => {});
-
       router.refresh();
       
       if (data.isNewUser) {

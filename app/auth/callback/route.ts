@@ -1,4 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/server";
+import { sendWelcomeIfEligible } from "@/lib/welcome";
 import { createServerClient } from "@supabase/ssr";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -88,6 +89,16 @@ export async function GET(request: NextRequest) {
             console.error("Profile creation error:", profileError);
             // Don't fail - profile might already exist
           }
+        }
+
+        if (user.email) {
+          void sendWelcomeIfEligible({
+            userId: user.id,
+            email: user.email,
+            fullName: user.user_metadata?.full_name,
+          }).catch((welcomeError) => {
+            console.error("Google auth welcome email error:", welcomeError);
+          });
         }
       }
 

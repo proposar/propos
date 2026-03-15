@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { sendWelcomeEmail } from "@/lib/resend";
+import { sendWelcomeIfEligible } from "@/lib/welcome";
 
 interface WelcomeEmailResponse {
   sent: boolean;
@@ -14,35 +14,23 @@ export async function POST(): Promise<NextResponse<WelcomeEmailResponse>> {
   if (!user) return NextResponse.json({ sent: false, error: "Unauthorized" }, { status: 401 });
 
   try {
-    const { data: profile, error: profileError } = await supabase
-      .from("profiles")
-      .select("full_name, onboarding_completed, welcome_email_sent")
-      .eq("id", user.id)
-      .single();
+    const result = await sendWelcomeIfEligible({
+      userId: user.id,
+      email: user.email!,
+      fullName: user.user_metadata?.full_name,
+    });
 
-    if (profileError) {
-      return NextResponse.json(
-        { sent: false, error: profileError.message },
-        { status: 500 }
-      );
-    }
-
-    // Idempotency guard: never send twice — belt-and-suspenders
-    if (profile?.welcome_email_sent) {
+    if (!result.sent && result.reason === "already_sent") {
       return NextResponse.json({ sent: false, reason: "already sent" });
     }
 
-    if (profile?.onboarding_completed) {
+    if (!result.sent && result.reason === "already_onboarded") {
       return NextResponse.json({ sent: false, reason: "already onboarded" });
     }
 
-    await sendWelcomeEmail(user.email!, profile?.full_name ?? undefined);
-
-    // Mark as sent in DB so it can never fire again, even across sessions
-    await supabase
-      .from("profiles")
-      .update({ welcome_email_sent: true })
-      .eq("id", user.id);
+    if (!result.sent && result.reason === "missing_profile") {
+      return NextResponse.json({ sent: false, reason: "profile missing" }, { status: 500 });
+    }
 
     return NextResponse.json({ sent: true });
   } catch (e) {
