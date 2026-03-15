@@ -15,7 +15,9 @@ export async function middleware(request: NextRequest) {
   const url = request.nextUrl;
   const { pathname, searchParams } = url;
 
-  const hasAuthCookie = request.cookies.getAll().some((c) => c.name.startsWith("sb-") && c.name.endsWith("-auth-token"));
+  const hasAuthCookie = request.cookies
+    .getAll()
+    .some((c) => c.name.startsWith("sb-") && c.name.includes("-auth-token"));
   let user: { id: string } | null = null;
 
   if (hasAuthCookie) {
