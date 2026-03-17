@@ -5,7 +5,7 @@ const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://proposar.io";
 
 const staticPages = [
   "changelog", "roadmap", "blog", "help", "video-tutorials", "api-docs", "affiliate",
-  "about", "careers", "privacy", "terms", "contact",
+  "about", "careers", "privacy", "terms", "contact", "comparison",
 ];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {

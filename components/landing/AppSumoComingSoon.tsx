@@ -16,13 +16,13 @@ export function AppSumoComingSoon() {
         </div>
         
         <h2 className="font-serif text-4xl md:text-5xl font-bold text-[#faf8f4] mb-6">
-          The <span className="text-blue-400">Lifetime Deal</span> You&apos;ve Been Waiting For.
+          The <span className="text-blue-400">Lifetime Deal (LTD)</span> Is Coming.
         </h2>
         
         <p className="text-[#888890] text-lg mb-8 max-w-2xl mx-auto leading-relaxed">
-          We&apos;re launching on AppSumo soon. Get lifetime access to Proposar&apos;s 
-          <span className="text-[#faf8f4]"> A-to-Z Anti-Ghosting workflow</span> for a single payment. 
-          Join the waitlist to get notified the second we go live.
+          Stop paying monthly for proposal tools. We&apos;re launching on AppSumo with 
+          <span className="text-[#faf8f4]"> Stackable Lifetime Codes</span>. Get full access to the 
+          <span className="text-[#faf8f4]"> A-to-Z Anti-Ghosting workflow</span> for a single payment.
         </p>
 
         <form className="flex flex-col sm:flex-row gap-4 max-w-lg mx-auto" onSubmit={(e) => e.preventDefault()}>
