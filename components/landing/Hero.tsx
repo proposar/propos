@@ -80,7 +80,7 @@ export function Hero({
           >
             {description || (
               <>
-                Stop the "Sunday Night Anxiety" of wondering where your next lead is coming from. 
+                Stop the &quot;Sunday Night Anxiety&quot; of wondering where your next lead is coming from. 
                 Proposar uses AI to draft elite proposals in 60s, then acts as your 
                 <span className="text-[#faf8f4]"> Digital Bodyguard</span> — handling WhatsApp follow-ups and 
                 <span className="text-[#faf8f4]"> Smart Contracts</span> so you get paid for your work, not ghosted.

@@ -21,6 +21,12 @@ const dmSans = DM_Sans({
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://proposar.io";
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1.0,
+  maximumScale: 5.0,
+};
+
 export const metadata: Metadata = {
   metadataBase: new URL(APP_URL),
   title: {
@@ -46,7 +52,6 @@ export const metadata: Metadata = {
     icon: "/landscape.svg",
     apple: "/landscape.svg",
   },
-  viewport: "width=device-width, initial-scale=1.0, maximum-scale=5.0",
   verification: {
     google: "0rLRsbPbVjLe39eSl-S93gbNe69cLmMKLDiwHG1lJsM",
   },
