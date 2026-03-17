@@ -8,8 +8,8 @@ const competitors = [
     name: 'Proposar',
     category: 'Built for Freelancers',
     logo: '📄',
-    description: 'AI-powered proposals, contracts, and invoices in 60 seconds',
-    color: 'border-gold bg-gold/5',
+    description: "The A-to-Z lifecycle: AI Proposals, WhatsApp Sharing, Smart Contracts, and Anti-Ghosting protection.",
+    color: "border-gold bg-gold/5",
     highlighted: true,
   },
   {
@@ -116,7 +116,15 @@ const features = [
     stripe: true,
   },
   {
-    feature: 'Built for Solo Operators',
+    feature: 'Anti-Ghosting Protection',
+    proposar: true,
+    pandadoc: false,
+    proposify: false,
+    hubspot: false,
+    stripe: false,
+  },
+  {
+    feature: 'Internal Team Strategy (AI)',
     proposar: true,
     pandadoc: false,
     proposify: true,
@@ -349,10 +357,10 @@ export function ComparisonContent() {
               <div>
                 <h4 className="mb-3 font-semibold text-gold">Proposar</h4>
                 <ul className="space-y-2 text-sm text-[#c4c4cc]">
-                  <li>Free: 5 proposals/mo</li>
-                  <li>Starter: $19/mo (50/mo)</li>
-                  <li>Pro: $49/mo (unlimited)</li>
-                  <li>Agency: $199/mo (team)</li>
+                  <li>Free: 3 proposals/mo</li>
+                  <li>Starter: $19/mo (10/mo)</li>
+                  <li>Pro: $29/mo (unlimited)</li>
+                  <li>Agency: $79+ (teams)</li>
                 </ul>
               </div>
               <div>
