@@ -14,18 +14,16 @@ import { FloatingCTA } from "@/components/landing/FloatingCTA";
 
 export const metadata: Metadata = {
   title: "Proposar — AI Proposal Generator for Freelancers & Agencies",
-  description: "Generate winning client proposals in 60 seconds with AI. Trusted by 2,000+ freelancers. Track opens, close faster, earn more.",
+  description: "The A to Z workflow for freelancers. Generate AI proposals in 60s, share via WhatsApp/Email, close with legal contracts, and get paid. Stop being ghosted.",
   keywords: [
-    "proposal generator",
+    "anti-ghosting for freelancers",
+    "WhatsApp proposal follow-up",
+    "A to Z freelance workflow",
     "AI proposal generator",
-    "freelance proposal software",
-    "best proposal software",
-    "proposal writing tool",
-    "proposal automation",
-    "freelancer tools",
-    "agency software",
-    "proposal template",
-    "client proposal",
+    "freelance contract software",
+    "agency closing tool",
+    "proposal to invoice automation",
+    "secure freelance payments",
   ],
 };
 

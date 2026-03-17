@@ -47,24 +47,27 @@ export function Hero() {
             variants={item}
             className="font-serif text-4xl sm:text-5xl md:text-6xl font-bold text-[#faf8f4] leading-tight mb-3"
           >
-            Write Proposals That
+            The A to Z Workflow
             <br />
-            <span className="bg-gradient-to-r from-[#c9a84c] to-[#e8c76a] bg-clip-text text-transparent">
-              Win Deals.
+            To
+            <span className="bg-gradient-to-r from-[#c9a84c] to-[#e8c76a] bg-clip-text text-transparent ml-2">
+              GET PAID.
             </span>
           </motion.h1>
           <motion.p
             variants={item}
             className="text-gold/90 text-lg sm:text-xl font-medium mb-6"
           >
-            The one stop for every freelancer.
+            Proposal → Contract → Invoice → Cash.
           </motion.p>
           <motion.p
             variants={item}
-            className="text-[#888890] text-lg max-w-xl mx-auto lg:mx-0 mb-8"
+            className="text-[#888890] text-lg max-w-xl mx-auto lg:mx-0 mb-8 leading-relaxed"
           >
-            Stop spending 3 hours on proposals that get ignored. Proposar uses AI to
-            generate proposals in 60 seconds, then follow-ups, contract, and invoice from the same deal — so you close faster and get paid, not ghosted.
+            Winning a deal is only 50% of the battle. Proposar uses AI to generate elite proposals in 60 seconds, then handles everything: 
+            <span className="text-[#faf8f4]"> WhatsApp/Email sharing</span>, 
+            <span className="text-[#faf8f4]"> legal-grade contracts</span>, and 
+            <span className="text-[#faf8f4]"> automated follow-ups</span> — so you get paid, not ghosted.
           </motion.p>
           <motion.div variants={item} className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-8">
             <Link

@@ -7,6 +7,12 @@ const TONES = ["Professional", "Friendly", "Bold", "Formal"] as const;
 
 const features = [
   {
+    title: "Universal Delivery",
+    desc: "Share your deals via WhatsApp, Professional Email, or a Secure Link. No more 'lost in spam' — get your proposal seen instantly.",
+    icon: "📲",
+    pulse: true,
+  },
+  {
     title: "Open Tracking",
     desc: "Know the second your client opens your proposal. See how long they read it and how far they scrolled.",
     icon: "👁️",
