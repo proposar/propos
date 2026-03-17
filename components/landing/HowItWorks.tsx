@@ -5,32 +5,39 @@ import { motion } from "framer-motion";
 const steps = [
   {
     num: "01",
-    title: "Fill in the Details",
-    desc: "Enter your client's name, project type, budget, and a few bullet points about what you'll deliver. Takes 30 seconds.",
-    icon: (
-      <svg className="w-8 h-8 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-      </svg>
-    ),
-    visual: "form",
-  },
-  {
-    num: "02",
-    title: "AI Writes Your Proposal",
-    desc: "Proposar's AI crafts a complete, persuasive proposal — with executive summary, deliverables, timeline, pricing, and a compelling close.",
+    title: "AI Writes the Strategy",
+    desc: "Enter 3 project details. Our AI crafts a persuasive, high-ticket proposal in 60 seconds that beats any standard template.",
     icon: (
       <span className="text-2xl">✨</span>
     ),
     visual: "doc",
   },
   {
-    num: "03",
-    title: "Send & Get Notified",
-    desc: "Share a beautiful proposal link. You'll know the exact moment your client opens it — and how long they spent reading.",
+    num: "02",
+    title: "Universal Delivery",
+    desc: "Share via WhatsApp, Professional Email, or Secure Link. Track exactly when they open it and how long they spend reading.",
     icon: (
-      <span className="text-2xl">🔔</span>
+      <span className="text-2xl">📲</span>
     ),
     visual: "notification",
+  },
+  {
+    num: "03",
+    title: "Smart Contract",
+    desc: "One click to accept instantly generates a legal-grade contract from the same deal. Lock in terms before you start work.",
+    icon: (
+      <span className="text-2xl">📜</span>
+    ),
+    visual: "contract",
+  },
+  {
+    num: "04",
+    title: "Get Paid, Not Ghosted",
+    desc: "Generate an invoice instantly. One flow: Proposal → Contract → Cash. We focus on the A-to-Z of your deal's success.",
+    icon: (
+      <span className="text-2xl">💰</span>
+    ),
+    visual: "paid",
   },
 ];
 
@@ -55,7 +62,7 @@ export function HowItWorks() {
           No templates to fight with. No blank page anxiety. Just results.
         </p>
 
-        <div className="grid md:grid-cols-3 gap-8 md:gap-6 relative">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 relative">
           {steps.map((step, i) => (
             <motion.div
               key={step.num}
@@ -65,8 +72,8 @@ export function HowItWorks() {
               transition={{ delay: i * 0.08, duration: 0.5 }}
               className="relative"
             >
-              <div className="rounded-xl border border-[#1e1e2e] bg-[#12121e] p-8 hover:border-gold/50 hover:shadow-[0_0_32px_rgba(217,119,6,0.15)] hover:-translate-y-2 transition-all duration-300 h-full flex flex-col">
-                <span className="absolute top-6 right-6 text-4xl font-serif text-gold/20">
+              <div className="rounded-xl border border-[#1e1e2e] bg-[#12121e] p-6 hover:border-gold/50 hover:shadow-[0_0_32px_rgba(217,119,6,0.15)] hover:-translate-y-2 transition-all duration-300 h-full flex flex-col">
+                <span className="absolute top-4 right-4 text-3xl font-serif text-gold/20">
                   {step.num}
                 </span>
                 <div className="mb-4">{step.icon}</div>
@@ -76,18 +83,6 @@ export function HowItWorks() {
                 <p className="text-[#888890] text-sm flex-1">{step.desc}</p>
                 {/* Mini visual */}
                 <div className="mt-6 rounded-lg bg-[#0a0a14]/50 border border-[#1e1e2e] p-4 min-h-[80px] flex items-center justify-center">
-                  {step.visual === "form" && (
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      whileInView={{ opacity: 1 }}
-                      viewport={{ once: true }}
-                      className="w-full space-y-2"
-                    >
-                      <div className="h-2 rounded bg-gold/30 w-3/4" />
-                      <div className="h-2 rounded bg-gold/20 w-1/2" />
-                      <div className="h-2 rounded bg-gold/10 w-full" />
-                    </motion.div>
-                  )}
                   {step.visual === "doc" && (
                     <motion.div
                       initial={{ opacity: 0 }}
@@ -95,20 +90,36 @@ export function HowItWorks() {
                       viewport={{ once: true }}
                       className="text-xs text-gold/70 font-mono"
                     >
-                      Generating...
+                      Generating Strategy...
                     </motion.div>
                   )}
                   {step.visual === "notification" && (
-                    <div className="flex items-center gap-2 text-sm text-[#888890]">
-                      <span>🔔</span>
-                      <span>Sarah just opened your proposal!</span>
+                    <div className="flex flex-col items-center gap-1 text-[10px] text-[#888890]">
+                      <div className="flex items-center gap-2">
+                        <span>📲</span>
+                        <span>WhatsApp Sent</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span>👁️</span>
+                        <span className="text-gold">Viewed: 2m ago</span>
+                      </div>
+                    </div>
+                  )}
+                  {step.visual === "contract" && (
+                    <div className="w-full space-y-1">
+                      <div className="h-1 rounded bg-gold/40 w-full" />
+                      <div className="h-1 rounded bg-gold/20 w-3/4" />
+                      <div className="mt-2 text-[10px] text-green-400 font-medium">✓ Digitally Signed</div>
+                    </div>
+                  )}
+                  {step.visual === "paid" && (
+                    <div className="text-center">
+                      <div className="text-xl">💰</div>
+                      <div className="text-[10px] text-gold font-bold mt-1">PAYMENT RECEIVED</div>
                     </div>
                   )}
                 </div>
               </div>
-              {i < steps.length - 1 && (
-                <div className="hidden md:block absolute top-1/2 -right-4 w-8 border-t border-dashed border-gold/20" />
-              )}
             </motion.div>
           ))}
         </div>
