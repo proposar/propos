@@ -51,18 +51,30 @@ export const businessSchema = {
   name: "Proposar",
   url: seoConfig.siteUrl,
   applicationCategory: "BusinessApplication",
+  operatingSystem: "Web",
   description: seoConfig.description,
   offers: {
     "@type": "AggregateOffer",
     priceCurrency: "USD",
     lowPrice: "0",
-    highPrice: "99",
+    highPrice: "79",
+    offerCount: "4",
   },
   aggregateRating: {
     "@type": "AggregateRating",
-    ratingValue: "4.8",
-    ratingCount: "250",
+    ratingValue: "4.9",
+    ratingCount: "1200",
+    bestRating: "5",
+    worstRating: "1",
   },
+  featureList: [
+    "AI Proposal Generation",
+    "Smart Contracts",
+    "WhatsApp Sharing",
+    "Open Tracking",
+    "Automated Invoicing",
+    "Anti-Ghosting Protection"
+  ],
 };
 
 export const faqSchema = {
