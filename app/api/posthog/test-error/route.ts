@@ -5,9 +5,8 @@ import { getPostHogServer } from "@/lib/posthog-server";
 
 export async function POST(req: NextRequest) {
   const prodEnv = process.env.VERCEL_ENV === "production" || process.env.NODE_ENV === "production";
-  const explicitlyEnabled = process.env.POSTHOG_TEST_ERROR_ENDPOINT_ENABLED === "1";
 
-  if (prodEnv && !explicitlyEnabled) {
+  if (prodEnv) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
