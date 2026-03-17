@@ -10,16 +10,9 @@ import {
   CURRENCIES,
 } from "@/lib/constants";
 import { PLANS, PLAN_LIMITS } from "@/lib/config";
+import { useLanguage } from "@/contexts/LanguageContext";
 
-const TABS = [
-  { id: "profile", label: "Profile" },
-  { id: "branding", label: "Business Branding" },
-  { id: "defaults", label: "Proposal Defaults" },
-  { id: "notifications", label: "Notifications" },
-  { id: "billing", label: "Billing" },
-  { id: "integrations", label: "Integrations" },
-  { id: "account", label: "Account" },
-];
+// TABS moved inside SettingsPage to access translations
 
 type ProfileData = {
   full_name?: string | null;
@@ -59,6 +52,16 @@ type ProfileData = {
 };
 
 export default function SettingsPage() {
+  const { t } = useLanguage();
+  const TABS = [
+    { id: "profile", label: t.dashboard.settingsPage.tabs.profile },
+    { id: "branding", label: t.dashboard.settingsPage.tabs.branding },
+    { id: "defaults", label: t.dashboard.settingsPage.tabs.defaults },
+    { id: "notifications", label: t.dashboard.settingsPage.tabs.notifications },
+    { id: "billing", label: t.dashboard.settingsPage.tabs.billing },
+    { id: "integrations", label: t.dashboard.settingsPage.tabs.integrations },
+    { id: "account", label: t.dashboard.settingsPage.tabs.account },
+  ];
   const [tab, setTab] = useState("profile");
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -168,7 +171,7 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-8">
-      <h1 className="font-serif text-2xl font-bold text-[#faf8f4]">Settings</h1>
+      <h1 className="font-serif text-2xl font-bold text-[#faf8f4]">{t.dashboard.settingsPage.title}</h1>
 
       <div className="flex gap-2 border-b border-[#1e1e2e] overflow-x-auto">
         {TABS.map((t) => (
@@ -187,7 +190,7 @@ export default function SettingsPage() {
 
       {tab === "profile" && (
         <div className="rounded-xl border border-[#1e1e2e] bg-[#12121e] p-6 space-y-6">
-          <h2 className="font-semibold text-[#faf8f4]">Profile</h2>
+          <h2 className="font-semibold text-[#faf8f4]">{t.dashboard.settingsPage.profile.title}</h2>
           <div
             className="relative w-24 h-24 rounded-full border-2 border-dashed border-[#1e1e2e] flex items-center justify-center overflow-hidden bg-[#0a0a14] cursor-pointer hover:border-gold/50"
             onClick={() => document.getElementById("avatar-input")?.click()}
@@ -210,7 +213,7 @@ export default function SettingsPage() {
           </div>
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm text-[#888890] mb-1">Full name</label>
+              <label className="block text-sm text-[#888890] mb-1">{t.dashboard.settingsPage.profile.fullName}</label>
               <input
                 value={form.full_name ?? ""}
                 onChange={(e) => setForm((f) => ({ ...f, full_name: e.target.value }))}
@@ -218,36 +221,36 @@ export default function SettingsPage() {
               />
             </div>
             <div>
-              <label className="block text-sm text-[#888890] mb-1">Email (read-only)</label>
+              <label className="block text-sm text-[#888890] mb-1">{t.dashboard.settingsPage.profile.emailReadOnly}</label>
               <input value={profile?.email ?? ""} readOnly className="w-full rounded-lg border border-[#1e1e2e] bg-[#0a0a14]/50 px-3 py-2 text-[#888890] cursor-not-allowed" />
             </div>
             <div>
-              <label className="block text-sm text-[#888890] mb-1">Business name</label>
+              <label className="block text-sm text-[#888890] mb-1">{t.dashboard.settingsPage.profile.businessName}</label>
               <input value={form.business_name ?? ""} onChange={(e) => setForm((f) => ({ ...f, business_name: e.target.value }))} className="w-full rounded-lg border border-[#1e1e2e] bg-[#0a0a14] px-3 py-2 text-[#faf8f4]" />
             </div>
             <div>
-              <label className="block text-sm text-[#888890] mb-1">Business type</label>
+              <label className="block text-sm text-[#888890] mb-1">{t.dashboard.settingsPage.profile.businessType}</label>
               <input value={form.business_type ?? ""} onChange={(e) => setForm((f) => ({ ...f, business_type: e.target.value }))} placeholder="e.g. Freelancer, Agency" className="w-full rounded-lg border border-[#1e1e2e] bg-[#0a0a14] px-3 py-2 text-[#faf8f4]" />
             </div>
             <div>
-              <label className="block text-sm text-[#888890] mb-1">Website</label>
+              <label className="block text-sm text-[#888890] mb-1">{t.dashboard.settingsPage.profile.website}</label>
               <input value={form.website ?? ""} onChange={(e) => setForm((f) => ({ ...f, website: e.target.value }))} type="url" className="w-full rounded-lg border border-[#1e1e2e] bg-[#0a0a14] px-3 py-2 text-[#faf8f4]" />
             </div>
             <div>
-              <label className="block text-sm text-[#888890] mb-1">Phone</label>
+              <label className="block text-sm text-[#888890] mb-1">{t.dashboard.settingsPage.profile.phone}</label>
               <input value={form.phone ?? ""} onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))} className="w-full rounded-lg border border-[#1e1e2e] bg-[#0a0a14] px-3 py-2 text-[#faf8f4]" />
             </div>
             <div className="sm:col-span-2">
-              <label className="block text-sm text-[#888890] mb-1">Bio (About Us in proposals)</label>
+              <label className="block text-sm text-[#888890] mb-1">{t.dashboard.settingsPage.profile.bio}</label>
               <textarea value={form.bio ?? ""} onChange={(e) => setForm((f) => ({ ...f, bio: e.target.value }))} rows={3} className="w-full rounded-lg border border-[#1e1e2e] bg-[#0a0a14] px-3 py-2 text-[#faf8f4]" />
             </div>
             <div>
-              <label className="block text-sm text-[#888890] mb-1">City</label>
+              <label className="block text-sm text-[#888890] mb-1">{t.dashboard.settingsPage.profile.city}</label>
               <input value={form.city ?? ""} onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))} className="w-full rounded-lg border border-[#1e1e2e] bg-[#0a0a14] px-3 py-2 text-[#faf8f4]" />
             </div>
             <div>
-              <label className="block text-sm text-[#888890] mb-1">Country</label>
-              <input value={form.country ?? ""} onChange={(e) => setForm((f) => ({ ...f, country: e.target.value }))} placeholder="e.g. United States, India" className="w-full rounded-lg border border-[#1e1e2e] bg-[#0a0a14] px-3 py-2 text-[#faf8f4]" />
+              <label className="block text-sm text-[#888890] mb-1">{t.dashboard.settingsPage.profile.country}</label>
+              <input value={form.country ?? ""} onChange={(e) => setForm((f) => ({ ...f, country: e.target.value }))} placeholder={t.dashboard.settingsPage.profile.countryPlaceholder} className="w-full rounded-lg border border-[#1e1e2e] bg-[#0a0a14] px-3 py-2 text-[#faf8f4]" />
             </div>
           </div>
           <div className="pt-4 border-t border-[#1e1e2e]">
@@ -258,19 +261,19 @@ export default function SettingsPage() {
                  onChange={(e) => setForm((f) => ({ ...f, gdpr_compliant_mode: e.target.checked }))}
                  className="rounded border-[#1e1e2e] bg-[#0a0a14] text-gold focus:ring-gold"
                />
-               <span>Enable GDPR/Globalization Compliance Mode</span>
-               <span className="text-xs text-[#888890] group-hover:text-gold/80 transition-colors">(Adds privacy notices & handles data as per international standards)</span>
+               <span>{t.dashboard.settingsPage.profile.gdprMode}</span>
+               <span className="text-xs text-[#888890] group-hover:text-gold/80 transition-colors">{t.dashboard.settingsPage.profile.gdprHint}</span>
              </label>
           </div>
-          <button type="button" onClick={() => saveProfile(form)} disabled={saving} className="rounded-lg bg-gold px-4 py-2 text-sm font-medium text-[#0a0a14] disabled:opacity-50">Save</button>
+          <button type="button" onClick={() => saveProfile(form)} disabled={saving} className="rounded-lg bg-gold px-4 py-2 text-sm font-medium text-[#0a0a14] disabled:opacity-50">{saving ? t.dashboard.settingsPage.common.saving : t.dashboard.settingsPage.common.save}</button>
         </div>
       )}
 
       {tab === "branding" && (
         <div className="rounded-xl border border-[#1e1e2e] bg-[#12121e] p-6 space-y-6">
-          <h2 className="font-semibold text-[#faf8f4]">Business Branding</h2>
+          <h2 className="font-semibold text-[#faf8f4]">{t.dashboard.settingsPage.branding.title}</h2>
           <div>
-            <label className="block text-sm text-[#888890] mb-2">Logo (shown on proposals)</label>
+            <label className="block text-sm text-[#888890] mb-2">{t.dashboard.settingsPage.branding.logoLabel}</label>
             <div
               className="w-32 h-20 rounded-lg border-2 border-dashed border-[#1e1e2e] flex items-center justify-center overflow-hidden bg-[#0a0a14] cursor-pointer hover:border-gold/50 relative"
               onClick={() => document.getElementById("logo-input")?.click()}
@@ -284,22 +287,22 @@ export default function SettingsPage() {
             </div>
           </div>
           <div>
-            <label className="block text-sm text-[#888890] mb-1">Brand color (accent on proposals)</label>
+            <label className="block text-sm text-[#888890] mb-1">{t.dashboard.settingsPage.branding.brandColor}</label>
             <div className="flex gap-2 items-center">
               <input type="color" value={form.brand_color ?? "#D4AF37"} onChange={(e) => setForm((f) => ({ ...f, brand_color: e.target.value }))} className="w-12 h-10 rounded cursor-pointer" />
               <input value={form.brand_color ?? "#D4AF37"} onChange={(e) => setForm((f) => ({ ...f, brand_color: e.target.value }))} className="w-24 rounded-lg border border-[#1e1e2e] bg-[#0a0a14] px-2 py-1 text-[#faf8f4] text-sm" />
             </div>
           </div>
           <div>
-            <label className="block text-sm text-[#888890] mb-1">Default signature text</label>
-            <input value={form.signature_text ?? ""} onChange={(e) => setForm((f) => ({ ...f, signature_text: e.target.value }))} placeholder="Best regards, [Your Name]" className="w-full rounded-lg border border-[#1e1e2e] bg-[#0a0a14] px-3 py-2 text-[#faf8f4]" />
+            <label className="block text-sm text-[#888890] mb-1">{t.dashboard.settingsPage.branding.signatureText}</label>
+            <input value={form.signature_text ?? ""} onChange={(e) => setForm((f) => ({ ...f, signature_text: e.target.value }))} placeholder={t.dashboard.settingsPage.branding.signaturePlaceholder} className="w-full rounded-lg border border-[#1e1e2e] bg-[#0a0a14] px-3 py-2 text-[#faf8f4]" />
           </div>
           <div>
-            <label className="block text-sm text-[#888890] mb-1">Business address (on proposals)</label>
+            <label className="block text-sm text-[#888890] mb-1">{t.dashboard.settingsPage.branding.addressLabel}</label>
             <textarea value={form.address ?? ""} onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))} rows={2} className="w-full rounded-lg border border-[#1e1e2e] bg-[#0a0a14] px-3 py-2 text-[#faf8f4]" />
           </div>
           <div>
-            <label className="block text-sm text-[#888890] mb-1">Default payment terms</label>
+            <label className="block text-sm text-[#888890] mb-1">{t.dashboard.settingsPage.branding.paymentTerms}</label>
             <select value={form.default_payment_terms ?? ""} onChange={(e) => setForm((f) => ({ ...f, default_payment_terms: e.target.value }))} className="w-full rounded-lg border border-[#1e1e2e] bg-[#0a0a14] px-3 py-2 text-[#faf8f4]">
               <option value="">—</option>
               {PAYMENT_TERMS.map((p) => (
@@ -308,76 +311,76 @@ export default function SettingsPage() {
             </select>
           </div>
           <div>
-            <label className="block text-sm text-[#888890] mb-1">Default currency</label>
+            <label className="block text-sm text-[#888890] mb-1">{t.dashboard.settingsPage.branding.currency}</label>
             <select value={form.currency ?? "USD"} onChange={(e) => setForm((f) => ({ ...f, currency: e.target.value }))} className="w-full rounded-lg border border-[#1e1e2e] bg-[#0a0a14] px-3 py-2 text-[#faf8f4]">
               {CURRENCIES.map((c) => (
                 <option key={c} value={c}>{c}</option>
               ))}
             </select>
           </div>
-          <button type="button" onClick={() => saveProfile(form)} disabled={saving} className="rounded-lg bg-gold px-4 py-2 text-sm font-medium text-[#0a0a14] disabled:opacity-50">Save</button>
+          <button type="button" onClick={() => saveProfile(form)} disabled={saving} className="rounded-lg bg-gold px-4 py-2 text-sm font-medium text-[#0a0a14] disabled:opacity-50">{saving ? t.dashboard.settingsPage.common.saving : t.dashboard.settingsPage.common.save}</button>
         </div>
       )}
 
       {tab === "defaults" && (
         <div className="rounded-xl border border-[#1e1e2e] bg-[#12121e] p-6 space-y-6">
-          <h2 className="font-semibold text-[#faf8f4]">Proposal Defaults</h2>
+          <h2 className="font-semibold text-[#faf8f4]">{t.dashboard.settingsPage.defaults.title}</h2>
           <div>
-            <label className="block text-sm text-[#888890] mb-2">Default tone</label>
+            <label className="block text-sm text-[#888890] mb-2">{t.dashboard.settingsPage.defaults.tone}</label>
             <div className="grid grid-cols-2 gap-2">
-              {TONE_OPTIONS.map((t) => (
+              {TONE_OPTIONS.map((o) => (
                 <button
-                  key={t.value}
+                  key={o.value}
                   type="button"
-                  onClick={() => setForm((f) => ({ ...f, default_tone: t.value }))}
-                  className={`rounded-lg border p-3 text-left text-sm ${form.default_tone === t.value ? "border-gold bg-gold/20 text-gold" : "border-[#1e1e2e] text-[#888890] hover:border-gold/30"}`}
+                  onClick={() => setForm((f) => ({ ...f, default_tone: o.value }))}
+                  className={`rounded-lg border p-3 text-left text-sm ${form.default_tone === o.value ? "border-gold bg-gold/20 text-gold" : "border-[#1e1e2e] text-[#888890] hover:border-gold/30"}`}
                 >
-                  {t.emoji} {t.label}
+                  {o.emoji} {t.proposalForm.fields[o.value as keyof typeof t.proposalForm.fields] ?? o.label}
                 </button>
               ))}
             </div>
           </div>
           <div>
-            <label className="block text-sm text-[#888890] mb-2">Default sections to include</label>
+            <label className="block text-sm text-[#888890] mb-2">{t.dashboard.settingsPage.defaults.sections}</label>
             <div className="space-y-2">
               {PROPOSAL_SECTIONS.map((s) => (
                 <label key={s} className="flex items-center gap-2 text-sm text-[#888890]">
                   <input type="checkbox" checked={(form.default_sections ?? []).includes(s)} onChange={() => toggleSection(s)} />
-                  {s}
+                  {t.proposalForm.sections[s as keyof typeof t.proposalForm.sections] ?? s}
                 </label>
               ))}
             </div>
           </div>
           <div>
-            <label className="block text-sm text-[#888890] mb-1">Default expiry days</label>
+            <label className="block text-sm text-[#888890] mb-1">{t.dashboard.settingsPage.defaults.expiryDays}</label>
             <input type="number" min={1} max={365} value={form.default_expiry_days ?? 30} onChange={(e) => setForm((f) => ({ ...f, default_expiry_days: parseInt(e.target.value) || 30 }))} className="w-24 rounded-lg border border-[#1e1e2e] bg-[#0a0a14] px-3 py-2 text-[#faf8f4]" />
-            <p className="text-xs text-[#888890] mt-1">Proposals expire after this many days</p>
+            <p className="text-xs text-[#888890] mt-1">{t.dashboard.settingsPage.defaults.expiryHint}</p>
           </div>
           <div>
             <label className="flex items-center gap-2 text-sm text-[#888890]">
               <input type="checkbox" checked={form.auto_follow_up_enabled ?? true} onChange={(e) => setForm((f) => ({ ...f, auto_follow_up_enabled: e.target.checked }))} />
-              Auto follow-up reminder
+              {t.dashboard.settingsPage.defaults.followUpLabel}
             </label>
             <div className="mt-2 ml-6">
-              <label className="block text-xs text-[#888890] mb-1">Days to wait before reminder</label>
+              <label className="block text-xs text-[#888890] mb-1">{t.dashboard.settingsPage.defaults.followUpDays}</label>
               <input type="number" min={1} max={30} value={form.auto_follow_up_days ?? 7} onChange={(e) => setForm((f) => ({ ...f, auto_follow_up_days: parseInt(e.target.value) || 7 }))} className="w-20 rounded-lg border border-[#1e1e2e] bg-[#0a0a14] px-2 py-1 text-[#faf8f4] text-sm" />
             </div>
           </div>
-          <button type="button" onClick={() => saveProfile(form)} disabled={saving} className="rounded-lg bg-gold px-4 py-2 text-sm font-medium text-[#0a0a14] disabled:opacity-50">Save</button>
+          <button type="button" onClick={() => saveProfile(form)} disabled={saving} className="rounded-lg bg-gold px-4 py-2 text-sm font-medium text-[#0a0a14] disabled:opacity-50">{saving ? t.dashboard.settingsPage.common.saving : t.dashboard.settingsPage.common.save}</button>
         </div>
       )}
 
       {tab === "notifications" && (
         <div className="rounded-xl border border-[#1e1e2e] bg-[#12121e] p-6 space-y-6">
-          <h2 className="font-semibold text-[#faf8f4]">Notifications</h2>
+          <h2 className="font-semibold text-[#faf8f4]">{t.dashboard.settingsPage.notifications.title}</h2>
           <div className="space-y-4">
             {[
-              { key: "notify_proposal_viewed", label: "When client views my proposal" },
-              { key: "notify_proposal_accepted", label: "When proposal is accepted" },
-              { key: "notify_proposal_declined", label: "When proposal is declined" },
-              { key: "notify_proposal_expired", label: "When proposal expires" },
-              { key: "notify_weekly_summary", label: "Weekly summary email" },
-              { key: "notify_product_updates", label: "Product updates & tips" },
+              { key: "notify_proposal_viewed", label: t.dashboard.settingsPage.notifications.proposalViewed },
+              { key: "notify_proposal_accepted", label: t.dashboard.settingsPage.notifications.proposalAccepted },
+              { key: "notify_proposal_declined", label: t.dashboard.settingsPage.notifications.proposalDeclined },
+              { key: "notify_proposal_expired", label: t.dashboard.settingsPage.notifications.proposalExpired },
+              { key: "notify_weekly_summary", label: t.dashboard.settingsPage.notifications.weeklySummary },
+              { key: "notify_product_updates", label: t.dashboard.settingsPage.notifications.productUpdates },
             ].map(({ key, label }) => (
               <label key={key} className="flex items-center gap-2 text-sm text-[#faf8f4]">
                 <input
@@ -389,47 +392,47 @@ export default function SettingsPage() {
               </label>
             ))}
           </div>
-          <button type="button" onClick={() => saveProfile(form)} disabled={saving} className="rounded-lg bg-gold px-4 py-2 text-sm font-medium text-[#0a0a14] disabled:opacity-50">Save</button>
+          <button type="button" onClick={() => saveProfile(form)} disabled={saving} className="rounded-lg bg-gold px-4 py-2 text-sm font-medium text-[#0a0a14] disabled:opacity-50">{saving ? t.dashboard.settingsPage.common.saving : t.dashboard.settingsPage.common.save}</button>
         </div>
       )}
 
       {tab === "billing" && (
         <div className="rounded-xl border border-[#1e1e2e] bg-[#12121e] p-6 space-y-6">
-          <h2 className="font-semibold text-[#faf8f4]">Billing</h2>
+          <h2 className="font-semibold text-[#faf8f4]">{t.dashboard.settingsPage.billing.title}</h2>
           <div>
-            <p className="text-sm text-[#888890]">Current plan</p>
+            <p className="text-sm text-[#888890]">{t.dashboard.settingsPage.billing.currentPlan}</p>
             <p className="text-lg font-semibold text-[#faf8f4] capitalize">{plan}</p>
             {plan !== "free" && PLANS[plan as keyof typeof PLANS] && (
               <p className="text-sm text-[#888890] mt-1">
-                {PLANS[plan as keyof typeof PLANS].proposalsPerMonth === -1 ? "Unlimited" : PLANS[plan as keyof typeof PLANS].proposalsPerMonth} proposals/month
+                {PLANS[plan as keyof typeof PLANS].proposalsPerMonth === -1 ? t.dashboard.settingsPage.billing.usageLabel : PLANS[plan as keyof typeof PLANS].proposalsPerMonth} {t.dashboard.settingsPage.billing.usageLabel}/month
               </p>
             )}
           </div>
           {profile?.subscription_period_end && (
             <div>
-              <p className="text-sm text-[#888890]">Next billing date</p>
+              <p className="text-sm text-[#888890]">{t.dashboard.settingsPage.billing.nextBilling}</p>
               <p className="text-[#faf8f4]">{new Date(profile.subscription_period_end).toLocaleDateString()}</p>
             </div>
           )}
           {limit >= 0 && (
             <div>
-              <p className="text-sm text-[#888890] mb-2">Usage this month</p>
+              <p className="text-sm text-[#888890] mb-2">{t.dashboard.settingsPage.billing.usageThisMonth}</p>
               <div className="h-2 rounded-full bg-[#0a0a14] overflow-hidden">
                 <div className="h-full rounded-full bg-gold/60" style={{ width: `${Math.min(100, (used / limit) * 100)}%` }} />
               </div>
-              <p className="text-xs text-[#888890] mt-1">{used} of {limitLabel} proposals</p>
+              <p className="text-xs text-[#888890] mt-1">{used} {t.dashboard.settingsPage.billing.usageLabelOf} {limitLabel} {t.dashboard.settingsPage.billing.usageLabel}</p>
             </div>
           )}
           {(profile?.stripe_subscription_id || profile?.stripe_customer_id || plan !== "free") ? (
             <>
               <button type="button" onClick={openPortal} disabled={portalLoading} className="rounded-lg bg-gold px-4 py-2 text-sm font-medium text-[#0a0a14] hover:bg-[#e8c76a] disabled:opacity-50">
-                {portalLoading ? "Opening..." : "Manage Billing"}
+                {portalLoading ? t.dashboard.settingsPage.common.loading : t.dashboard.settingsPage.billing.manageButton}
               </button>
-              <p className="text-xs text-[#888890]">Update payment, view invoices, or cancel.</p>
+              <p className="text-xs text-[#888890]">{t.dashboard.settingsPage.billing.manageHint}</p>
             </>
           ) : (
             <p className="text-sm text-[#888890]">
-              <Link href="/#pricing" className="text-gold hover:underline">Upgrade</Link> for more proposals.
+              <Link href="/#pricing" className="text-gold hover:underline">{t.dashboard.settingsPage.billing.upgradeLink}</Link> {t.dashboard.settingsPage.billing.upgradeSuffix}
             </p>
           )}
         </div>
@@ -437,8 +440,8 @@ export default function SettingsPage() {
 
       {tab === "integrations" && (
         <div className="rounded-xl border border-[#1e1e2e] bg-[#12121e] p-6 space-y-6">
-          <h2 className="font-semibold text-[#faf8f4]">Integrations</h2>
-          <p className="text-sm text-[#888890]">Connect your tools. Use Zapier webhooks to automate proposals with your CRM or workflow.</p>
+          <h2 className="font-semibold text-[#faf8f4]">{t.dashboard.settingsPage.tabs.integrations}</h2>
+          <p className="text-sm text-[#888890]">{t.dashboard.settingsPage.integrations.description}</p>
           <div className="grid sm:grid-cols-2 gap-4">
             <Link
               href="/api-docs#zapier"
@@ -447,12 +450,12 @@ export default function SettingsPage() {
               className="flex items-center justify-between p-4 rounded-lg border border-[#1e1e2e] bg-[#0a0a14] hover:border-gold/30 transition-colors"
             >
               <span className="font-medium text-[#faf8f4]">Zapier</span>
-              <span className="text-xs text-gold px-2 py-1 rounded bg-gold/10">Webhooks →</span>
+              <span className="text-xs text-gold px-2 py-1 rounded bg-gold/10">{t.dashboard.settingsPage.integrations.zapierButton}</span>
             </Link>
             {["Slack", "Google Calendar", "HubSpot", "Notion"].map((name) => (
               <div key={name} className="flex items-center justify-between p-4 rounded-lg border border-[#1e1e2e] bg-[#0a0a14]">
                 <span className="font-medium text-[#faf8f4]">{name}</span>
-                <span className="text-xs text-[#888890] px-2 py-1 rounded bg-[#1e1e2e]">Coming Soon</span>
+                <span className="text-xs text-[#888890] px-2 py-1 rounded bg-[#1e1e2e]">{t.dashboard.settingsPage.integrations.comingSoon}</span>
               </div>
             ))}
           </div>
@@ -461,11 +464,11 @@ export default function SettingsPage() {
 
       {tab === "account" && (
         <div className="rounded-xl border border-[#1e1e2e] bg-[#12121e] p-6 space-y-6">
-          <h2 className="font-semibold text-[#faf8f4]">Account</h2>
+          <h2 className="font-semibold text-[#faf8f4]">{t.dashboard.settingsPage.account.title}</h2>
           <div className="space-y-4">
             <div>
-              <h3 className="text-sm font-medium text-[#faf8f4] mb-2">Change password</h3>
-              <p className="text-sm text-[#888890] mb-2">We&apos;ll send a reset link to {profile?.email}. Check your email after clicking below.</p>
+              <h3 className="text-sm font-medium text-[#faf8f4] mb-2">{t.dashboard.settingsPage.account.changePassword}</h3>
+              <p className="text-sm text-[#888890] mb-2">{t.dashboard.settingsPage.account.passwordHint.replace("{email}", profile?.email ?? "")}</p>
               <button
                 type="button"
                 onClick={async () => {
@@ -476,30 +479,30 @@ export default function SettingsPage() {
                 }}
                 className="text-gold text-sm hover:underline"
               >
-                Send password reset email
+                {t.dashboard.settingsPage.account.resetButton}
               </button>
             </div>
             <div>
-              <h3 className="text-sm font-medium text-[#faf8f4] mb-2">Change email</h3>
-              <p className="text-sm text-[#888890]">Contact support to change your email address.</p>
+              <h3 className="text-sm font-medium text-[#faf8f4] mb-2">{t.dashboard.settingsPage.account.changeEmail}</h3>
+              <p className="text-sm text-[#888890]">{t.dashboard.settingsPage.account.emailHint}</p>
             </div>
             <div>
-              <h3 className="text-sm font-medium text-[#faf8f4] mb-2">Export data (GDPR)</h3>
-              <p className="text-sm text-[#888890] mb-2">Download all your profile, proposals, clients, and templates as JSON.</p>
+              <h3 className="text-sm font-medium text-[#faf8f4] mb-2">{t.dashboard.settingsPage.account.exportTitle}</h3>
+              <p className="text-sm text-[#888890] mb-2">{t.dashboard.settingsPage.account.exportHint}</p>
               <a
                 href="/api/account/export"
                 className="inline-block rounded-lg border border-gold/50 px-4 py-2 text-sm text-gold hover:bg-gold/10 transition-colors"
                 download
               >
-                Export my data
+                {t.dashboard.settingsPage.account.exportButton}
               </a>
             </div>
             <div>
-              <h3 className="text-sm font-medium text-red-400 mb-2">Delete account</h3>
-              <p className="text-sm text-[#888890] mb-2">Permanently delete your account and all data. This cannot be undone.</p>
+              <h3 className="text-sm font-medium text-red-400 mb-2">{t.dashboard.settingsPage.account.deleteTitle}</h3>
+              <p className="text-sm text-[#888890] mb-2">{t.dashboard.settingsPage.account.deleteHint}</p>
               <input
                 type="text"
-                placeholder='Type "DELETE" to confirm'
+                placeholder={t.dashboard.settingsPage.account.deletePlaceholder}
                 value={deleteConfirm}
                 onChange={(e) => setDeleteConfirm(e.target.value)}
                 className="w-full max-w-xs rounded-lg border border-[#1e1e2e] bg-[#0a0a14] px-3 py-2 text-[#faf8f4] mb-2"
@@ -516,7 +519,7 @@ export default function SettingsPage() {
                 }}
                 className="rounded-lg bg-red-600 px-4 py-2 text-sm text-white disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Delete account
+                {t.dashboard.settingsPage.account.deleteButton}
               </button>
             </div>
           </div>

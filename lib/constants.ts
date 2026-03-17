@@ -71,7 +71,7 @@ export const PROPOSAL_SECTIONS = [
   "Terms & Conditions",
 ] as const;
 
-export const CURRENCIES = ["USD", "GBP", "EUR", "AUD", "CAD", "INR"] as const;
+export const CURRENCIES = ["USD", "GBP", "EUR", "AUD", "CAD", "INR", "BRL", "AED"] as const;
 
 export const TIMELINE_OPTIONS = [
   "1 week",

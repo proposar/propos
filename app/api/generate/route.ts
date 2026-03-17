@@ -77,6 +77,7 @@ export async function POST(request: Request) {
       discountPercent,
       taxPercent,
       grandTotal,
+      locale,
     } = validationResult.data;
 
     const { data: profile } = await supabase.from("profiles").select("subscription_plan, proposals_used_this_month, proposals_reset_date, full_name, business_name").eq("id", user.id).single();
@@ -149,6 +150,7 @@ export async function POST(request: Request) {
       discountPercent: lineItemsEnabled ? discountPercent : undefined,
       taxPercent: lineItemsEnabled ? taxPercent : undefined,
       grandTotal: lineItemsEnabled ? grandTotal : undefined,
+      locale: locale ?? "English",
     });
 
     // Use OpenAI as PRIMARY service (configured in Vercel), Claude as optional fallback for future

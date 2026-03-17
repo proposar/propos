@@ -13,6 +13,7 @@ export async function POST(request: Request) {
 
   const body = await request.json().catch(() => ({}));
   const proposalId = body.proposalId as string | undefined;
+  const locale = body.locale as string | undefined;
   if (!proposalId) return NextResponse.json({ error: "proposalId required" }, { status: 400 });
 
   const { data: proposal } = await supabase
@@ -81,7 +82,8 @@ Formatting requirements:
     );
   }
 
-  const content = await generateContractWithOpenAI(prompt);
+  const finalPrompt = `${prompt}\n\nCRITICAL: Write the entire contract in the following language: ${locale || "English"}.`;
+  const content = await generateContractWithOpenAI(finalPrompt);
   const { data: prop } = await supabase.from("proposals").select("client_name, client_email").eq("id", proposalId).single();
   return NextResponse.json({
     content,

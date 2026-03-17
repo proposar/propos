@@ -6,25 +6,18 @@ import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/contexts/ProfileContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 
-const titles: Record<string, string> = {
-  "/dashboard": "Dashboard",
-  "/proposals": "Proposals",
-  "/proposals/new": "New Proposal",
-  "/clients": "Clients",
-  "/templates": "Templates",
-  "/settings": "Settings",
-};
-
-function getPageTitle(pathname: string): string {
-  if (pathname === "/proposals/new") return "New Proposal";
-  if (pathname.startsWith("/proposals/") && pathname !== "/proposals") return "Proposal";
-  return titles[pathname] ?? "Dashboard";
+function getPageTitle(pathname: string, t: any): string {
+  if (pathname === "/proposals/new") return t.dashboard.topbar.newProposal;
+  if (pathname.startsWith("/proposals/") && pathname !== "/proposals") return t.dashboard.sidebar.proposals;
+  return t.dashboard.topbar.titles[pathname] ?? t.dashboard.topbar.titles["/dashboard"];
 }
 
 export function TopBar() {
   const pathname = usePathname();
   const router = useRouter();
+  const { t } = useLanguage();
   const [searchOpen, setSearchOpen] = useState(false);
 
   async function handleSignOut() {
@@ -57,7 +50,7 @@ export function TopBar() {
     return () => document.removeEventListener("click", onClickOutside);
   }, []);
 
-  const title = getPageTitle(pathname);
+  const title = getPageTitle(pathname, t);
   const { profile } = useProfile();
   const avatarUrl = profile?.avatar_url ?? null;
   const initial = profile?.full_name
@@ -78,7 +71,7 @@ export function TopBar() {
           onClick={() => setSearchOpen(true)}
           className="hidden md:flex items-center gap-2 rounded-lg border border-[#1e1e2e] bg-[#12121e] px-3 py-2 text-sm text-[#888890] hover:text-[#faf8f4] transition-colors w-48"
         >
-          <span>Search...</span>
+          <span>{t.dashboard.topbar.searchPlaceholder}</span>
           <span className="text-xs ml-auto">⌘K</span>
         </button>
 
@@ -86,7 +79,7 @@ export function TopBar() {
           <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 bg-black/50 md:bg-transparent md:relative md:pt-0 md:inset-auto">
             <input
               type="search"
-              placeholder="Search..."
+              placeholder={t.dashboard.topbar.searchPlaceholder}
               autoFocus
               className="rounded-lg border border-[#1e1e2e] bg-[#12121e] px-4 py-2 text-[#faf8f4] w-full max-w-md md:w-64 focus:outline-none focus:ring-2 focus:ring-gold/50"
               onBlur={() => setSearchOpen(false)}
@@ -98,13 +91,13 @@ export function TopBar() {
           href="/help"
           className="hidden md:inline-flex text-sm text-[#888890] hover:text-gold transition-colors"
         >
-          Help
+          {t.dashboard.topbar.help}
         </Link>
         <Link
           href="/proposals/new"
           className="hidden md:inline-flex rounded-lg bg-gold px-4 py-2 text-sm font-medium text-[#0a0a14] hover:bg-[#e8c76a] transition-colors"
         >
-          New Proposal
+          {t.dashboard.topbar.newProposal}
         </Link>
 
         <button
@@ -132,26 +125,26 @@ export function TopBar() {
           </button>
           {userMenuOpen && (
             <div className="absolute right-0 top-full mt-2 w-48 rounded-lg border border-[#1e1e2e] bg-[#12121e] py-1 shadow-xl z-50">
-              <Link
-                href="/settings"
-                className="block px-4 py-2 text-sm text-[#faf8f4] hover:bg-[#0a0a14]"
-                onClick={() => setUserMenuOpen(false)}
-              >
-                Profile
-              </Link>
-              <Link
-                href="/settings"
-                className="block px-4 py-2 text-sm text-[#faf8f4] hover:bg-[#0a0a14]"
-                onClick={() => setUserMenuOpen(false)}
-              >
-                Billing
-              </Link>
+                <Link
+                  href="/settings"
+                  className="block px-4 py-2 text-sm text-[#faf8f4] hover:bg-[#0a0a14]"
+                  onClick={() => setUserMenuOpen(false)}
+                >
+                  {t.dashboard.topbar.profile}
+                </Link>
+                <Link
+                  href="/settings"
+                  className="block px-4 py-2 text-sm text-[#faf8f4] hover:bg-[#0a0a14]"
+                  onClick={() => setUserMenuOpen(false)}
+                >
+                  {t.dashboard.topbar.billing}
+                </Link>
               <button
                 type="button"
                 className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-[#0a0a14]"
                 onClick={() => { setUserMenuOpen(false); handleSignOut(); }}
               >
-                Sign out
+                  {t.dashboard.topbar.signOut}
               </button>
             </div>
           )}

@@ -5,6 +5,8 @@ import Link from "next/link";
 import { MessageCircle } from "lucide-react";
 import { ShareModal } from "@/components/proposal/ShareModal";
 import { TableSkeleton } from "@/components/ui/TableSkeleton";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { getTranslations } from "@/lib/i18n/dict";
 
 type ProposalStatus = "draft" | "sent" | "viewed" | "accepted" | "declined";
 
@@ -17,6 +19,8 @@ const statusStyles: Record<ProposalStatus, string> = {
 };
 
 export default function ProposalsPage() {
+  const { locale } = useLanguage();
+  const t = getTranslations(locale);
   const [proposals, setProposals] = useState<Array<{
     id: string;
     share_id: string | null;
@@ -52,12 +56,12 @@ export default function ProposalsPage() {
   return (
     <div className="space-y-8">
       <div className="flex justify-between items-center">
-        <h1 className="font-serif text-2xl font-bold text-[#faf8f4]">Proposals</h1>
+        <h1 className="font-serif text-2xl font-bold text-[#faf8f4]">{t.dashboard.topbar.titles["/proposals"]}</h1>
         <Link
           href="/proposals/new"
           className="rounded-lg bg-gold px-4 py-2 text-sm font-medium text-[#0a0a14] hover:bg-[#e8c76a]"
         >
-          New Proposal
+          {t.dashboard.topbar.newProposal}
         </Link>
       </div>
       <div className="rounded-xl border border-[#1e1e2e] bg-[#12121e] overflow-hidden">
@@ -67,9 +71,9 @@ export default function ProposalsPage() {
           </div>
         ) : proposals.length === 0 ? (
           <div className="p-8 text-center text-[#888890]">
-            <p>No proposals yet. Create your first one.</p>
+            <p>{t.dashboard.recentProposals.empty}</p>
             <Link href="/proposals/new" className="mt-4 inline-block text-gold hover:underline">
-              New Proposal →
+              {t.dashboard.topbar.newProposal} →
             </Link>
           </div>
         ) : (
@@ -77,13 +81,13 @@ export default function ProposalsPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-[#888890] border-b border-[#1e1e2e]">
-                  <th className="p-4">Title</th>
-                  <th className="p-4">Client</th>
-                  <th className="p-4">Type</th>
-                  <th className="p-4">Value</th>
-                  <th className="p-4">Status</th>
-                  <th className="p-4">Sent</th>
-                  <th className="p-4">Actions</th>
+                  <th className="p-4">{t.dashboard.recentProposals.headers.client}</th>
+                  <th className="p-4">{t.dashboard.recentProposals.headers.client}</th>
+                  <th className="p-4">{t.dashboard.recentProposals.headers.type}</th>
+                  <th className="p-4">{t.dashboard.recentProposals.headers.value}</th>
+                  <th className="p-4">{t.dashboard.recentProposals.headers.status}</th>
+                  <th className="p-4">{t.dashboard.recentProposals.headers.sent}</th>
+                  <th className="p-4">{t.dashboard.recentProposals.headers.actions}</th>
                 </tr>
               </thead>
               <tbody>

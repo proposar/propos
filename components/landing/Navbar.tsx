@@ -6,7 +6,7 @@ import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { createClient } from "@/lib/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { LANGUAGES, type Locale } from "@/lib/i18n/home";
+import { LANGUAGES, type Locale } from "@/lib/i18n/dict";
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);

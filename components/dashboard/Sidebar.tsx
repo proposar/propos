@@ -7,27 +7,32 @@ import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { PLAN_LIMITS } from "@/lib/config";
 import { useProfile } from "@/contexts/ProfileContext";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { type Translations } from "@/lib/i18n/dict";
 
-const navItems = [
-  { href: "/dashboard", label: "Dashboard", icon: "📊" },
-  { href: "/proposals", label: "Proposals", icon: "📄", showBadge: true },
-  { href: "/proposals/new", label: "New Proposal", icon: "➕" },
-  { href: "/pipeline", label: "Pipeline", icon: "🔄" },
-  { href: "/clients", label: "Clients", icon: "👥" },
-  { href: "/analytics", label: "Analytics", icon: "📈" },
-  { href: "/contracts", label: "Contracts", icon: "📝" },
-  { href: "/invoices", label: "Invoices", icon: "💰" },
-  { href: "/templates", label: "Templates", icon: "📋" },
-  { href: "/referrals", label: "Earn with Referrals", icon: "🎁" },
-  { href: "/feedback", label: "User Feedback", icon: "💬" },
-  { href: "/billing", label: "Billing & Plans", icon: "💳" },
-  { href: "/settings", label: "Settings", icon: "⚙️" },
+const getNavItems = (t: Translations) => [
+  { href: "/dashboard", label: t.dashboard.sidebar.dashboard, icon: "📊" },
+  { href: "/proposals", label: t.dashboard.sidebar.proposals, icon: "📄", showBadge: true },
+  { href: "/proposals/new", label: t.dashboard.sidebar.newProposal, icon: "➕" },
+  { href: "/pipeline", label: t.dashboard.sidebar.pipeline, icon: "🔄" },
+  { href: "/clients", label: t.dashboard.sidebar.clients, icon: "👥" },
+  { href: "/analytics", label: t.dashboard.sidebar.analytics, icon: "📈" },
+  { href: "/contracts", label: t.dashboard.sidebar.contracts, icon: "📝" },
+  { href: "/invoices", label: t.dashboard.sidebar.invoices, icon: "💰" },
+  { href: "/templates", label: t.dashboard.sidebar.templates, icon: "📋" },
+  { href: "/referrals", label: t.dashboard.sidebar.referrals, icon: "🎁" },
+  { href: "/feedback", label: t.dashboard.sidebar.feedback, icon: "💬" },
+  { href: "/billing", label: t.dashboard.sidebar.billing, icon: "💳" },
+  { href: "/settings", label: t.dashboard.sidebar.settings, icon: "⚙️" },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
   const { profile } = useProfile();
+  const { t } = useLanguage();
   const [proposalsCount, setProposalsCount] = useState(0);
+
+  const navItems = getNavItems(t);
 
   const plan = (profile?.subscription_plan as "free" | "starter" | "pro" | "agency") || "free";
   const proposalsUsed = profile?.proposals_used_this_month ?? 0;
@@ -125,8 +130,8 @@ export function Sidebar() {
             href="/billing"
             className="block rounded-lg border border-gold/50 bg-gold/10 p-3 text-sm text-gold hover:bg-gold/20 transition-colors"
           >
-            <p className="font-medium">You&apos;re on Free.</p>
-            <p className="text-xs mt-1">Upgrade to Pro →</p>
+            <p className="font-medium">{t.dashboard.sidebar.freePlanMsg}</p>
+            <p className="text-xs mt-1">{t.dashboard.sidebar.upgradePro}</p>
             <div className="mt-2 h-1.5 rounded-full bg-[#1e1e2e] overflow-hidden">
               <div
                 className="h-full rounded-full bg-gold/50"
@@ -139,9 +144,9 @@ export function Sidebar() {
 
       <div className="p-3 border-t border-[#1e1e2e] space-y-1">
         <Link href="/help" className="block text-xs text-[#888890] hover:text-gold transition-colors" prefetch>
-          Help & Support
+          {t.dashboard.sidebar.helpSupport}
         </Link>
-        <p className="text-xs text-[#888890]/70">⌘K to search</p>
+        <p className="text-xs text-[#888890]/70">{t.dashboard.sidebar.searchHint}</p>
       </div>
     </motion.aside>
   );

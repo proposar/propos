@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { UpgradeModal } from "@/components/UpgradeModal";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { getTranslations } from "@/lib/i18n/dict";
 import {
   PROJECT_TYPES,
   CURRENCIES,
@@ -66,6 +68,8 @@ interface ProfileDefaults {
 }
 
 export function ProposalForm() {
+  const { locale } = useLanguage();
+  const t = getTranslations(locale);
   const router = useRouter();
   const searchParams = useSearchParams();
   const hasUserInteractedRef = useRef(false);
@@ -566,6 +570,8 @@ export function ProposalForm() {
       CAD: "C$",
       INR: "₹",
       SGD: "S$",
+      BRL: "R$",
+      AED: "د.إ",
     };
     return symbols[curr] || curr;
   };
@@ -581,12 +587,12 @@ export function ProposalForm() {
         className="lg:col-span-3 space-y-8"
       >
         <div className="rounded-xl border border-gold/30 bg-gold/10 px-4 py-3 text-sm text-[#f2d67f]">
-          Using onboarding defaults for tone, sections, currency, payment terms, and expiry date. You can edit everything below for this proposal.
+          {t.proposalForm.onboardingMsg}
         </div>
         {/* Section 1: About the Client */}
         <div className="rounded-xl border border-[#1e1e2e] bg-[#12121e] p-6">
           <h2 className="font-semibold text-[#faf8f4] mb-4">
-            About the Client
+            {t.proposalForm.sections.client}
           </h2>
           <label className="flex items-center gap-2 text-sm text-[#888890] mb-4">
             <input
@@ -594,13 +600,13 @@ export function ProposalForm() {
               checked={useExistingClient}
               onChange={(e) => setUseExistingClient(e.target.checked)}
             />
-            Select existing client
+            {t.proposalForm.fields.existingClient}
           </label>
           {useExistingClient && (
             <div className="mb-4">
-              <label className={labelClass}>Choose Client</label>
+              <label className={labelClass}>{t.proposalForm.fields.selectClient}</label>
               <select
-                aria-label="Choose Client"
+                aria-label={t.proposalForm.fields.selectClient}
                 value={selectedExistingClientId}
                 onChange={(e) => setSelectedExistingClientId(e.target.value)}
                 className={inputClass}
@@ -608,8 +614,8 @@ export function ProposalForm() {
               >
                 <option value="">
                   {existingClientsLoading
-                    ? "Loading clients..."
-                    : "Select a client"}
+                    ? t.proposalForm.fields.loadingClients
+                    : t.proposalForm.fields.selectClient}
                 </option>
                 {existingClients.map((c) => (
                   <option key={c.id} value={c.id}>
@@ -624,18 +630,18 @@ export function ProposalForm() {
               )}
               {!existingClientsLoading && existingClients.length === 0 && !existingClientsError && (
                 <p className="text-xs text-[#888890] mt-1">
-                  No clients found yet. Add clients first from the Clients page.
+                  {t.proposalForm.fields.noClients}
                 </p>
               )}
             </div>
           )}
           <div className="space-y-4">
             <div>
-              <label className={labelClass}>Client Name *</label>
+              <label className={labelClass}>{t.proposalForm.fields.clientName}</label>
               <input
                 type="text"
-                aria-label="Client Name"
-                placeholder="e.g. John Smith"
+                aria-label={t.proposalForm.fields.clientName}
+                placeholder={t.proposalForm.placeholders.clientName}
                 value={clientName}
                 onChange={(e) => setClientName(e.target.value)}
                 className={inputClass}
@@ -646,31 +652,31 @@ export function ProposalForm() {
               )}
             </div>
             <div>
-              <label className={labelClass}>Client Company</label>
+              <label className={labelClass}>{t.proposalForm.fields.clientCompany}</label>
               <input
                 type="text"
-                aria-label="Client Company"
-                placeholder="e.g. Acme Corp"
+                aria-label={t.proposalForm.fields.clientCompany}
+                placeholder={t.proposalForm.placeholders.clientCompany}
                 value={clientCompany}
                 onChange={(e) => setClientCompany(e.target.value)}
                 className={inputClass}
               />
             </div>
             <div>
-              <label className={labelClass}>Client Email</label>
+              <label className={labelClass}>{t.proposalForm.fields.clientEmail}</label>
               <input
                 type="email"
-                aria-label="Client Email"
-                placeholder="client@example.com"
+                aria-label={t.proposalForm.fields.clientEmail}
+                placeholder={t.proposalForm.placeholders.clientEmail}
                 value={clientEmail}
                 onChange={(e) => setClientEmail(e.target.value)}
                 className={inputClass}
               />
             </div>
             <div>
-              <label className={labelClass}>Industry</label>
+              <label className={labelClass}>{t.proposalForm.fields.industry}</label>
               <select
-                aria-label="Industry"
+                aria-label={t.proposalForm.fields.industry}
                 value={industry}
                 onChange={(e) => setIndustry(e.target.value as typeof industry)}
                 className={inputClass}
@@ -688,16 +694,16 @@ export function ProposalForm() {
         {/* Section 2: About the Project */}
         <div className="rounded-xl border border-[#1e1e2e] bg-[#12121e] p-6">
           <h2 className="font-semibold text-[#faf8f4] mb-4">
-            About the Project
+            {t.proposalForm.sections.project}
           </h2>
           <div className="space-y-4">
             <div>
-              <label className={labelClass}>Project Title *</label>
+              <label className={labelClass}>{t.proposalForm.fields.projectTitle}</label>
               <input
                 type="text"
                 value={projectTitle}
                 onChange={(e) => setProjectTitle(e.target.value)}
-                placeholder={INDUSTRY_SUGGESTIONS[industry].projectTitlePlaceholder}
+                placeholder={t.proposalForm.placeholders.projectTitle}
                 className={inputClass}
                 required
               />
@@ -708,9 +714,9 @@ export function ProposalForm() {
               )}
             </div>
             <div>
-              <label className={labelClass}>Project Type * <span className="text-[#888890] font-normal">(what you do)</span></label>
+              <label className={labelClass}>{t.proposalForm.fields.projectType} <span className="text-[#888890] font-normal">{t.proposalForm.fields.projectTypeHint}</span></label>
               <select
-                aria-label="Project Type"
+                aria-label={t.proposalForm.fields.projectType}
                 value={projectType}
                 onChange={(e) =>
                   setProjectType(e.target.value as typeof projectType)
@@ -723,20 +729,20 @@ export function ProposalForm() {
                   </option>
                 ))}
               </select>
-              <p className="text-xs text-[#888890] mt-2 mb-1">Suggested for {industry}:</p>
+              <p className="text-xs text-[#888890] mt-2 mb-1">{t.proposalForm.fields.suggestedFor} {industry}:</p>
               <div className="flex flex-wrap gap-2">
-                {INDUSTRY_SUGGESTIONS[industry].suggestedProjectTypes.map((t) => (
+                {INDUSTRY_SUGGESTIONS[industry].suggestedProjectTypes.map((st) => (
                   <button
-                    key={t}
+                    key={st}
                     type="button"
-                    onClick={() => setProjectType(t)}
+                    onClick={() => setProjectType(st)}
                     className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                      projectType === t
+                      projectType === st
                         ? "bg-gold text-[#0a0a14]"
                         : "bg-[#1e1e2e] text-[#c4c4cc] hover:bg-[#2a2a3e] hover:text-[#faf8f4]"
                     }`}
                   >
-                    {t}
+                    {st}
                   </button>
                 ))}
               </div>
@@ -744,7 +750,7 @@ export function ProposalForm() {
             {projectType === "Other" && (
               <div>
                 <label className={labelClass}>
-                  What do you do? <span className="text-[#888890] font-normal">(so we can tailor the proposal)</span>
+                  {t.proposalForm.fields.whatDoYouDo} <span className="text-[#888890] font-normal">{t.proposalForm.fields.whatDoYouDoHint}</span>
                 </label>
                 <textarea
                   value={customServiceDescription}
@@ -760,12 +766,12 @@ export function ProposalForm() {
               </div>
             )}
             <div>
-              <label className={labelClass}>Project Scope *</label>
+              <label className={labelClass}>{t.proposalForm.fields.scope}</label>
               <textarea
                 value={scope}
                 onChange={(e) => setScope(e.target.value)}
                 rows={5}
-                placeholder="Design and develop a 5-page website with homepage, about, services, portfolio, and contact. Includes mobile responsive design, basic SEO, 2 rounds of revisions."
+                placeholder={t.proposalForm.placeholders.scope}
                 className={inputClass}
                 required
               />
@@ -782,17 +788,17 @@ export function ProposalForm() {
         {/* Section 3: Pricing & Timeline */}
         <div className="rounded-xl border border-[#1e1e2e] bg-[#12121e] p-6">
           <h2 className="font-semibold text-[#faf8f4] mb-4">
-            Pricing & Timeline
+            {t.proposalForm.sections.pricing}
           </h2>
           <div className="space-y-4">
             {!lineItemsEnabled && (
               <div className="flex gap-2">
                 <div className="flex-1">
-                  <label className={labelClass}>Budget Amount *</label>
+                  <label className={labelClass}>{t.proposalForm.fields.budget}</label>
                   <input
                     type="number"
-                    aria-label="Budget Amount"
-                    placeholder="5000"
+                    aria-label={t.proposalForm.fields.budget}
+                    placeholder={t.proposalForm.placeholders.budget}
                     min={0}
                     step={0.01}
                     value={budgetAmount}

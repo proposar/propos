@@ -4,6 +4,7 @@ import { Playfair_Display, DM_Sans } from "next/font/google";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { PostHogProvider } from "@/app/providers/posthog-provider";
+import { LanguageProvider } from "@/contexts/LanguageContext";
 import { businessSchema } from "@/lib/seo";
 
 const ProductChatbot = dynamic(() => import("@/components/ProductChatbot"), { ssr: false });
@@ -123,10 +124,12 @@ export default function RootLayout({
       </head>
       <body className="min-h-screen bg-background font-sans text-foreground antialiased">
         <PostHogProvider>
-          {children}
-          <ProductChatbot />
-          <NPSSurvey />
-          <Analytics />
+          <LanguageProvider>
+            {children}
+            <ProductChatbot />
+            <NPSSurvey />
+            <Analytics />
+          </LanguageProvider>
         </PostHogProvider>
         <SpeedInsights />
       </body>

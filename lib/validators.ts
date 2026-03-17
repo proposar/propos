@@ -256,6 +256,7 @@ export const proposalGenerateSchema = z.object({
   discountPercent: z.number().min(0).max(100).optional(),
   taxPercent: z.number().min(0).max(100).optional(),
   grandTotal: z.number().min(0).optional(),
+  locale: z.string().optional(),
 }).refine(
   (data) => {
     // If lineItemsEnabled is false, budgetAmount is required

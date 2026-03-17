@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { StatsCard } from "@/components/dashboard/StatsCard";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { getTranslations } from "@/lib/i18n/dict";
 
 type ProposalStatus = "draft" | "sent" | "viewed" | "accepted" | "declined";
 
@@ -16,6 +18,8 @@ const statusStyles: Record<ProposalStatus, string> = {
 };
 
 export default function DashboardPage() {
+  const { locale } = useLanguage();
+  const t = getTranslations(locale);
   const [welcomeOpen, setWelcomeOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [proposals, setProposals] = useState<Array<{
@@ -86,28 +90,28 @@ export default function DashboardPage() {
     <div className="space-y-8">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatsCard
-          title="Total Proposals"
+          title={t.dashboard.stats.totalProposals}
           value={loading ? "—" : String(stats.total)}
-          subtext={stats.thisWeek > 0 ? `+${stats.thisWeek} this week` : "Create your first"}
+          subtext={stats.thisWeek > 0 ? `+${stats.thisWeek} ${t.dashboard.stats.thisWeek}` : t.dashboard.stats.createFirst}
           icon="📄"
           trend={stats.thisWeek > 0 ? "up" : undefined}
         />
         <StatsCard
-          title="Win Rate"
+          title={t.dashboard.stats.winRate}
           value={loading ? "—" : (stats.winRate > 0 ? `${stats.winRate}%` : "—")}
-          subtext={stats.winRate > 0 ? "vs last month" : "No data yet"}
+          subtext={stats.winRate > 0 ? t.dashboard.stats.vsLastMonth : t.dashboard.stats.noData}
           icon="📊"
         />
         <StatsCard
-          title="Proposals Viewed"
+          title={t.dashboard.stats.viewed}
           value={loading ? "—" : String(stats.viewed)}
-          subtext="clients are reading"
+          subtext={t.dashboard.stats.reading}
           icon="👁️"
         />
         <StatsCard
-          title="Total Value Won"
+          title={t.dashboard.stats.valueWon}
           value={loading ? "—" : `$${stats.valueWon.toLocaleString()}`}
-          subtext={stats.valueChange !== 0 ? `${stats.valueChange > 0 ? "+" : ""}$${stats.valueChange}` : "This month"}
+          subtext={stats.valueChange !== 0 ? `${stats.valueChange > 0 ? "+" : ""}$${stats.valueChange}` : t.dashboard.stats.vsLastMonth}
           icon="💰"
           trend={stats.valueChange > 0 ? "up" : stats.valueChange < 0 ? "down" : undefined}
         />
@@ -116,9 +120,9 @@ export default function DashboardPage() {
       <div className="grid lg:grid-cols-5 gap-6">
         <div className="lg:col-span-3 rounded-xl border border-[#1e1e2e] bg-[#12121e] p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-semibold text-[#faf8f4]">Recent Proposals</h2>
+            <h2 className="font-semibold text-[#faf8f4]">{t.dashboard.recentProposals.title}</h2>
             <Link href="/proposals" className="text-sm text-gold hover:underline">
-              View all →
+              {t.dashboard.recentProposals.viewAll}
             </Link>
           </div>
           {loading ? (
@@ -128,18 +132,18 @@ export default function DashboardPage() {
               ))}
             </div>
           ) : proposals.length === 0 ? (
-            <p className="text-[#888890] text-sm py-8 text-center">No proposals yet.</p>
+            <p className="text-[#888890] text-sm py-8 text-center">{t.dashboard.recentProposals.empty}</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="text-left text-[#888890] border-b border-[#1e1e2e]">
-                    <th className="pb-3 pr-4">Client</th>
-                    <th className="pb-3 pr-4">Type</th>
-                    <th className="pb-3 pr-4">Value</th>
-                    <th className="pb-3 pr-4">Status</th>
-                    <th className="pb-3 pr-4">Sent</th>
-                    <th className="pb-3">Actions</th>
+                    <th className="pb-3 pr-4">{t.dashboard.recentProposals.headers.client}</th>
+                    <th className="pb-3 pr-4">{t.dashboard.recentProposals.headers.type}</th>
+                    <th className="pb-3 pr-4">{t.dashboard.recentProposals.headers.value}</th>
+                    <th className="pb-3 pr-4">{t.dashboard.recentProposals.headers.status}</th>
+                    <th className="pb-3 pr-4">{t.dashboard.recentProposals.headers.sent}</th>
+                    <th className="pb-3">{t.dashboard.recentProposals.headers.actions}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -175,10 +179,10 @@ export default function DashboardPage() {
             className="block rounded-xl border border-gold bg-gold/20 p-6 text-center hover:bg-gold/30 transition-colors"
           >
             <span className="text-3xl block mb-2">➕</span>
-            <span className="font-semibold text-[#faf8f4]">Create New Proposal</span>
+            <span className="font-semibold text-[#faf8f4]">{t.dashboard.sidebar.newProposal}</span>
           </Link>
           <div className="rounded-xl border border-[#1e1e2e] bg-[#12121e] p-5">
-            <h3 className="font-medium text-[#faf8f4] mb-4">Proposal Win Rate</h3>
+            <h3 className="font-medium text-[#faf8f4] mb-4">{t.dashboard.stats.winRate}</h3>
             <div className="flex items-center gap-4">
               <div className="relative h-24 w-24 rounded-full border-4 border-[#1e1e2e] flex items-center justify-center">
                 <svg className="h-24 w-24 -rotate-90" viewBox="0 0 36 36">
@@ -206,24 +210,24 @@ export default function DashboardPage() {
             </div>
           </div>
           <div className="rounded-xl border border-[#1e1e2e] bg-[#12121e] p-5">
-            <h3 className="font-medium text-[#faf8f4] mb-4">This Week&apos;s Activity</h3>
-            <p className="text-sm text-[#888890]">No activity yet.</p>
+            <h3 className="font-medium text-[#faf8f4] mb-4">{t.dashboard.topbar.titles["/analytics"]}</h3>
+            <p className="text-sm text-[#888890]">{t.dashboard.stats.noData}</p>
           </div>
         </div>
       </div>
 
       <div className="rounded-xl border border-[#1e1e2e] bg-[#12121e] p-6">
-        <h2 className="font-semibold text-[#faf8f4] mb-4">Proposals Needing Attention</h2>
+        <h2 className="font-semibold text-[#faf8f4] mb-4">{t.dashboard.attention.title}</h2>
         {needingAttention.length === 0 ? (
-          <p className="text-[#888890] text-sm">🎉 All caught up! No proposals need follow-up.</p>
+          <p className="text-[#888890] text-sm">{t.dashboard.attention.allCaughtUp}</p>
         ) : (
           <ul className="space-y-3">
             {needingAttention.map((n) => (
               <li key={n.id} className="flex items-center justify-between">
                 <span className="text-[#faf8f4]">{n.client_name}</span>
-                <span className="text-sm text-[#888890]">{n.daysSince} days since sent</span>
+                <span className="text-sm text-[#888890]">{n.daysSince} {t.dashboard.attention.daysSince}</span>
                 <button type="button" className="rounded-lg bg-gold/20 text-gold px-3 py-1.5 text-sm hover:bg-gold/30">
-                  Send Follow-up
+                  {t.dashboard.attention.followUp}
                 </button>
               </li>
             ))}
@@ -248,21 +252,21 @@ export default function DashboardPage() {
               className="rounded-xl border border-[#1e1e2e] bg-[#12121e] p-8 max-w-md w-full"
             >
               <h2 className="font-serif text-2xl font-bold text-[#faf8f4] mb-2">
-                Welcome to Proposar!
+                {t.dashboard.welcome.title}
               </h2>
-              <p className="text-[#888890] mb-6">Get started in three steps:</p>
+              <p className="text-[#888890] mb-6">{t.dashboard.welcome.subtitle}</p>
               <ul className="space-y-3 mb-6">
                 <li className="flex items-center gap-3 text-sm text-[#faf8f4]">
                   <span className="rounded-full border border-gold w-6 h-6 flex items-center justify-center text-gold">1</span>
-                  Complete your profile in Settings
+                  {t.dashboard.welcome.step1}
                 </li>
                 <li className="flex items-center gap-3 text-sm text-[#faf8f4]">
                   <span className="rounded-full border border-gold w-6 h-6 flex items-center justify-center text-gold">2</span>
-                  Create your first proposal
+                  {t.dashboard.welcome.step2}
                 </li>
                 <li className="flex items-center gap-3 text-sm text-[#faf8f4]">
                   <span className="rounded-full border border-gold w-6 h-6 flex items-center justify-center text-gold">3</span>
-                  Share the link and track when clients open it
+                  {t.dashboard.welcome.step3}
                 </li>
               </ul>
               <div className="flex gap-3">
@@ -271,14 +275,14 @@ export default function DashboardPage() {
                   onClick={closeWelcome}
                   className="flex-1 rounded-lg bg-gold py-3 text-center font-medium text-[#0a0a14] hover:bg-[#e8c76a]"
                 >
-                  Create your first proposal
+                  {t.dashboard.welcome.cta}
                 </Link>
                 <button
                   type="button"
                   onClick={closeWelcome}
                   className="rounded-lg border border-[#1e1e2e] px-4 py-3 text-[#888890] hover:text-[#faf8f4]"
                 >
-                  Later
+                  {t.dashboard.welcome.later}
                 </button>
               </div>
             </motion.div>

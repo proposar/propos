@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const statusStyles: Record<string, string> = {
   draft: "bg-[#1e1e2e] text-[#888890]",
@@ -11,6 +12,7 @@ const statusStyles: Record<string, string> = {
 };
 
 export default function ContractsPage() {
+  const { t } = useLanguage();
   const [contracts, setContracts] = useState<Array<{ id: string; title: string; status: string; client_name: string; created_at: string }>>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -40,14 +42,14 @@ export default function ContractsPage() {
   return (
     <div className="space-y-8">
       <div className="flex justify-between items-center">
-        <h1 className="font-serif text-2xl font-bold text-[#faf8f4]">Contracts</h1>
+        <h1 className="font-serif text-2xl font-bold text-[#faf8f4]">{t.dashboard.contractsPage.title}</h1>
         <Link href="/contracts/new" className="rounded-lg bg-gold px-4 py-2 text-sm font-medium text-[#0a0a14] hover:bg-[#e8c76a]">
-          New Contract
+          {t.dashboard.contractsPage.newContract}
         </Link>
       </div>
       <div className="rounded-xl border border-[#1e1e2e] bg-[#12121e] overflow-hidden">
         {loading ? (
-          <div className="p-8 text-center text-[#888890]">Loading...</div>
+          <div className="p-8 text-center text-[#888890]">{t.dashboard.contractsPage.loading}</div>
         ) : error ? (
           <div className="p-8 text-center text-[#888890]">
             <p className="text-red-400">{error}</p>
@@ -56,14 +58,14 @@ export default function ContractsPage() {
               onClick={loadContracts}
               className="mt-4 inline-block text-gold hover:underline"
             >
-              Retry
+              {t.dashboard.contractsPage.retry}
             </button>
           </div>
         ) : contracts.length === 0 ? (
           <div className="p-8 text-center text-[#888890]">
-            <p>No contracts yet.</p>
+            <p>{t.dashboard.contractsPage.empty}</p>
             <Link href="/contracts/new" className="mt-4 inline-block text-gold hover:underline">
-              Create your first contract
+              {t.dashboard.contractsPage.createFirst}
             </Link>
           </div>
         ) : (
@@ -71,11 +73,11 @@ export default function ContractsPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-[#888890] border-b border-[#1e1e2e]">
-                  <th className="p-4">Title</th>
-                  <th className="p-4">Client</th>
-                  <th className="p-4">Status</th>
-                  <th className="p-4">Created</th>
-                  <th className="p-4">Actions</th>
+                  <th className="p-4">{t.dashboard.contractsPage.headers.title}</th>
+                  <th className="p-4">{t.dashboard.contractsPage.headers.client}</th>
+                  <th className="p-4">{t.dashboard.contractsPage.headers.status}</th>
+                  <th className="p-4">{t.dashboard.contractsPage.headers.created}</th>
+                  <th className="p-4">{t.dashboard.contractsPage.headers.actions}</th>
                 </tr>
               </thead>
               <tbody>
@@ -90,7 +92,7 @@ export default function ContractsPage() {
                     </td>
                     <td className="p-4 text-[#888890]">{new Date(c.created_at).toLocaleDateString()}</td>
                     <td className="p-4">
-                      <Link href={`/contracts/${c.id}`} className="text-gold hover:underline text-xs">View</Link>
+                      <Link href={`/contracts/${c.id}`} className="text-gold hover:underline text-xs">{t.dashboard.contractsPage.actions.view}</Link>
                     </td>
                   </tr>
                 ))}

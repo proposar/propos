@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { TableSkeleton } from "@/components/ui/TableSkeleton";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const statusStyles: Record<string, string> = {
   draft: "bg-[#1e1e2e] text-[#888890]",
@@ -13,6 +14,7 @@ const statusStyles: Record<string, string> = {
 };
 
 export default function InvoicesPage() {
+  const { t } = useLanguage();
   const [invoices, setInvoices] = useState<Array<{ id: string; share_id: string; invoice_number: string; title: string; status: string; client_name: string; total: number; currency: string; due_date: string | null; created_at: string }>>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -42,9 +44,9 @@ export default function InvoicesPage() {
   return (
     <div className="space-y-8">
       <div className="flex justify-between items-center">
-        <h1 className="font-serif text-2xl font-bold text-[#faf8f4]">Invoices</h1>
+        <h1 className="font-serif text-2xl font-bold text-[#faf8f4]">{t.dashboard.invoicesPage.title}</h1>
         <Link href="/invoices/new" className="rounded-lg bg-gold px-4 py-2 text-sm font-medium text-[#0a0a14] hover:bg-[#e8c76a]">
-          New Invoice
+          {t.dashboard.invoicesPage.newInvoice}
         </Link>
       </div>
       <div className="rounded-xl border border-[#1e1e2e] bg-[#12121e] overflow-hidden">
@@ -65,9 +67,9 @@ export default function InvoicesPage() {
           </div>
         ) : invoices.length === 0 ? (
           <div className="p-8 text-center text-[#888890]">
-            <p>No invoices yet.</p>
+            <p>{t.dashboard.invoicesPage.empty}</p>
             <Link href="/invoices/new" className="mt-4 inline-block text-gold hover:underline">
-              Create your first invoice
+              {t.dashboard.invoicesPage.createFirst}
             </Link>
           </div>
         ) : (
@@ -75,13 +77,13 @@ export default function InvoicesPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-[#888890] border-b border-[#1e1e2e]">
-                  <th className="p-4">#</th>
-                  <th className="p-4">Title</th>
-                  <th className="p-4">Client</th>
-                  <th className="p-4">Amount</th>
-                  <th className="p-4">Status</th>
-                  <th className="p-4">Due</th>
-                  <th className="p-4">Actions</th>
+                  <th className="p-4">{t.dashboard.invoicesPage.headers.number}</th>
+                  <th className="p-4">{t.dashboard.invoicesPage.headers.title}</th>
+                  <th className="p-4">{t.dashboard.invoicesPage.headers.client}</th>
+                  <th className="p-4">{t.dashboard.invoicesPage.headers.amount}</th>
+                  <th className="p-4">{t.dashboard.invoicesPage.headers.status}</th>
+                  <th className="p-4">{t.dashboard.invoicesPage.headers.due}</th>
+                  <th className="p-4">{t.dashboard.invoicesPage.headers.actions}</th>
                 </tr>
               </thead>
               <tbody>
@@ -99,9 +101,9 @@ export default function InvoicesPage() {
                     <td className="p-4 text-[#888890]">{inv.due_date ? new Date(inv.due_date).toLocaleDateString() : "—"}</td>
                     <td className="p-4">
                       <div className="flex gap-2">
-                        <Link href={`/invoices/${inv.id}`} className="text-gold hover:underline text-xs">Manage</Link>
-                        <Link href={`/invoice/${inv.share_id}`} target="_blank" rel="noopener noreferrer" className="text-gold hover:underline text-xs">Public</Link>
-                        <a href={`/api/invoices/${inv.id}/pdf`} download className="text-gold hover:underline text-xs">PDF</a>
+                        <Link href={`/invoices/${inv.id}`} className="text-gold hover:underline text-xs">{t.dashboard.invoicesPage.actions.manage}</Link>
+                        <Link href={`/invoice/${inv.share_id}`} target="_blank" rel="noopener noreferrer" className="text-gold hover:underline text-xs">{t.dashboard.invoicesPage.actions.public}</Link>
+                        <a href={`/api/invoices/${inv.id}/pdf`} download className="text-gold hover:underline text-xs">{t.dashboard.invoicesPage.actions.pdf}</a>
                       </div>
                     </td>
                   </tr>

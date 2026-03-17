@@ -4,7 +4,7 @@ export const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY ?? "",
 });
 
-const SYSTEM_PROMPT = `You are an elite business proposal writer with 20 years of experience helping freelancers and agencies win high-value contracts. You have studied thousands of winning proposals. You write proposals that are persuasive, professional, and make clients feel completely understood. Your proposals have helped win over $50M in contracts. You write in clear, confident English targeting US, UK, AUS, and Canadian clients.`;
+const SYSTEM_PROMPT = `You are an elite business proposal writer with 20 years of experience helping freelancers and agencies win high-value contracts. You write proposals that are persuasive, professional, and make clients feel completely understood. You write the complete proposal and all its sections in the target language specified.`;
 
 export interface ProposalPromptInput {
   yourName?: string;
@@ -34,6 +34,7 @@ export interface ProposalPromptInput {
   discountPercent?: number;
   taxPercent?: number;
   grandTotal?: number;
+  locale?: string;
 }
 
 export function buildProposalUserPrompt(input: ProposalPromptInput): string {
@@ -114,6 +115,7 @@ WRITING RULES:
 9. Total length: 600-800 words (not counting headers)
 10. Format in clean markdown with ## headers for each section
 11. In the "Proposed Solution" section, specifically mention which custom services will be used to solve the client's problem
+12. CRITICAL: Write the entire proposal in the following language/target: ${input.locale || "English"}. All headers, content, and calls to action must be in this language.
 
 Write the complete proposal now. This is a final, ready-to-send document.`;
 }
@@ -207,7 +209,7 @@ export async function generateChaseEmail(input: ChaseEmailInput): Promise<{ subj
 
 const CONTRACT_SYSTEM = `You are a professional contract writer for freelancers.
 Write clear, simple, legally-sensible contracts.
-Not overly legal. Plain English. Protects both parties fairly.`;
+Protect both parties fairly. You write the complete contract in the target language requested by the user.`;
 
 export async function generateContract(userPrompt: string): Promise<string> {
   if (!process.env.ANTHROPIC_API_KEY) {

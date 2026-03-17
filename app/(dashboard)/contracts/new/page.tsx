@@ -3,9 +3,11 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function NewContractPage() {
   const searchParams = useSearchParams();
+  const { locale } = useLanguage();
   const proposalId = searchParams.get("proposalId");
   const [proposals, setProposals] = useState<Array<{ id: string; title: string }>>([]);
   const [selectedProposal, setSelectedProposal] = useState(proposalId ?? "");
@@ -38,7 +40,10 @@ export default function NewContractPage() {
       const r = await fetch("/api/contracts/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ proposalId: selectedProposal }),
+        body: JSON.stringify({ 
+          proposalId: selectedProposal,
+          locale: locale || "English" 
+        }),
       });
       const d = await r.json();
       if (d.content) {

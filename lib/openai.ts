@@ -38,7 +38,7 @@ export async function generateProposalWithOpenAI(userPrompt: string): Promise<st
       messages: [
         {
           role: "system",
-          content: `You are an elite business proposal writer with 20 years of experience helping freelancers and agencies win high-value contracts. You write proposals that are persuasive, professional, and make clients feel completely understood. Write in clear, confident English targeting US, UK, AUS, and Canadian clients.`,
+          content: `You are an elite business proposal writer for freelancers. You write in a clear, professional, and persuasive tone. You write the complete proposal in the target language requested by the user.`,
         },
         { role: "user", content: userPrompt },
       ],
@@ -105,7 +105,7 @@ export async function generateChaseEmailWithOpenAI(input: ChaseEmailInput): Prom
 
 const CONTRACT_SYSTEM = `You are a professional contract writer for freelancers.
 Write clear, simple, legally-sensible contracts.
-Not overly legal. Plain English. Protects both parties fairly.`;
+Protect both parties fairly. You write the complete contract in the target language requested by the user.`;
 
 export async function generateContractWithOpenAI(userPrompt: string): Promise<string> {
   if (!getOpenAI()) {
