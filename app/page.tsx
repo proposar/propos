@@ -12,6 +12,7 @@ import { Testimonials } from "@/components/landing/Testimonials";
 import { FAQ } from "@/components/landing/FAQ";
 import { Footer } from "@/components/landing/Footer";
 import { FloatingCTA } from "@/components/landing/FloatingCTA";
+import { LanguageProvider } from "@/contexts/LanguageContext";
 
 export const metadata: Metadata = {
   title: "Proposar — AI Proposal Generator for Freelancers & Agencies",
@@ -30,20 +31,22 @@ export const metadata: Metadata = {
 
 export default function HomePage() {
   return (
-    <main>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
-      <Navbar />
-      <AnnouncementBar />
-      <Hero />
-      <HowItWorks />
-      <ProblemSolution />
-      <Features />
-      <AppSumoComingSoon />
-      <Pricing />
-      <Testimonials />
-      <FAQ />
-      <Footer />
-      <FloatingCTA />
-    </main>
+    <LanguageProvider>
+      <main>
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
+        <Navbar />
+        <AnnouncementBar />
+        <Hero />
+        <HowItWorks />
+        <ProblemSolution />
+        <Features />
+        <AppSumoComingSoon />
+        <Pricing />
+        <Testimonials />
+        <FAQ />
+        <Footer />
+        <FloatingCTA />
+      </main>
+    </LanguageProvider>
   );
 }

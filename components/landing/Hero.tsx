@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const container = {
   hidden: { opacity: 0 },
@@ -22,11 +23,9 @@ interface HeroProps {
   description?: string | React.ReactNode;
 }
 
-export function Hero({ 
-  title, 
-  subtitle = "Proposal → Contract → Invoice → Cash.",
-  description 
-}: HeroProps) {
+export function Hero({ title, subtitle, description }: HeroProps) {
+  const { t } = useLanguage();
+
   return (
     <section className="pt-24 pb-16 min-h-screen flex items-center justify-center relative overflow-hidden bg-[#0a0a14]">
       {/* Animated gradient mesh background */}
@@ -49,7 +48,7 @@ export function Hero({
                 <span className="absolute inset-0 rounded-full bg-gold animate-ping opacity-75" />
               </span>
               <span className="bg-gradient-to-r from-gold via-gold-light to-gold bg-clip-text font-medium tracking-wide">
-                Trusted by 2,000+ freelancers worldwide
+                {t.hero.badge}
               </span>
             </span>
           </motion.div>
@@ -59,11 +58,10 @@ export function Hero({
           >
             {title || (
               <>
-                The A to Z Workflow
+                {t.hero.titleLine1}
                 <br />
-                To
-                <span className="bg-gradient-to-r from-[#c9a84c] to-[#e8c76a] bg-clip-text text-transparent ml-2">
-                  GET PAID.
+                <span className="bg-gradient-to-r from-[#c9a84c] to-[#e8c76a] bg-clip-text text-transparent">
+                  {t.hero.titleHighlight}
                 </span>
               </>
             )}
@@ -72,33 +70,26 @@ export function Hero({
             variants={item}
             className="text-gold/90 text-lg sm:text-xl font-medium mb-6"
           >
-            {subtitle}
+            {subtitle || t.hero.subtitle}
           </motion.p>
           <motion.p
             variants={item}
             className="text-[#888890] text-lg max-w-xl mx-auto lg:mx-0 mb-8 leading-relaxed"
           >
-            {description || (
-              <>
-                Stop the &quot;Sunday Night Anxiety&quot; of wondering where your next lead is coming from. 
-                Proposar uses AI to draft elite proposals in 60s, then acts as your 
-                <span className="text-[#faf8f4]"> Digital Bodyguard</span> — handling WhatsApp follow-ups and 
-                <span className="text-[#faf8f4]"> Smart Contracts</span> so you get paid for your work, not ghosted.
-              </>
-            )}
+            {description || t.hero.description}
           </motion.p>
           <motion.div variants={item} className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-8">
             <Link
               href="/signup"
               className="rounded-lg bg-[#c9a84c] px-8 py-4 font-medium text-[#0a0a14] hover:bg-[#e8c76a] transition-all hover:scale-[1.02] active:scale-[0.98] text-center"
             >
-              Generate Free Proposal →
+              {t.hero.ctaPrimary}
             </Link>
             <Link
               href="#how-it-works"
               className="rounded-lg border border-[#1e1e2e] px-8 py-4 font-medium text-[#faf8f4] hover:bg-[#12121e] transition-colors text-center"
             >
-              See How It Works
+              {t.hero.ctaSecondary}
             </Link>
           </motion.div>
           <motion.div variants={item} className="flex flex-wrap items-center justify-center lg:justify-start gap-4 text-sm text-[#888890]">
@@ -113,7 +104,7 @@ export function Hero({
                 </span>
               ))}
             </span>
-            <span>Trusted by 2,000+ freelancers closing more deals</span>
+            <span>{t.hero.socialProof}</span>
           </motion.div>
         </motion.div>
 

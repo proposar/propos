@@ -3,9 +3,11 @@
 import { useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export function AnnouncementBar() {
   const [dismissed, setDismissed] = useState(false);
+  const { t } = useLanguage();
 
   return (
     <AnimatePresence>
@@ -17,9 +19,9 @@ export function AnnouncementBar() {
           className="bg-gold text-[#0a0a14] overflow-hidden"
         >
           <div className="flex items-center justify-center gap-4 py-2.5 px-4 text-sm font-medium">
-            <span>🎉 Launch offer: Get 3 months free on any annual plan — ends soon</span>
+            <span>{t.announcement.text}</span>
             <Link href="/signup" className="underline font-semibold hover:no-underline">
-              Claim offer →
+              {t.announcement.cta}
             </Link>
             <button
               type="button"
@@ -35,3 +37,4 @@ export function AnnouncementBar() {
     </AnimatePresence>
   );
 }
+
