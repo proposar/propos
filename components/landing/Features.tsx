@@ -7,45 +7,45 @@ const TONES = ["Professional", "Friendly", "Bold", "Formal"] as const;
 
 const features = [
   {
-    title: "Universal Delivery",
-    desc: "Share your deals via WhatsApp, Professional Email, or a Secure Link. No more 'lost in spam' — get your proposal seen instantly.",
+    title: "Skip the Spam Filter",
+    desc: "Stop wondering if they saw your email. Deliver proposals directly to their WhatsApp or via a professional secure link for instant opens.",
     icon: "📲",
     pulse: true,
   },
   {
-    title: "Open Tracking",
-    desc: "Know the second your client opens your proposal. See how long they read it and how far they scrolled.",
+    title: "Eliminate the Guesswork",
+    desc: "Know exactly when your client is reading. See which sections they spend the most time on, so you can call them while they're still hot.",
     icon: "👁️",
     pulse: true,
   },
   {
-    title: "One-Click Accept",
-    desc: "Clients can accept your proposal directly from the link — no back and forth, no printing, no signing PDFs.",
+    title: "The 'Yes' Shortcut",
+    desc: "Remove the friction. Clients can accept your proposal in one click from their phone — no printing, no signing PDFs, no delays.",
     icon: "✅",
   },
   {
-    title: "Beautiful PDF Export",
-    desc: "Download any proposal as a pixel-perfect PDF — your branding, your logo, your colors.",
+    title: "Elite Branding",
+    desc: "Stand out from the 'generic document' crowd. Export pixel-perfect PDFs that make you look like a top-tier agency from day one.",
     icon: "📄",
   },
   {
-    title: "Client Dashboard",
-    desc: "Track all your proposals in one place. See which deals are hot, which need follow-up, and your overall win rate.",
+    title: "Your Sales Cockpit",
+    desc: "Track every deal in one view. Identify which clients are ready to close and who needs a nudge before they go cold.",
     icon: "📊",
   },
   {
-    title: "Follow-Up Reminders",
-    desc: "Never let a proposal go cold. Set automatic follow-up reminders that go out if the client hasn't responded in X days.",
+    title: "Automatic Nudges",
+    desc: "Never feel 'annoying' or desperate again. Set automatic follow-ups that handle the chasing for you while you stay professional.",
     icon: "🔔",
   },
   {
-    title: "Contract on Accept",
-    desc: "When the client accepts, generate a proper contract from the same proposal. No handshakes — a real agreement so you're covered if they ghost or don't pay.",
+    title: "The Legal Guard",
+    desc: "Protect your work. The second they accept, a legal-grade contract is ready. No more working without a net — you're covered from day one.",
     icon: "📜",
   },
   {
-    title: "Invoice from the Same Deal",
-    desc: "Turn an accepted proposal into an invoice in one click. One flow: proposal → contract → invoice. Get paid, not ghosted.",
+    title: "Payment Security",
+    desc: "The A-to-Z flow: Proposal → Contract → Invoice. Ensure you get paid for every hour you work. No more ghosting on the final invoice.",
     icon: "🧾",
   },
 ];

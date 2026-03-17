@@ -80,10 +80,10 @@ export function Hero({
           >
             {description || (
               <>
-                Winning a deal is only 50% of the battle. Proposar uses AI to generate elite proposals in 60 seconds, then handles everything: 
-                <span className="text-[#faf8f4]"> WhatsApp/Email sharing</span>, 
-                <span className="text-[#faf8f4]"> legal-grade contracts</span>, and 
-                <span className="text-[#faf8f4]"> automated follow-ups</span> — so you get paid, not ghosted.
+                Stop the "Sunday Night Anxiety" of wondering where your next lead is coming from. 
+                Proposar uses AI to draft elite proposals in 60s, then acts as your 
+                <span className="text-[#faf8f4]"> Digital Bodyguard</span> — handling WhatsApp follow-ups and 
+                <span className="text-[#faf8f4]"> Smart Contracts</span> so you get paid for your work, not ghosted.
               </>
             )}
           </motion.p>
