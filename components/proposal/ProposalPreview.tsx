@@ -225,7 +225,7 @@ export function ProposalPreview({ proposalId }: ProposalPreviewProps) {
   }, [proposalId]);
 
   useEffect(() => {
-    load();
+    load().catch(() => {});
   }, [load]);
 
   useEffect(() => {
@@ -260,17 +260,25 @@ export function ProposalPreview({ proposalId }: ProposalPreviewProps) {
 
   const save = useCallback(async () => {
     if (!proposalId) return;
-    await fetch(`/api/proposals/${proposalId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ generated_content: content }),
-    });
-    setSaved(true);
+    try {
+      const response = await fetch(`/api/proposals/${proposalId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ generated_content: content }),
+      });
+      if (response.ok) {
+        setSaved(true);
+      }
+    } catch {
+      // Ignore transient network failures; autosave will retry.
+    }
   }, [proposalId, content]);
 
   useEffect(() => {
     if (!proposal) return;
-    const t = setInterval(save, 30000);
+    const t = setInterval(() => {
+      save().catch(() => {});
+    }, 30000);
     return () => clearInterval(t);
   }, [proposal, save]);
 
