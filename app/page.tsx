@@ -7,6 +7,7 @@ import { HowItWorks } from "@/components/landing/HowItWorks";
 import { ProblemSolution } from "@/components/landing/ProblemSolution";
 import { Features } from "@/components/landing/Features";
 import { Pricing } from "@/components/landing/Pricing";
+import { AppSumoComingSoon } from "@/components/landing/AppSumoComingSoon";
 import { Testimonials } from "@/components/landing/Testimonials";
 import { FAQ } from "@/components/landing/FAQ";
 import { Footer } from "@/components/landing/Footer";
@@ -37,6 +38,7 @@ export default function HomePage() {
       <HowItWorks />
       <ProblemSolution />
       <Features />
+      <AppSumoComingSoon />
       <Pricing />
       <Testimonials />
       <FAQ />
