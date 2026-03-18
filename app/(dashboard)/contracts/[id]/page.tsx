@@ -128,75 +128,67 @@ export default function ContractDetailPage() {
         <div className="prose prose-invert prose-sm max-w-none whitespace-pre-wrap">{contract.content}</div>
       </div>
 
-      <div className="rounded-xl border border-[#1e1e2e] bg-[#12121e] p-6 space-y-3">
-        <h3 className="font-semibold text-[#faf8f4]">Legal Proof Record</h3>
-        <p className="text-xs text-[#888890]">Use this as execution evidence if payment disputes happen.</p>
-        <div className="grid gap-3 md:grid-cols-2 text-sm">
-          <div className="rounded-lg border border-[#1e1e2e] bg-[#0a0a14] p-3">
-            <p className="text-[#888890] mb-1">Freelancer Signature</p>
-            <p className="text-[#faf8f4]">{contract.freelancer_signature || "Pending"}</p>
-            <p className="text-xs text-[#888890] mt-1">
-              {contract.freelancer_signed_at ? new Date(contract.freelancer_signed_at).toLocaleString() : "Not signed yet"}
-            </p>
-          </div>
-          <div className="rounded-lg border border-[#1e1e2e] bg-[#0a0a14] p-3">
-            <p className="text-[#888890] mb-1">Client Signature</p>
-            <p className="text-[#faf8f4]">{contract.client_signature || "Pending"}</p>
-            <p className="text-xs text-[#888890] mt-1">
-              {contract.client_signed_at ? new Date(contract.client_signed_at).toLocaleString() : "Not signed yet"}
-            </p>
-          </div>
+      {contract.status === "signed" && (
+        <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4">
+          <p className="text-sm text-emerald-300">
+            ✓ This contract is fully signed and legally binding. Both parties have electronically signed.
+          </p>
         </div>
-        <div>
-          <a
-            href={`/api/contracts/${id}/proof`}
-            className="inline-flex items-center rounded-lg border border-gold px-4 py-2 text-xs font-medium text-gold hover:bg-gold/10"
-          >
-            Download Legal Proof Bundle
-          </a>
-        </div>
-      </div>
+      )}
 
-      <div className="flex gap-3">
-        <Link href={`/contract/${contract.share_id}`} target="_blank" rel="noopener noreferrer" className="rounded-lg bg-gold px-4 py-2 text-sm font-medium text-[#0a0a14] hover:bg-[#e8c76a]">
-          Open signing link
-        </Link>
-        {ownerSigningUrl && (
-          <Link href={ownerSigningUrl} target="_blank" rel="noopener noreferrer" className="rounded-lg border border-gold px-4 py-2 text-sm font-medium text-gold">
-            Review as Freelancer
-          </Link>
+      <div className="flex gap-3 flex-wrap">
+        {contract.status === "signed" ? (
+          <>
+            <a
+              href={`/api/contract/${contract.share_id}/download`}
+              download
+              className="rounded-lg bg-gold px-4 py-2 text-sm font-medium text-[#0a0a14] hover:bg-[#e8c76a]"
+            >
+              📥 Download Signed Contract
+            </a>
+            {canCreateInvoice ? (
+              <Link
+                href={`/invoices/new?proposalId=${contract.proposal_id}`}
+                className="rounded-lg border border-gold px-4 py-2 text-sm font-medium text-gold hover:bg-gold/10"
+              >
+                Create Invoice
+              </Link>
+            ) : (
+              <Link
+                href={`/invoices/new?title=${encodeURIComponent(contract.title)}&clientName=${encodeURIComponent(contract.client_name)}&clientEmail=${encodeURIComponent(contract.client_email ?? "")}`}
+                className="rounded-lg border border-gold px-4 py-2 text-sm font-medium text-gold hover:bg-gold/10"
+              >
+                Create Invoice
+              </Link>
+            )}
+          </>
+        ) : (
+          <>
+            <Link href={`/contract/${contract.share_id}`} target="_blank" rel="noopener noreferrer" className="rounded-lg bg-gold px-4 py-2 text-sm font-medium text-[#0a0a14] hover:bg-[#e8c76a]">
+              Open Signing Link
+            </Link>
+            {ownerSigningUrl && (
+              <Link href={ownerSigningUrl} target="_blank" rel="noopener noreferrer" className="rounded-lg border border-gold px-4 py-2 text-sm font-medium text-gold">
+                Sign as Freelancer
+              </Link>
+            )}
+            <button
+              type="button"
+              onClick={handleSendEmail}
+              disabled={sendingEmail}
+              className="rounded-lg border border-[#1e1e2e] px-4 py-2 text-sm text-[#888890] hover:text-[#faf8f4] disabled:opacity-50"
+            >
+              {sendingEmail ? "Sending..." : "Send via Email"}
+            </button>
+            <button
+              type="button"
+              onClick={handleSendWhatsApp}
+              className="rounded-lg border border-[#1e1e2e] px-4 py-2 text-sm text-[#888890] hover:text-[#faf8f4]"
+            >
+              Send via WhatsApp
+            </button>
+          </>
         )}
-        <button
-          type="button"
-          onClick={handleSendEmail}
-          disabled={sendingEmail}
-          className="rounded-lg border border-[#1e1e2e] px-4 py-2 text-sm text-[#888890] hover:text-[#faf8f4] disabled:opacity-50"
-        >
-          {sendingEmail ? "Sending..." : "Send Email"}
-        </button>
-        <button
-          type="button"
-          onClick={handleSendWhatsApp}
-          className="rounded-lg border border-[#1e1e2e] px-4 py-2 text-sm text-[#888890] hover:text-[#faf8f4]"
-        >
-          Send WhatsApp
-        </button>
-        {!contract.freelancer_signature && (
-          <button
-            type="button"
-            onClick={handleFreelancerSign}
-            className="rounded-lg border border-gold px-4 py-2 text-sm font-medium text-gold"
-          >
-            Sign as Freelancer
-          </button>
-        )}
-        <button
-          type="button"
-          onClick={() => { navigator.clipboard.writeText(publicShareUrl); }}
-          className="rounded-lg border border-[#1e1e2e] px-4 py-2 text-sm text-[#888890] hover:text-[#faf8f4]"
-        >
-          Copy link
-        </button>
       </div>
     </div>
   );
