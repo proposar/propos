@@ -30,7 +30,7 @@ export async function POST(request: Request) {
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await request.json().catch(() => ({}));
-  const { proposalId, title, clientName, clientEmail, lineItems, subtotal, discountPercent, taxPercent, total, currency, dueDate, paymentLink, notes } = body;
+  const { proposalId, title, clientName, clientEmail, lineItems, subtotal, discountPercent, taxPercent, total, currency, dueDate, paymentLink, notes, depositPercent } = body;
   if (!title?.trim() || !clientName?.trim())
     return NextResponse.json({ error: "title and clientName required" }, { status: 400 });
 
@@ -58,6 +58,9 @@ export async function POST(request: Request) {
       due_date: due,
       payment_link: paymentLink || null,
       notes: notes || null,
+      amount_paid: 0,
+      deposit_percent: depositPercent ?? 50,
+      payment_status: "unpaid",
     })
     .select("id, share_id, invoice_number")
     .single();

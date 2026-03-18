@@ -192,6 +192,7 @@ export function ContractPDFDocument({ contract, profile }: ContractPDFDocumentPr
         <View style={styles.header}>
           <View style={styles.logoSection}>
             {profile.logo_url && (
+              // eslint-disable-next-line jsx-a11y/alt-text
               <Image src={profile.logo_url} style={styles.logoImage} />
             )}
             <Text style={styles.businessName}>

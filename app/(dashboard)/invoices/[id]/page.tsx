@@ -12,6 +12,13 @@ const statusStyles: Record<string, string> = {
   cancelled: "bg-[#1e1e2e] text-[#888890]",
 };
 
+const paymentStatusStyles: Record<string, string> = {
+  unpaid: "bg-red-500/20 text-red-400",
+  partially_paid: "bg-yellow-500/20 text-yellow-400",
+  deposit_paid: "bg-orange-500/20 text-orange-400",
+  fully_paid: "bg-emerald-500/20 text-emerald-400",
+};
+
 export default function InvoiceDetailPage() {
   const params = useParams();
   const id = params.id as string;
@@ -22,6 +29,7 @@ export default function InvoiceDetailPage() {
     invoice_number: string;
     title: string;
     status: string;
+    payment_status?: string;
     client_name: string;
     client_email: string | null;
     line_items: Array<{ item_name: string; quantity: number; unit: string; rate: number; amount: number }>;
@@ -32,6 +40,8 @@ export default function InvoiceDetailPage() {
     currency: string;
     due_date: string | null;
     payment_link: string | null;
+    amount_paid?: number;
+    deposit_percent?: number;
   } | null>(null);
 
   const [loading, setLoading] = useState(true);
@@ -129,12 +139,81 @@ export default function InvoiceDetailPage() {
           <h1 className="font-serif text-2xl font-bold text-[#faf8f4]">{invoice.title}</h1>
           <p className="text-sm text-[#888890] mt-1">{invoice.invoice_number}</p>
         </div>
-        <span className={`rounded-full px-2 py-1 text-xs capitalize ${statusStyles[invoice.status] ?? "bg-[#1e1e2e] text-[#888890]"}`}>
-          {invoice.status}
-        </span>
+        <div className="flex gap-2">
+          <span className={`rounded-full px-2 py-1 text-xs capitalize ${statusStyles[invoice.status] ?? "bg-[#1e1e2e] text-[#888890]"}`}>
+            {invoice.status}
+          </span>
+          {invoice.payment_status && (
+            <span className={`rounded-full px-2 py-1 text-xs capitalize ${paymentStatusStyles[invoice.payment_status] ?? "bg-[#1e1e2e] text-[#888890]"}`}>
+              {invoice.payment_status === "deposit_paid" && "💰 Pending Half"}
+              {invoice.payment_status === "fully_paid" && "✓ Fully Paid"}
+              {invoice.payment_status === "partially_paid" && "⚠ Partial"}
+              {invoice.payment_status === "unpaid" && "Unpaid"}
+            </span>
+          )}
+        </div>
       </div>
 
+      {invoice.payment_status && (invoice.payment_status !== "unpaid") && (
+        <div className="rounded-xl border border-[#1e1e2e] bg-[#12121e] p-6">
+          <div className="space-y-3">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-[#888890]">Payment Progress</span>
+              <span className="text-sm font-medium text-[#faf8f4]">
+                {invoice.currency} {(invoice.amount_paid ?? 0).toLocaleString()} / {invoice.currency} {(invoice.total ?? 0).toLocaleString()}
+              </span>
+            </div>
+            <div className="w-full bg-[#0a0a14] rounded-full h-2 overflow-hidden">
+              <div
+                className={`h-full transition-all ${
+                  (invoice.payment_status === "fully_paid") ? "bg-emerald-500" :
+                  (invoice.payment_status === "deposit_paid") ? "bg-orange-500" :
+                  "bg-yellow-500"
+                }`}
+                style={{
+                  width: `${Math.min(((invoice.amount_paid ?? 0) / (invoice.total ?? 1)) * 100, 100)}%`,
+                }}
+              />
+            </div>
+            <div className="text-xs text-[#888890] space-y-1">
+              {invoice.deposit_percent && (
+                <p>📋 Deposit required: {invoice.deposit_percent}% ({invoice.currency} {((invoice.total ?? 0) * (invoice.deposit_percent ?? 50) / 100).toLocaleString()})</p>
+              )}
+              <p>💵 Remaining: {invoice.currency} {Math.max(0, (invoice.total ?? 0) - (invoice.amount_paid ?? 0)).toLocaleString()}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="rounded-xl border border-[#1e1e2e] bg-[#12121e] p-6 space-y-4">
+        <h3 className="text-sm font-semibold text-[#faf8f4] mb-4">Edit Invoice</h3>
+        <div className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <label className="block text-sm text-[#888890] mb-1">Payment Received</label>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={invoice.amount_paid ?? 0}
+                onChange={(e) => setInvoice((prev) => (prev ? { ...prev, amount_paid: parseFloat(e.target.value) || 0 } : prev))}
+                className="w-full rounded-lg border border-[#1e1e2e] bg-[#0a0a14] px-3 py-2 text-[#faf8f4]"
+                placeholder="Amount received so far"
+              />
+            </div>
+            <div>
+              <label className="block text-sm text-[#888890] mb-1">Deposit %</label>
+              <input
+                type="number"
+                min="0"
+                max="100"
+                value={invoice.deposit_percent ?? 50}
+                onChange={(e) => setInvoice((prev) => (prev ? { ...prev, deposit_percent: parseFloat(e.target.value) || 50 } : prev))}
+                className="w-full rounded-lg border border-[#1e1e2e] bg-[#0a0a14] px-3 py-2 text-[#faf8f4]"
+              />
+            </div>
+          </div>
+        </div>
         <div className="grid gap-4 md:grid-cols-2">
           <div>
             <label className="block text-sm text-[#888890] mb-1">Title</label>

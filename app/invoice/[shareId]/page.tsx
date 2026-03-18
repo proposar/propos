@@ -20,7 +20,10 @@ export default function PublicInvoicePage() {
     currency: string;
     due_date: string | null;
     status: string;
+    payment_status?: string;
     payment_link: string | null;
+    amount_paid?: number;
+    deposit_percent?: number;
     freelancer_name?: string | null;
     business_name?: string | null;
     business_email?: string | null;
@@ -51,6 +54,7 @@ export default function PublicInvoicePage() {
           <div className="flex items-start justify-between gap-4 mb-4">
             <div>
               {invoice.logo_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
                 <img src={invoice.logo_url} alt={invoice.business_name ?? "Business logo"} className="h-10 w-auto object-contain" />
               ) : (
                 <p className="font-serif text-lg font-bold text-gray-900">{invoice.business_name || invoice.freelancer_name || "Freelancer"}</p>
@@ -102,6 +106,45 @@ export default function PublicInvoicePage() {
             {invoice.tax_percent > 0 && <p className="text-gray-600">Tax {invoice.tax_percent}%</p>}
             <p className="text-lg font-bold text-gray-900">Total: {c}{Number(invoice.total ?? 0).toLocaleString()}</p>
           </div>
+
+          {invoice.payment_status && invoice.amount_paid !== undefined && (
+            <div className="mt-8 p-4 bg-amber-50 border border-amber-200 rounded-lg space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-medium text-gray-700">
+                  {invoice.payment_status === "deposit_paid" ? "💰 Deposit Received - Pending Balance" :
+                   invoice.payment_status === "fully_paid" ? "✓ Fully Paid" :
+                   invoice.payment_status === "partially_paid" ? "⚠ Partially Paid" :
+                   "Awaiting Payment"}
+                </span>
+                <span className="text-sm font-medium text-gray-900">
+                  {c}{Number(invoice.amount_paid ?? 0).toLocaleString()} / {c}{Number(invoice.total ?? 0).toLocaleString()}
+                </span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                <div
+                  className={`h-full transition-all ${
+                    (invoice.payment_status === "fully_paid") ? "bg-green-600" :
+                    (invoice.payment_status === "deposit_paid") ? "bg-orange-600" :
+                    "bg-yellow-600"
+                  }`}
+                  style={{
+                    width: `${Math.min(((invoice.amount_paid ?? 0) / (invoice.total ?? 1)) * 100, 100)}%`,
+                  }}
+                />
+              </div>
+              {invoice.deposit_percent && (
+                <p className="text-xs text-gray-600">
+                  📋 Deposit required: {invoice.deposit_percent}% ({c}{Number((invoice.total ?? 0) * (invoice.deposit_percent ?? 50) / 100).toLocaleString()})
+                </p>
+              )}
+              {invoice.payment_status !== "fully_paid" && (
+                <p className="text-xs font-medium text-gray-700">
+                  💵 Remaining: {c}{Number(Math.max(0, (invoice.total ?? 0) - (invoice.amount_paid ?? 0))).toLocaleString()}
+                </p>
+              )}
+            </div>
+          )}
+
           {invoice.due_date && <p className="mt-4 text-sm text-gray-500">Due: {new Date(invoice.due_date).toLocaleDateString()}</p>}
           {invoice.payment_link && (
             <a href={invoice.payment_link} target="_blank" rel="noopener noreferrer" className="mt-6 inline-block rounded-lg bg-amber-600 text-white px-6 py-2 font-medium hover:bg-amber-700">
