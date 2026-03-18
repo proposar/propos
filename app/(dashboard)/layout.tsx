@@ -3,6 +3,7 @@ import { TopBar } from "@/components/dashboard/TopBar";
 import { BottomNav } from "@/components/dashboard/BottomNav";
 import { OnboardingGuard } from "@/components/OnboardingGuard";
 import { ProfileProvider } from "@/contexts/ProfileContext";
+import { WhatsAppWidget } from "@/components/WhatsAppButton";
 
 export default function DashboardLayout({
   children,
@@ -19,6 +20,7 @@ export default function DashboardLayout({
             <main className="flex-1 p-4 md:p-6">{children}</main>
           </div>
           <BottomNav />
+          <WhatsAppWidget />
         </div>
       </ProfileProvider>
     </OnboardingGuard>

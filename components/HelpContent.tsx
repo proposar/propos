@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { Search, ChevronRight, BookOpen, FileText, BarChart3, Zap } from 'lucide-react';
 import { useState } from 'react';
+import { WhatsAppButton } from '@/components/WhatsAppButton';
 
 const articles = [
   // Getting Started
@@ -267,29 +268,26 @@ export function HelpContent() {
       <div className="border-t border-[#1e1e2e] bg-[#12121e] px-4 py-12 sm:px-6">
         <div className="mx-auto max-w-6xl">
           <div className="grid gap-6 sm:grid-cols-2">
-            <div className="rounded-lg border border-[#1e1e2e] bg-[#0a0a14]/50 p-6">
-              <div className="mb-2 text-sm font-medium text-gold">Didn&apos;t find what you need?</div>
+            <div className="rounded-lg border border-green-500/30 bg-green-500/5 p-6">
+              <div className="mb-2 text-sm font-medium text-green-400">💬 Need instant help?</div>
               <p className="mb-4 text-[#888890]">
-                We&apos;re here to help. Reach out to our support team anytime.
+                Chat with our team on WhatsApp. We usually reply within minutes!
               </p>
-              <a
-                href="mailto:support@proposar.com"
-                className="inline-flex items-center gap-2 text-sm font-medium text-gold hover:text-gold/80"
-              >
-                Contact Support
-                <ChevronRight className="h-4 w-4" />
-              </a>
+              <WhatsAppButton className="inline-flex items-center gap-2 text-sm font-medium text-white bg-green-500 hover:bg-green-600 px-4 py-2 rounded-lg transition" />
             </div>
 
-            <div className="rounded-lg border border-gold/30 bg-gold/5 p-6">
-              <div className="mb-2 text-sm font-medium text-gold">Chat with AI Assistant</div>
+            <div className="rounded-lg border border-[#1e1e2e] bg-[#0a0a14]/50 p-6">
+              <div className="mb-2 text-sm font-medium text-gold">📧 Prefer email?</div>
               <p className="mb-4 text-[#888890]">
-                Click the chat button to instantly ask questions about Proposar features.
+                Send us a message and we&apos;ll get back to you within 24 hours.
               </p>
-              <button className="inline-flex items-center gap-2 text-sm font-medium text-gold hover:text-gold/80">
-                Open Chat
+              <a
+                href="mailto:support@proposar.io"
+                className="inline-flex items-center gap-2 text-sm font-medium text-gold hover:text-gold/80"
+              >
+                Email Support
                 <ChevronRight className="h-4 w-4" />
-              </button>
+              </a>
             </div>
           </div>
         </div>

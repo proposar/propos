@@ -1,4 +1,5 @@
 import { AuthBrandPanel } from "@/components/auth/AuthBrandPanel";
+import { WhatsAppWidget } from "@/components/WhatsAppButton";
 
 export default function AuthLayout({
   children,
@@ -11,6 +12,7 @@ export default function AuthLayout({
       <div className="flex-1 flex items-center justify-center p-6 lg:p-12">
         <div className="w-full max-w-md">{children}</div>
       </div>
+      <WhatsAppWidget />
     </div>
   );
 }

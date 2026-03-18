@@ -6,6 +6,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import { PostHogProvider } from "@/app/providers/posthog-provider";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { businessSchema } from "@/lib/seo";
+import { WhatsAppWidget } from "@/components/WhatsAppButton";
 
 const ProductChatbot = dynamic(() => import("@/components/ProductChatbot"), { ssr: false });
 const NPSSurvey = dynamic(() => import("@/components/NPSSurvey"), { ssr: false });
@@ -128,6 +129,7 @@ export default function RootLayout({
             {children}
             <ProductChatbot />
             <NPSSurvey />
+            <WhatsAppWidget />
             <Analytics />
           </LanguageProvider>
         </PostHogProvider>
