@@ -70,25 +70,51 @@ export default function PublicContractPage() {
   if (!contract) return <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">Contract not found.</div>;
 
   if (signed || (contract.status === "signed" && contract.client_signature && contract.freelancer_signature)) {
+    const contractUrl = typeof window !== "undefined" ? window.location.href : "";
+    const shareMessage = `I have signed the contract "${contract.title}". Please review and sign it here: ${contractUrl}`;
+    const whatsappLink = `https://wa.me/?text=${encodeURIComponent(shareMessage)}`;
+    const emailSubject = `Sign Contract: ${contract.title}`;
+    const emailBody = `I have signed the contract "${contract.title}". Please review and sign it here:\n\n${contractUrl}`;
+    const mailtoLink = `mailto:?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
+
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
         <div className="text-center max-w-md">
           <p className="text-4xl mb-4">✓</p>
-          <h1 className="text-xl font-serif font-bold text-gray-900 mb-2">Contract Signed</h1>
-          <p className="text-gray-600 mb-5">Thank you. This agreement is fully signed by both parties.</p>
+          <h1 className="text-xl font-serif font-bold text-gray-900 mb-2">Thank You for Signing!</h1>
+          <p className="text-gray-600 mb-6">This contract is now fully signed by both parties. You can now share it with others or keep it for your records.</p>
           <div className="flex flex-col gap-2">
-            <Link
-              href={returnTo || "/contracts"}
-              className="rounded-lg bg-amber-600 text-white px-4 py-2 font-medium hover:bg-amber-700"
+            <a
+              href={whatsappLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-lg bg-green-600 text-white px-4 py-2 font-medium hover:bg-green-700 text-center"
             >
-              Continue to Contracts
-            </Link>
-            <Link
-              href="/invoices/new"
-              className="rounded-lg border border-gray-300 text-gray-700 px-4 py-2 font-medium hover:bg-white"
+              Share via WhatsApp
+            </a>
+            <a
+              href={mailtoLink}
+              className="rounded-lg bg-blue-600 text-white px-4 py-2 font-medium hover:bg-blue-700 text-center"
             >
-              Create Invoice
-            </Link>
+              Share via Email
+            </a>
+            <button
+              type="button"
+              onClick={() => {
+                if (navigator.share) {
+                  navigator.share({
+                    title: contract.title,
+                    text: shareMessage,
+                    url: contractUrl,
+                  });
+                } else {
+                  alert(`Copy this link to share:\n\n${contractUrl}`);
+                }
+              }}
+              className="rounded-lg border border-gray-300 text-gray-700 px-4 py-2 font-medium hover:bg-gray-100"
+            >
+              Copy Link
+            </button>
           </div>
         </div>
       </div>
