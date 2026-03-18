@@ -70,52 +70,20 @@ export default function PublicContractPage() {
   if (!contract) return <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">Contract not found.</div>;
 
   if (signed || (contract.status === "signed" && contract.client_signature && contract.freelancer_signature)) {
-    const contractUrl = typeof window !== "undefined" ? window.location.href : "";
-    const shareMessage = `I have signed the contract "${contract.title}". Please review and sign it here: ${contractUrl}`;
-    const whatsappLink = `https://wa.me/?text=${encodeURIComponent(shareMessage)}`;
-    const emailSubject = `Sign Contract: ${contract.title}`;
-    const emailBody = `I have signed the contract "${contract.title}". Please review and sign it here:\n\n${contractUrl}`;
-    const mailtoLink = `mailto:?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
-
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
         <div className="text-center max-w-md">
-          <p className="text-4xl mb-4">✓</p>
-          <h1 className="text-xl font-serif font-bold text-gray-900 mb-2">Thank You for Signing!</h1>
-          <p className="text-gray-600 mb-6">This contract is now fully signed by both parties. You can now share it with others or keep it for your records.</p>
-          <div className="flex flex-col gap-2">
-            <a
-              href={whatsappLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="rounded-lg bg-green-600 text-white px-4 py-2 font-medium hover:bg-green-700 text-center"
-            >
-              Share via WhatsApp
-            </a>
-            <a
-              href={mailtoLink}
-              className="rounded-lg bg-blue-600 text-white px-4 py-2 font-medium hover:bg-blue-700 text-center"
-            >
-              Share via Email
-            </a>
-            <button
-              type="button"
-              onClick={() => {
-                if (navigator.share) {
-                  navigator.share({
-                    title: contract.title,
-                    text: shareMessage,
-                    url: contractUrl,
-                  });
-                } else {
-                  alert(`Copy this link to share:\n\n${contractUrl}`);
-                }
-              }}
-              className="rounded-lg border border-gray-300 text-gray-700 px-4 py-2 font-medium hover:bg-gray-100"
-            >
-              Copy Link
-            </button>
-          </div>
+          <p className="text-5xl mb-4">✓</p>
+          <h1 className="text-2xl font-serif font-bold text-gray-900 mb-3">Contract Fully Signed</h1>
+          <p className="text-gray-600 mb-8">Both parties have signed. The contract is now legally binding. Download it for your records.</p>
+          <a
+            href={`/api/contract/${shareId}/download`}
+            download
+            className="inline-flex items-center rounded-lg bg-amber-600 text-white px-6 py-3 font-medium hover:bg-amber-700 transition"
+          >
+            📥 Download Contract
+          </a>
+          <p className="text-xs text-gray-500 mt-6">You can download this anytime—no need to sign again.</p>
         </div>
       </div>
     );
