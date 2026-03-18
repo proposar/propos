@@ -2,7 +2,7 @@
 
 import { useRef, useEffect, useState } from "react";
 import { motion, useInView } from "framer-motion";
-import Link from "next/link";
+import { AuthAwareLink } from "@/components/auth/AuthAwareLink";
 
 function AnimatedCounter({ value, suffix = "", prefix = "", duration = 1.5 }: { value: number; suffix?: string; prefix?: string; duration?: number }) {
   const [count, setCount] = useState(0);
@@ -330,12 +330,12 @@ export function ProblemSolution() {
           <p className="text-gold font-semibold mb-8">
             The market is exploding. The problem is real. The solution is here.
           </p>
-          <Link
-            href="/signup"
+          <AuthAwareLink
+            unauthenticatedHref="/signup"
             className="inline-block rounded-lg bg-gold px-8 py-4 text-lg font-semibold text-[#0a0a14] hover:bg-[#e8c76a] transition-colors"
           >
             Start Winning With Proposar — Free Trial →
-          </Link>
+          </AuthAwareLink>
         </motion.div>
       </div>
     </section>

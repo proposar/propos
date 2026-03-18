@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import { AuthAwareLink } from "@/components/auth/AuthAwareLink";
 
 export function FloatingCTA() {
   const [visible, setVisible] = useState(false);
@@ -27,13 +27,13 @@ export function FloatingCTA() {
           exit={{ opacity: 0, y: 20 }}
           className="fixed bottom-8 right-8 z-40"
         >
-          <Link
-            href="/signup"
+          <AuthAwareLink
+            unauthenticatedHref="/signup"
             className="flex items-center gap-2 rounded-full bg-gradient-to-r from-gold to-[#e8c76a] px-7 py-3.5 font-semibold text-[#0a0a14] shadow-2xl shadow-gold/30 hover:shadow-[0_0_30px_rgba(217,119,6,0.4)] hover:scale-105 transition-all duration-300"
           >
             <span className="text-lg">✨</span>
             Try Proposar Free
-          </Link>
+          </AuthAwareLink>
         </motion.div>
       )}
     </AnimatePresence>

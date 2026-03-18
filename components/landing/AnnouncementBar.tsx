@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { AuthAwareLink } from "@/components/auth/AuthAwareLink";
 
 export function AnnouncementBar() {
   const [dismissed, setDismissed] = useState(false);
@@ -20,9 +20,9 @@ export function AnnouncementBar() {
         >
           <div className="flex items-center justify-center gap-4 py-2.5 px-4 text-sm font-medium">
             <span>{t.announcement.text}</span>
-            <Link href="/signup" className="underline font-semibold hover:no-underline">
+            <AuthAwareLink unauthenticatedHref="/signup" className="underline font-semibold hover:no-underline">
               {t.announcement.cta}
-            </Link>
+            </AuthAwareLink>
             <button
               type="button"
               onClick={() => setDismissed(true)}

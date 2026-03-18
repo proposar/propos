@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { AuthAwareLink } from "@/components/auth/AuthAwareLink";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 const container = {
@@ -79,12 +80,12 @@ export function Hero({ title, subtitle, description }: HeroProps) {
             {description || t.hero.description}
           </motion.p>
           <motion.div variants={item} className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-8">
-            <Link
-              href="/signup"
+            <AuthAwareLink
+              unauthenticatedHref="/signup"
               className="rounded-lg bg-[#c9a84c] px-8 py-4 font-medium text-[#0a0a14] hover:bg-[#e8c76a] transition-all hover:scale-[1.02] active:scale-[0.98] text-center"
             >
               {t.hero.ctaPrimary}
-            </Link>
+            </AuthAwareLink>
             <Link
               href="#how-it-works"
               className="rounded-lg border border-[#1e1e2e] px-8 py-4 font-medium text-[#faf8f4] hover:bg-[#12121e] transition-colors text-center"

@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { MDXRemote } from "next-mdx-remote";
 import { type BlogPost } from "@/lib/blog";
+import { AuthAwareLink } from "@/components/auth/AuthAwareLink";
 
 // MDX custom components
 const components = {
@@ -149,12 +150,12 @@ export default function BlogPostContent({
           Try Proposar free for 14 days. No credit card required.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Link
-            href="/signup"
+          <AuthAwareLink
+            unauthenticatedHref="/signup"
             className="px-8 py-3 bg-gradient-to-r from-gold to-gold/80 text-[#0f0f1e] font-semibold rounded-lg hover:shadow-[0_0_32px_rgba(217,119,6,0.3)] transition"
           >
             Start Free Trial
-          </Link>
+          </AuthAwareLink>
           <Link
             href="/blog"
             className="px-8 py-3 border border-gold/30 text-gold rounded-lg hover:bg-gold/5 transition"

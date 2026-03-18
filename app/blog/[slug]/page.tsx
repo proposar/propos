@@ -2,6 +2,7 @@ import Link from "next/link";
 import { MDXRemote } from "next-mdx-remote/rsc";
 import { getBlogPost, getAllBlogPosts, type BlogPost } from "@/lib/blog";
 import { Navbar } from "@/components/landing/Navbar";
+import { AuthAwareLink } from "@/components/auth/AuthAwareLink";
 
 const mdxComponents = {
   h1: ({ children }: React.PropsWithChildren) => <h1 className="text-4xl md:text-5xl font-bold text-white mb-6 mt-8">{children}</h1>,
@@ -89,7 +90,12 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           <h3 className="text-2xl font-bold text-white mb-4">Ready to win more proposals?</h3>
           <p className="text-gray-400 mb-8 max-w-2xl mx-auto">Try Proposar free for 14 days. No credit card required.</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/signup" className="px-8 py-3 bg-gradient-to-r from-gold to-gold/80 text-[#0f0f1e] font-semibold rounded-lg">Start Free Trial</Link>
+            <AuthAwareLink
+              unauthenticatedHref="/signup"
+              className="px-8 py-3 bg-gradient-to-r from-gold to-gold/80 text-[#0f0f1e] font-semibold rounded-lg"
+            >
+              Start Free Trial
+            </AuthAwareLink>
             <Link href="/blog" className="px-8 py-3 border border-gold/30 text-gold rounded-lg hover:bg-gold/5">More Articles</Link>
           </div>
         </div>

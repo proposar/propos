@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -13,7 +13,8 @@ export default function NewContractPage() {
   const [selectedProposal, setSelectedProposal] = useState(proposalId ?? "");
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [loadingProposals, setLoadingProposals] = useState(true);
+  const [proposalError, setProposalError] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
   const [signed, setSigned] = useState(false);
@@ -22,12 +23,29 @@ export default function NewContractPage() {
   const [clientName, setClientName] = useState("");
   const [clientEmail, setClientEmail] = useState("");
 
+  const loadProposals = useCallback(async () => {
+    setLoadingProposals(true);
+    setProposalError(null);
+    try {
+      const r = await fetch("/api/proposals");
+      if (!r.ok) throw new Error("Failed to load proposals");
+      const d = await r.json();
+      const accepted = Array.isArray(d) ? d.filter((p: { status: string; id: string; title: string }) => p.status === "accepted") : [];
+      setProposals(accepted);
+      if (proposalId && !accepted.find((p) => p.id === proposalId)) {
+        setProposalError("Selected proposal not found or not accepted");
+      }
+    } catch (err) {
+      setProposalError(err instanceof Error ? err.message : "Failed to load proposals");
+      setProposals([]);
+    } finally {
+      setLoadingProposals(false);
+    }
+  }, [proposalId]);
+
   useEffect(() => {
-    fetch("/api/proposals")
-      .then((r) => r.json())
-      .then((d) => setProposals(Array.isArray(d) ? d.filter((p: { status: string }) => p.status === "accepted") : []))
-      .catch(() => {});
-  }, []);
+    loadProposals();
+  }, [loadProposals]);
 
   useEffect(() => {
     if (proposalId) setSelectedProposal(proposalId);
@@ -104,12 +122,32 @@ export default function NewContractPage() {
       <h1 className="font-serif text-2xl font-bold text-[#faf8f4]">New Contract</h1>
 
       {!content ? (
-        <div className="rounded-xl border border-[#1e1e2e] bg-[#12121e] p-6">
-          <p className="text-sm text-[#888890] mb-4">Select an accepted proposal to generate a contract.</p>
+        <div className="rounded-xl border border-[#1e1e2e] bg-[#12121e] p-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-[#888890]">Select an accepted proposal to generate a contract.</p>
+            <button
+              onClick={loadProposals}
+              disabled={loadingProposals}
+              className="text-xs text-gold hover:underline disabled:opacity-50"
+            >
+              {loadingProposals ? "Refreshing..." : "Refresh"}
+            </button>
+          </div>
+          {loadingProposals ? (
+            <div className="p-4 text-center text-[#888890] text-sm">Loading proposals...</div>
+          ) : proposalError ? (
+            <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm">{proposalError}</div>
+          ) : proposals.length === 0 ? (
+            <div className="p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg text-sm text-[#888890]">
+              <p>No accepted proposals found.</p>
+              <p className="mt-2 text-xs text-[#666680]">Send a proposal to a client and have them accept it first.</p>
+            </div>
+          ) : null}
           <select
             value={selectedProposal}
             onChange={(e) => setSelectedProposal(e.target.value)}
-            className="w-full rounded-lg border border-[#1e1e2e] bg-[#0a0a14] px-3 py-2 text-[#faf8f4] mb-4"
+            className="w-full rounded-lg border border-[#1e1e2e] bg-[#0a0a14] px-3 py-2 text-[#faf8f4]"
+            disabled={proposals.length === 0}
           >
             <option value="">Select proposal</option>
             {proposals.map((p) => (
@@ -118,7 +156,7 @@ export default function NewContractPage() {
           </select>
           <button
             onClick={generate}
-            disabled={!selectedProposal || generating}
+            disabled={!selectedProposal || generating || loadingProposals}
             className="rounded-lg bg-gold px-4 py-2 text-sm font-medium text-[#0a0a14] disabled:opacity-50"
           >
             {generating ? "Generating..." : "Generate Contract"}

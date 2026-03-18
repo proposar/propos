@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { createClient } from "@/lib/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LANGUAGES, type Locale } from "@/lib/i18n/dict";
+import { AuthAwareLink } from "@/components/auth/AuthAwareLink";
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -133,12 +134,12 @@ export function Navbar() {
               >
                 {t.nav.signIn}
               </Link>
-              <Link
-                href="/signup"
+              <AuthAwareLink
+                unauthenticatedHref="/signup"
                 className="px-6 py-2.5 rounded-lg bg-gradient-to-r from-gold to-[#e8c76a] text-[#0a0a14] hover:shadow-[0_0_24px_rgba(217,119,6,0.3)] transition-all font-semibold text-sm"
               >
                 {t.nav.getStarted}
-              </Link>
+              </AuthAwareLink>
             </>
           )}
         </div>
@@ -218,13 +219,13 @@ export function Navbar() {
                     >
                       {t.nav.signIn}
                     </Link>
-                    <Link
-                      href="/signup"
+                    <AuthAwareLink
+                      unauthenticatedHref="/signup"
                       className="block text-center px-6 py-2.5 rounded-lg bg-gradient-to-r from-gold to-[#e8c76a] text-[#0a0a14] font-semibold text-sm hover:shadow-[0_0_24px_rgba(217,119,6,0.3)] transition-all"
                       onClick={() => setIsOpen(false)}
                     >
                       {t.nav.getStarted}
-                    </Link>
+                    </AuthAwareLink>
                   </>
                 )}
               </div>

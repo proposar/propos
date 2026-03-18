@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import { AuthAwareLink } from "@/components/auth/AuthAwareLink";
 
 const plans = [
   {
@@ -193,12 +193,12 @@ export function Pricing() {
                 ))}
               </ul>
               {plan.isFree ? (
-                <button
-                  onClick={() => router.push("/signup")}
+                <AuthAwareLink
+                  unauthenticatedHref="/signup"
                   className="mt-6 block w-full rounded-lg py-3 text-center font-medium border border-[#1e1e2e] text-[#faf8f4] hover:bg-[#1e1e2e] transition-colors"
                 >
                   Get Started Free
-                </button>
+                </AuthAwareLink>
               ) : (
                 <button
                   onClick={() => handleCheckout(plan.name.toLowerCase() as "starter" | "pro" | "agency")}

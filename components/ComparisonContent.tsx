@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { AuthAwareLink } from '@/components/auth/AuthAwareLink';
 import { Check, X, ChevronRight, Zap, DollarSign, Users, Lightbulb } from 'lucide-react';
 
 const competitors = [
@@ -410,12 +411,12 @@ export function ComparisonContent() {
             Start free. No credit card required. Generate your first proposal in 60 seconds.
           </p>
           <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
-            <Link
-              href="/signup"
+            <AuthAwareLink
+              unauthenticatedHref="/signup"
               className="rounded-lg bg-gold px-8 py-3 font-semibold text-[#0a0a14] transition-all hover:bg-[#e8c76a]"
             >
               Start for Free
-            </Link>
+            </AuthAwareLink>
             <Link
               href="/help"
               className="rounded-lg border border-[#1e1e2e] bg-[#12121e] px-8 py-3 font-semibold text-gold transition-all hover:border-gold/50"
