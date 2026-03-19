@@ -44,7 +44,6 @@ export function Footer() {
               <li><Link href="/help" className="hover:text-gold hover:translate-x-1 transition-all inline-block">Help Center</Link></li>
               <li><Link href="/video-tutorials" className="hover:text-gold hover:translate-x-1 transition-all inline-block">Video Tutorials</Link></li>
               <li><Link href="/api-docs" className="hover:text-gold hover:translate-x-1 transition-all inline-block">API Docs</Link></li>
-              <li><Link href="/affiliate" className="hover:text-gold hover:translate-x-1 transition-all inline-block">Affiliate Program</Link></li>
             </ul>
           </div>
           <div>

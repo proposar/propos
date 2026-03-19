@@ -39,6 +39,8 @@ export default function DashboardPage() {
     valueChange: 0,
   });
   const [needingAttention, setNeedingAttention] = useState<Array<{ id: string; client_name: string; daysSince: number }>>([]);
+  const [teamSummary, setTeamSummary] = useState({ members: 1, pendingInvites: 0 });
+  const [invoiceSummary, setInvoiceSummary] = useState({ unpaidCount: 0, overdueCount: 0, outstanding: 0 });
 
   useEffect(() => {
     const seen = typeof window !== "undefined" && localStorage.getItem("Proposar_welcome_seen");
@@ -48,8 +50,16 @@ export default function DashboardPage() {
   useEffect(() => {
     async function load() {
       try {
-        const res = await fetch("/api/proposals?summary=1");
-        const data = await res.json();
+        const [proposalRes, teamRes, invoiceRes] = await Promise.all([
+          fetch("/api/proposals?summary=1"),
+          fetch("/api/team"),
+          fetch("/api/invoices?limit=200"),
+        ]);
+
+        const data = await proposalRes.json();
+        const teamData = await teamRes.json().catch(() => null);
+        const invoiceData = await invoiceRes.json().catch(() => []);
+
         if (Array.isArray(data)) {
           setProposals(data.slice(0, 5));
           const accepted = data.filter((p: { status: string }) => p.status === "accepted").length;
@@ -57,6 +67,21 @@ export default function DashboardPage() {
           const valueWon = data
             .filter((p: { status: string }) => p.status === "accepted")
             .reduce((s: number, p: { budget_amount?: number }) => s + (p.budget_amount || 0), 0);
+
+          const now = Date.now();
+          const attention = data
+            .filter((p: { status: string; sent_at?: string | null; client_name: string }) => ["sent", "viewed"].includes(p.status) && p.sent_at)
+            .map((p: { id: string; client_name: string; sent_at: string }) => ({
+              id: p.id,
+              client_name: p.client_name,
+              daysSince: Math.max(0, Math.floor((now - new Date(p.sent_at).getTime()) / (1000 * 60 * 60 * 24))),
+            }))
+            .filter((p: { daysSince: number }) => p.daysSince >= 3)
+            .sort((a: { daysSince: number }, b: { daysSince: number }) => b.daysSince - a.daysSince)
+            .slice(0, 5);
+
+          setNeedingAttention(attention);
+
           setStats({
             total: data.length,
             thisWeek: 0,
@@ -65,6 +90,20 @@ export default function DashboardPage() {
             valueWon,
             valueChange: 0,
           });
+        }
+
+        if (teamData && Array.isArray(teamData.members)) {
+          const activeMembers = teamData.members.filter((m: { status?: string }) => m.status === "active").length;
+          const pendingInvites = Array.isArray(teamData.pendingInvites) ? teamData.pendingInvites.length : 0;
+          setTeamSummary({ members: Math.max(1, activeMembers), pendingInvites });
+        }
+
+        if (Array.isArray(invoiceData)) {
+          const now = new Date();
+          const unpaid = invoiceData.filter((i: { status?: string }) => i.status !== "paid");
+          const overdue = unpaid.filter((i: { due_date?: string | null }) => i.due_date && new Date(i.due_date) < now).length;
+          const outstanding = unpaid.reduce((sum: number, i: { total?: number }) => sum + Number(i.total ?? 0), 0);
+          setInvoiceSummary({ unpaidCount: unpaid.length, overdueCount: overdue, outstanding });
         }
       } catch {
         // keep defaults
@@ -212,6 +251,17 @@ export default function DashboardPage() {
           <div className="rounded-xl border border-[#1e1e2e] bg-[#12121e] p-5">
             <h3 className="font-medium text-[#faf8f4] mb-4">{t.dashboard.topbar.titles["/analytics"]}</h3>
             <p className="text-sm text-[#888890]">{t.dashboard.stats.noData}</p>
+          </div>
+          <div className="rounded-xl border border-[#1e1e2e] bg-[#12121e] p-5">
+            <h3 className="font-medium text-[#faf8f4] mb-3">Team Overview</h3>
+            <div className="space-y-1 text-sm text-[#888890]">
+              <p>Active members: <span className="text-[#faf8f4]">{teamSummary.members}</span></p>
+              <p>Pending invites: <span className="text-[#faf8f4]">{teamSummary.pendingInvites}</span></p>
+              <p>Unpaid invoices: <span className="text-[#faf8f4]">{invoiceSummary.unpaidCount}</span></p>
+              <p>Overdue invoices: <span className="text-[#faf8f4]">{invoiceSummary.overdueCount}</span></p>
+              <p>Outstanding: <span className="text-[#faf8f4]">${invoiceSummary.outstanding.toLocaleString()}</span></p>
+            </div>
+            <a href="/team" className="inline-block mt-3 text-xs text-gold hover:underline">Manage Team</a>
           </div>
         </div>
       </div>

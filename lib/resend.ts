@@ -294,6 +294,33 @@ export async function sendInvoiceToClient(
   return sendEmail({ to, subject: `Invoice: ${invoiceTitle}`, html });
 }
 
+export async function sendInvoicePaymentReminderEmail(
+  to: string,
+  clientName: string,
+  invoiceTitle: string,
+  invoiceLink: string,
+  remainingAmount: string,
+  daysOverdue: number,
+  freelancerName?: string,
+) {
+  const signOff = freelancerName ?? "Your freelancer";
+  const overdueLabel = daysOverdue <= 0 ? "due now" : `${daysOverdue} day${daysOverdue === 1 ? "" : "s"} overdue`;
+  const html = baseLayout(`
+    <h1 style="font-size:22px;margin:0 0 16px;color:#faf8f4;">Payment reminder: ${invoiceTitle}</h1>
+    <p style="margin:0 0 16px;line-height:1.6;color:#c4c4cc;">Hi ${clientName},</p>
+    <p style="margin:0 0 24px;line-height:1.6;color:#c4c4cc;">
+      This is a gentle reminder that <strong>${invoiceTitle}</strong> is ${overdueLabel}. Remaining balance: <strong>${remainingAmount}</strong>.
+    </p>
+    <div style="background:#0a0a14;border:1px solid #1e1e2e;border-radius:8px;padding:20px;margin:24px 0;">
+      <p style="margin:0;font-size:14px;color:#888890;">Please review and complete payment using the invoice link below.</p>
+    </div>
+    <a href="${invoiceLink}" style="display:inline-block;background:#D4AF37;color:#0a0a14;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">Review Invoice →</a>
+    <p style="margin:24px 0 0;font-size:14px;color:#888890;">Best,<br/>${signOff}</p>
+  `);
+
+  return sendEmail({ to, subject: `Payment reminder: ${invoiceTitle}`, html });
+}
+
 export async function sendContractFullySignedToFreelancer(
   to: string,
   freelancerName: string,

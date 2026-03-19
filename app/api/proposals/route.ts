@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { getWorkspaceContext } from "@/lib/team";
 
 export async function GET(request: Request): Promise<NextResponse<unknown[] | { error: string } | { count: number }>> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json([], { status: 401 });
+  const { workspaceUserIds } = await getWorkspaceContext(supabase, user.id);
 
   const url = new URL(request.url);
   const countOnly = url.searchParams.get("count") === "1";
@@ -14,7 +16,7 @@ export async function GET(request: Request): Promise<NextResponse<unknown[] | { 
     const { count, error } = await supabase
       .from("proposals")
       .select("id", { count: "exact", head: true })
-      .eq("user_id", user.id);
+      .in("user_id", workspaceUserIds);
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json({ count: count ?? 0 });
@@ -29,7 +31,7 @@ export async function GET(request: Request): Promise<NextResponse<unknown[] | { 
   const { data, error } = await supabase
     .from("proposals")
     .select(selectColumns)
-    .eq("user_id", user.id)
+    .in("user_id", workspaceUserIds)
     .order("created_at", { ascending: false })
     .range(0, limit - 1);
 

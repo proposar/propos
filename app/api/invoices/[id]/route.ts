@@ -1,17 +1,19 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { getWorkspaceContext } from "@/lib/team";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const { workspaceUserIds } = await getWorkspaceContext(supabase, user.id);
 
   const { data, error } = await supabase
     .from("invoices")
     .select("*")
     .eq("id", id)
-    .eq("user_id", user.id)
+    .in("user_id", workspaceUserIds)
     .single();
 
   if (error || !data) return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -23,6 +25,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const { workspaceUserIds } = await getWorkspaceContext(supabase, user.id);
 
   const body = await request.json().catch(() => ({}));
   const allowed = ["title", "client_name", "client_email", "line_items", "subtotal", "discount_percent", "tax_percent", "total", "currency", "due_date", "payment_link", "notes", "status", "paid_at", "amount_paid", "deposit_percent"];
@@ -40,7 +43,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       .from("invoices")
       .select("total, deposit_percent")
       .eq("id", id)
-      .eq("user_id", user.id)
+      .in("user_id", workspaceUserIds)
       .single();
 
     if (currentInvoice) {
@@ -75,7 +78,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     .from("invoices")
     .update(updates)
     .eq("id", id)
-    .eq("user_id", user.id)
+    .in("user_id", workspaceUserIds)
     .select()
     .single();
 
