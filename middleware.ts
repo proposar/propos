@@ -20,28 +20,56 @@ export async function middleware(request: NextRequest) {
     .some((c) => c.name.startsWith("sb-") && c.name.includes("-auth-token"));
   let user: { id: string } | null = null;
 
-  if (hasAuthCookie) {
-    const supabase = createServerClient(
-      supabaseUrl,
-      supabaseAnonKey,
-      {
-        cookies: {
-          get(name: string) {
-            return request.cookies.get(name)?.value;
-          },
-          set(name: string, value: string, options: object) {
-            request.cookies.set({ name, value, ...options });
-            response = NextResponse.next({ request: { headers: request.headers } });
-            response.cookies.set({ name, value, ...options });
-          },
-          remove(name: string, options: object) {
-            request.cookies.set({ name, value: "", ...options });
-            response = NextResponse.next({ request: { headers: request.headers } });
-            response.cookies.set({ name, value: "", ...options });
-          },
+  const hasQueryParams = searchParams.toString().length > 0;
+  const isPaddleOverlay = searchParams.has("_ptxn");
+  const isAuthPage = pathname === "/login" || pathname === "/signup";
+
+  // Protect dashboard and app routes (including billing)
+  const protectedPaths = [
+    "/dashboard",
+    "/proposals",
+    "/templates",
+    "/clients",
+    "/settings",
+    "/onboarding",
+    "/analytics",
+    "/pipeline",
+    "/contracts",
+    "/invoices",
+    "/billing",
+    "/feedback",
+  ];
+  const isProtected = protectedPaths.some((p) => pathname === p || pathname.startsWith(p + "/"));
+
+  // Only the following cases require user state:
+  // - protected routes
+  // - redirect authenticated users away from /login and /signup
+  // - Paddle/checkout style callback that lands on home with query params
+  const shouldFetchUser =
+    hasAuthCookie &&
+    (isProtected ||
+      isAuthPage ||
+      (pathname === "/" && hasQueryParams && !isPaddleOverlay));
+
+  if (shouldFetchUser) {
+    const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+      cookies: {
+        get(name: string) {
+          return request.cookies.get(name)?.value;
         },
-      }
-    );
+        set(name: string, value: string, options: object) {
+          request.cookies.set({ name, value, ...options });
+          response = NextResponse.next({ request: { headers: request.headers } });
+          response.cookies.set({ name, value, ...options });
+        },
+        remove(name: string, options: object) {
+          request.cookies.set({ name, value: "", ...options });
+          response = NextResponse.next({ request: { headers: request.headers } });
+          response.cookies.set({ name, value: "", ...options });
+        },
+      },
+    });
+
     const { data } = await supabase.auth.getUser();
     user = data.user;
   }
@@ -55,11 +83,9 @@ export async function middleware(request: NextRequest) {
   // If a logged-in user is sent to the homepage with any query parameters
   // (e.g. from Paddle payment links like /?_ptdn=...), treat it as a
   // post-checkout callback and send them to the billing page instead.
-  const hasQueryParams = searchParams.toString().length > 0;
-
   // Redirect logged-in users from homepage with query params to billing,
   // but NOT when it's a Paddle checkout overlay (_ptxn) — that must stay on /.
-  if (pathname === "/" && user && hasQueryParams && !searchParams.has("_ptxn")) {
+  if (pathname === "/" && user && hasQueryParams && !isPaddleOverlay) {
     const billingUrl = url.clone();
     billingUrl.pathname = "/billing";
     billingUrl.search = "";
@@ -67,8 +93,6 @@ export async function middleware(request: NextRequest) {
   }
 
   // Protect dashboard and app routes (including billing)
-  const protectedPaths = ["/dashboard", "/proposals", "/templates", "/clients", "/settings", "/onboarding", "/analytics", "/pipeline", "/contracts", "/invoices", "/billing", "/feedback"];
-  const isProtected = protectedPaths.some((p) => pathname === p || pathname.startsWith(p + "/"));
   if (isProtected && !user) {
     const loginUrl = new URL("/login", request.url);
     const originalPath = pathname + (url.search ? url.search : "");
