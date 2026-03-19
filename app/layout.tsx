@@ -9,7 +9,6 @@ import { businessSchema } from "@/lib/seo";
 import { WhatsAppWidget } from "@/components/WhatsAppButton";
 
 const ProductChatbot = dynamic(() => import("@/components/ProductChatbot"), { ssr: false });
-const NPSSurvey = dynamic(() => import("@/components/NPSSurvey"), { ssr: false });
 import "./globals.css";
 
 const playfair = Playfair_Display({
@@ -128,7 +127,6 @@ export default function RootLayout({
           <LanguageProvider>
             {children}
             <ProductChatbot />
-            <NPSSurvey />
             <WhatsAppWidget />
             <Analytics />
           </LanguageProvider>
