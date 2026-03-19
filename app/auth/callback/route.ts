@@ -66,8 +66,43 @@ export async function GET(request: NextRequest) {
       const { data: { user } } = await supabase.auth.getUser();
       
       if (user) {
-        // Ensure profile exists for this user (important for Google OAuth)
         const adminClient = createAdminClient();
+
+        // If this email already has a profile (e.g. from manual signup),
+        // reuse its onboarding state so the user is not forced through
+        // onboarding again when they switch to Google with the same email.
+        if (user.email) {
+          const { data: existingByEmail } = await adminClient
+            .from("profiles")
+            .select("id, onboarding_completed")
+            .ilike("email", user.email)
+            .limit(1);
+
+          if (
+            Array.isArray(existingByEmail) &&
+            existingByEmail.length > 0 &&
+            existingByEmail[0].id !== user.id &&
+            existingByEmail[0].onboarding_completed
+          ) {
+            await adminClient
+              .from("profiles")
+              .upsert(
+                {
+                  id: user.id,
+                  email: user.email.toLowerCase(),
+                  full_name:
+                    user.user_metadata?.full_name ||
+                    user.email?.split("@")[0] ||
+                    "User",
+                  business_type: "freelancer",
+                  onboarding_completed: true,
+                },
+                { onConflict: "id" }
+              );
+          }
+        }
+
+        // Ensure profile exists for this user (important for Google OAuth)
         const { data: existingProfile } = await adminClient
           .from("profiles")
           .select("id")

@@ -33,8 +33,10 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
         }
       })
       .catch(() => {
-        // Avoid false redirects during transient network/API issues.
-        setStatus("ok");
+        // Fail safe: if we cannot confirm onboarding status, send user
+        // through onboarding rather than silently allowing access.
+        setStatus("redirect");
+        router.replace("/onboarding");
       });
   }, [router]);
 
