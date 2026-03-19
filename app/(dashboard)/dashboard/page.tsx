@@ -22,6 +22,7 @@ export default function DashboardPage() {
   const t = getTranslations(locale);
   const [welcomeOpen, setWelcomeOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [secondaryLoading, setSecondaryLoading] = useState(true);
   const [proposals, setProposals] = useState<Array<{
     id: string;
     client_name: string;
@@ -40,6 +41,7 @@ export default function DashboardPage() {
     acceptedCount: 0,
     declinedCount: 0,
     pendingCount: 0,
+    currencyCode: "USD",
   });
   const [needingAttention, setNeedingAttention] = useState<Array<{ id: string; client_name: string; daysSince: number }>>([]);
   const [teamSummary, setTeamSummary] = useState({ members: 1, pendingInvites: 0 });
@@ -53,22 +55,63 @@ export default function DashboardPage() {
   useEffect(() => {
     async function load() {
       try {
-        const [proposalRes, analyticsRes, teamRes, invoiceRes, attentionRes] = await Promise.all([
+        // Load above-the-fold essentials first so the page feels responsive.
+        const [proposalRes, analyticsRes] = await Promise.all([
           fetch("/api/proposals?summary=1&limit=5"),
           fetch("/api/analytics/dashboard"),
-          fetch("/api/team"),
-          fetch("/api/invoices?limit=100"),
-          fetch("/api/proposals?summary=1&limit=200"),
         ]);
 
         const data = await proposalRes.json();
         const analyticsData = await analyticsRes.json().catch(() => null);
+
+        if (Array.isArray(data)) {
+          setProposals(data);
+        }
+
+        if (analyticsData && typeof analyticsData === "object") {
+          setStats({
+            total: Number((analyticsData as { total_proposals?: number }).total_proposals ?? 0),
+            thisWeek: Number((analyticsData as { proposals_this_week?: number }).proposals_this_week ?? 0),
+            winRate: Number((analyticsData as { acceptance_rate?: number }).acceptance_rate ?? 0),
+            viewed: Number((analyticsData as { viewed_count?: number }).viewed_count ?? 0),
+            valueWon: Number((analyticsData as { accepted_value?: number }).accepted_value ?? 0),
+            valueChange: 0,
+            acceptedCount: Number((analyticsData as { accepted_count?: number }).accepted_count ?? 0),
+            declinedCount: Number((analyticsData as { declined_count?: number }).declined_count ?? 0),
+            pendingCount: Number((analyticsData as { pending_count?: number }).pending_count ?? 0),
+            currencyCode: String((analyticsData as { currency_code?: string }).currency_code ?? "USD"),
+          });
+        }
+      } catch {
+        // keep defaults
+      } finally {
+        setLoading(false);
+      }
+
+      // Load secondary panels after initial content.
+      try {
+        const [teamRes, invoiceRes, attentionRes] = await Promise.all([
+          fetch("/api/team"),
+          fetch("/api/invoices?limit=30"),
+          fetch("/api/proposals?summary=1&limit=50"),
+        ]);
+
         const teamData = await teamRes.json().catch(() => null);
         const invoiceData = await invoiceRes.json().catch(() => []);
         const attentionData = await attentionRes.json().catch(() => []);
 
-        if (Array.isArray(data)) {
-          setProposals(data);
+        if (teamData && Array.isArray(teamData.members)) {
+          const activeMembers = teamData.members.filter((m: { status?: string }) => m.status === "active").length;
+          const pendingInvites = Array.isArray(teamData.pendingInvites) ? teamData.pendingInvites.length : 0;
+          setTeamSummary({ members: Math.max(1, activeMembers), pendingInvites });
+        }
+
+        if (Array.isArray(invoiceData)) {
+          const now = new Date();
+          const unpaid = invoiceData.filter((i: { status?: string }) => i.status !== "paid");
+          const overdue = unpaid.filter((i: { due_date?: string | null }) => i.due_date && new Date(i.due_date) < now).length;
+          const outstanding = unpaid.reduce((sum: number, i: { total?: number }) => sum + Number(i.total ?? 0), 0);
+          setInvoiceSummary({ unpaidCount: unpaid.length, overdueCount: overdue, outstanding });
         }
 
         if (Array.isArray(attentionData)) {
@@ -86,38 +129,10 @@ export default function DashboardPage() {
 
           setNeedingAttention(attention);
         }
-
-        if (analyticsData && typeof analyticsData === "object") {
-          setStats({
-            total: Number((analyticsData as { total_proposals?: number }).total_proposals ?? 0),
-            thisWeek: Number((analyticsData as { proposals_this_week?: number }).proposals_this_week ?? 0),
-            winRate: Number((analyticsData as { acceptance_rate?: number }).acceptance_rate ?? 0),
-            viewed: Number((analyticsData as { viewed_count?: number }).viewed_count ?? 0),
-            valueWon: Number((analyticsData as { accepted_value?: number }).accepted_value ?? 0),
-            valueChange: 0,
-            acceptedCount: Number((analyticsData as { accepted_count?: number }).accepted_count ?? 0),
-            declinedCount: Number((analyticsData as { declined_count?: number }).declined_count ?? 0),
-            pendingCount: Number((analyticsData as { pending_count?: number }).pending_count ?? 0),
-          });
-        }
-
-        if (teamData && Array.isArray(teamData.members)) {
-          const activeMembers = teamData.members.filter((m: { status?: string }) => m.status === "active").length;
-          const pendingInvites = Array.isArray(teamData.pendingInvites) ? teamData.pendingInvites.length : 0;
-          setTeamSummary({ members: Math.max(1, activeMembers), pendingInvites });
-        }
-
-        if (Array.isArray(invoiceData)) {
-          const now = new Date();
-          const unpaid = invoiceData.filter((i: { status?: string }) => i.status !== "paid");
-          const overdue = unpaid.filter((i: { due_date?: string | null }) => i.due_date && new Date(i.due_date) < now).length;
-          const outstanding = unpaid.reduce((sum: number, i: { total?: number }) => sum + Number(i.total ?? 0), 0);
-          setInvoiceSummary({ unpaidCount: unpaid.length, overdueCount: overdue, outstanding });
-        }
       } catch {
         // keep defaults
       } finally {
-        setLoading(false);
+        setSecondaryLoading(false);
       }
     }
     load();
@@ -132,6 +147,12 @@ export default function DashboardPage() {
   const declinedCount = stats.declinedCount;
   const pendingCount = stats.pendingCount;
   const winRatePct = stats.winRate;
+  const formatMoney = (value: number) =>
+    new Intl.NumberFormat(undefined, {
+      style: "currency",
+      currency: stats.currencyCode || "USD",
+      maximumFractionDigits: 0,
+    }).format(value || 0);
 
   return (
     <div className="space-y-8">
@@ -157,8 +178,8 @@ export default function DashboardPage() {
         />
         <StatsCard
           title={t.dashboard.stats.valueWon}
-          value={loading ? "—" : `$${stats.valueWon.toLocaleString()}`}
-          subtext={stats.valueChange !== 0 ? `${stats.valueChange > 0 ? "+" : ""}$${stats.valueChange}` : t.dashboard.stats.vsLastMonth}
+          value={loading ? "—" : formatMoney(stats.valueWon)}
+          subtext={stats.valueChange !== 0 ? `${stats.valueChange > 0 ? "+" : ""}${formatMoney(Math.abs(stats.valueChange))}` : t.dashboard.stats.vsLastMonth}
           icon="💰"
           trend={stats.valueChange > 0 ? "up" : stats.valueChange < 0 ? "down" : undefined}
         />
@@ -198,7 +219,7 @@ export default function DashboardPage() {
                     <tr key={p.id} className="border-b border-[#1e1e2e]/50">
                       <td className="py-3 pr-4 text-[#faf8f4]">{p.client_name}</td>
                       <td className="py-3 pr-4 text-[#888890]">{p.project_type}</td>
-                      <td className="py-3 pr-4 text-[#888890]">{p.budget_amount != null ? `$${p.budget_amount}` : "—"}</td>
+                      <td className="py-3 pr-4 text-[#888890]">{p.budget_amount != null ? formatMoney(p.budget_amount) : "—"}</td>
                       <td className="py-3 pr-4">
                         <span className={`rounded-full px-2 py-0.5 text-xs capitalize ${statusStyles[p.status]}`}>
                           {p.status}
@@ -263,11 +284,11 @@ export default function DashboardPage() {
           <div className="rounded-xl border border-[#1e1e2e] bg-[#12121e] p-5">
             <h3 className="font-medium text-[#faf8f4] mb-3">Team Overview</h3>
             <div className="space-y-1 text-sm text-[#888890]">
-              <p>Active members: <span className="text-[#faf8f4]">{teamSummary.members}</span></p>
-              <p>Pending invites: <span className="text-[#faf8f4]">{teamSummary.pendingInvites}</span></p>
-              <p>Unpaid invoices: <span className="text-[#faf8f4]">{invoiceSummary.unpaidCount}</span></p>
-              <p>Overdue invoices: <span className="text-[#faf8f4]">{invoiceSummary.overdueCount}</span></p>
-              <p>Outstanding: <span className="text-[#faf8f4]">${invoiceSummary.outstanding.toLocaleString()}</span></p>
+              <p>Active members: <span className="text-[#faf8f4]">{secondaryLoading ? "—" : teamSummary.members}</span></p>
+              <p>Pending invites: <span className="text-[#faf8f4]">{secondaryLoading ? "—" : teamSummary.pendingInvites}</span></p>
+              <p>Unpaid invoices: <span className="text-[#faf8f4]">{secondaryLoading ? "—" : invoiceSummary.unpaidCount}</span></p>
+              <p>Overdue invoices: <span className="text-[#faf8f4]">{secondaryLoading ? "—" : invoiceSummary.overdueCount}</span></p>
+              <p>Outstanding: <span className="text-[#faf8f4]">{secondaryLoading ? "—" : formatMoney(invoiceSummary.outstanding)}</span></p>
             </div>
             <a href="/team" className="inline-block mt-3 text-xs text-gold hover:underline">Manage Team</a>
           </div>

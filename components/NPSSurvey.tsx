@@ -44,16 +44,23 @@ export default function NPSSurvey() {
         }),
       });
 
-      if (response.ok) {
-        setSubmitted(true);
-        setTimeout(() => {
-          setShowSurvey(false);
-          setScore(null);
-          setFeedback('');
-          setEmail('');
-          setSubmitted(false);
-        }, 3000);
+      if (!response.ok) {
+        const errBody = await response.json().catch(() => ({}));
+        const message =
+          (errBody && (errBody.error || errBody.message)) ||
+          'Error submitting feedback. Please try again.';
+        alert(message);
+        return;
       }
+
+      setSubmitted(true);
+      setTimeout(() => {
+        setShowSurvey(false);
+        setScore(null);
+        setFeedback('');
+        setEmail('');
+        setSubmitted(false);
+      }, 3000);
     } catch (error) {
       console.error('Error submitting feedback:', error);
       alert('Error submitting feedback. Please try again.');

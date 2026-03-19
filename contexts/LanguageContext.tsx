@@ -40,6 +40,14 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const setLocale = (newLocale: Locale) => {
     setLocaleState(newLocale);
     localStorage.setItem(STORAGE_KEY, newLocale);
+
+    // Let LocaleSync know this change was user-driven, so it doesn't
+    // immediately overwrite with the previous profile locale.
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent("proposar:locale-user-changed", { detail: newLocale })
+      );
+    }
     
     // Proactively sync with profile API if user is logged in
     fetch("/api/profile", {
