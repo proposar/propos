@@ -37,6 +37,9 @@ export default function DashboardPage() {
     viewed: 0,
     valueWon: 0,
     valueChange: 0,
+    acceptedCount: 0,
+    declinedCount: 0,
+    pendingCount: 0,
   });
   const [needingAttention, setNeedingAttention] = useState<Array<{ id: string; client_name: string; daysSince: number }>>([]);
   const [teamSummary, setTeamSummary] = useState({ members: 1, pendingInvites: 0 });
@@ -92,6 +95,9 @@ export default function DashboardPage() {
             viewed: Number((analyticsData as { viewed_count?: number }).viewed_count ?? 0),
             valueWon: Number((analyticsData as { accepted_value?: number }).accepted_value ?? 0),
             valueChange: 0,
+            acceptedCount: Number((analyticsData as { accepted_count?: number }).accepted_count ?? 0),
+            declinedCount: Number((analyticsData as { declined_count?: number }).declined_count ?? 0),
+            pendingCount: Number((analyticsData as { pending_count?: number }).pending_count ?? 0),
           });
         }
 
@@ -122,11 +128,10 @@ export default function DashboardPage() {
     if (typeof window !== "undefined") localStorage.setItem("Proposar_welcome_seen", "1");
   }
 
-  const acceptedCount = proposals.filter((p) => p.status === "accepted").length;
-  const declinedCount = proposals.filter((p) => p.status === "declined").length;
-  const pendingCount = proposals.filter((p) => ["draft", "sent", "viewed"].includes(p.status)).length;
-  const totalForRate = acceptedCount + declinedCount;
-  const winRatePct = totalForRate > 0 ? Math.round((acceptedCount / totalForRate) * 100) : 0;
+  const acceptedCount = stats.acceptedCount;
+  const declinedCount = stats.declinedCount;
+  const pendingCount = stats.pendingCount;
+  const winRatePct = stats.winRate;
 
   return (
     <div className="space-y-8">
