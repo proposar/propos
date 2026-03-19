@@ -52,14 +52,12 @@ export default function ClientDetailPage() {
   }, [id]);
 
   useEffect(() => {
-    loadClient();
-    loadProposals();
-  }, [loadClient, loadProposals]);
-
-  useEffect(() => {
-    if (!client) return;
-    setLoading(false);
-  }, [client]);
+    setLoading(true);
+    Promise.all([
+      fetch(`/api/clients/${id}`).then(r => r.json()).then(d => { setClient(d); setNotes(d.notes ?? ""); }),
+      fetch(`/api/clients/${id}/proposals`).then(r => r.json()).then(d => setProposals(Array.isArray(d) ? d : []))
+    ]).catch(() => router.push("/clients")).finally(() => setLoading(false));
+  }, [id, router]);
 
   const saveNotes = useCallback(() => {
     if (!id) return;

@@ -18,25 +18,36 @@ type ProfileContextValue = {
 
 const ProfileContext = createContext<ProfileContextValue | null>(null);
 
+const profileCache = { data: null as Profile | null, timestamp: 0, TTL: 60000 }; // Cache for 60s
+
 export function ProfileProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   const refetch = useCallback(() => {
-    fetch("/api/profile", { cache: "no-store" })
+    const now = Date.now();
+    if (profileCache.data && now - profileCache.timestamp < profileCache.TTL) {
+      setProfile(profileCache.data);
+      return Promise.resolve(profileCache.data);
+    }
+    
+    setLoading(true);
+    return fetch("/api/profile", { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : null))
-      .then((d) => setProfile(d ?? null))
+      .then((d) => {
+        setProfile(d ?? null);
+        if (d) {
+          profileCache.data = d;
+          profileCache.timestamp = Date.now();
+        }
+        return d;
+      })
       .catch(() => setProfile(null))
       .finally(() => setLoading(false));
   }, []);
 
   useEffect(() => {
-    setLoading(true);
-    fetch("/api/profile", { cache: "no-store" })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d) => setProfile(d ?? null))
-      .catch(() => setProfile(null))
-      .finally(() => setLoading(false));
+    refetch();
   }, []);
 
   useEffect(() => {

@@ -11,14 +11,14 @@ export default function NPSSurvey() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Show survey to 10% of users randomly
+  // Show survey to 10% of users randomly - delayed to not block page load
   useEffect(() => {
     const surveySeen = localStorage.getItem('nps_survey_seen');
     if (!surveySeen && Math.random() < 0.1) {
       const timer = setTimeout(() => {
         setShowSurvey(true);
         localStorage.setItem('nps_survey_seen', 'true');
-      }, 5000); // Show after 5 seconds
+      }, 15000); // Delayed to 15 seconds - doesn't block initial page load
       return () => clearTimeout(timer);
     }
   }, []);

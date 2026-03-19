@@ -8,19 +8,26 @@ function AnimatedCounter({ value, suffix = "", prefix = "", duration = 1.5 }: { 
   const [count, setCount] = useState(0);
   const ref = useRef<HTMLSpanElement>(null);
   const inView = useInView(ref, { once: true, margin: "-50px" });
+  const hasAnimatedRef = useRef(false);
 
   useEffect(() => {
-    if (!inView) return;
-    let start = 0;
-    const end = value;
+    if (!inView || hasAnimatedRef.current) return;
+    hasAnimatedRef.current = true;
+    
+    let frameId: number | null = null;
     const startTime = performance.now();
+    
     const step = (now: number) => {
       const elapsed = (now - startTime) / 1000;
       const progress = Math.min(elapsed / duration, 1);
-      setCount(Math.round(progress * end));
-      if (progress < 1) requestAnimationFrame(step);
+      setCount(Math.round(progress * value));
+      if (progress < 1) {
+        frameId = requestAnimationFrame(step);
+      }
     };
-    requestAnimationFrame(step);
+    
+    frameId = requestAnimationFrame(step);
+    return () => { if (frameId) cancelAnimationFrame(frameId); };
   }, [inView, value, duration]);
 
   return <span ref={ref}>{prefix}{count}{suffix}</span>;

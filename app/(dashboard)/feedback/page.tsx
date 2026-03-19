@@ -42,9 +42,7 @@ export default function FeedbackDashboard() {
     };
 
     fetchFeedback();
-    // Refresh every minute
-    const interval = setInterval(fetchFeedback, 60000);
-    return () => clearInterval(interval);
+    // Don't poll on dashboard - removed to prevent lag
   }, []);
 
   if (loading) {

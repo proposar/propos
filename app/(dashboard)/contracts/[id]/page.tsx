@@ -25,10 +25,12 @@ export default function ContractDetailPage() {
   const [sendingEmail, setSendingEmail] = useState(false);
 
   useEffect(() => {
+    setLoading(true);
     fetch(`/api/contracts/${id}`)
       .then((r) => (r.ok ? r.json() : null))
-      .then((d) => { setContract(d); setLoading(false); })
-      .catch(() => setLoading(false));
+      .then((d) => { setContract(d); })
+      .catch(() => { setContract(null); })
+      .finally(() => setLoading(false));
   }, [id]);
 
   if (loading) return <div className="p-8 text-[#888890]">Loading...</div>;

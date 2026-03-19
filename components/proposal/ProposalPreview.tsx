@@ -232,9 +232,10 @@ export function ProposalPreview({ proposalId }: ProposalPreviewProps) {
     if (!proposalId || !proposal) return;
     if (proposal.status === "accepted" || proposal.status === "declined") return;
 
+    // Increased poll interval to 30s to reduce lag
     const intervalId = setInterval(() => {
       load().catch(() => {});
-    }, 10000);
+    }, 30000);
 
     return () => clearInterval(intervalId);
   }, [proposalId, proposal, load]);
