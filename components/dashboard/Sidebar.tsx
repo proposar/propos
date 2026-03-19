@@ -21,7 +21,6 @@ const getNavItems = (t: Translations) => [
   { href: "/contracts", label: t.dashboard.sidebar.contracts, icon: "📝" },
   { href: "/invoices", label: t.dashboard.sidebar.invoices, icon: "💰" },
   { href: "/templates", label: t.dashboard.sidebar.templates, icon: "📋" },
-  { href: "/feedback", label: t.dashboard.sidebar.feedback, icon: "💬" },
   { href: "/billing", label: t.dashboard.sidebar.billing, icon: "💳" },
   { href: "/settings", label: t.dashboard.sidebar.settings, icon: "⚙️" },
 ];
