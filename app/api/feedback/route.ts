@@ -66,17 +66,32 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Handle empty data
+    if (!data || data.length === 0) {
+      return NextResponse.json({
+        total_responses: 0,
+        average_score: '0.0',
+        nps_score: '0.0',
+        distribution: {
+          promoters: 0,
+          passives: 0,
+          detractors: 0,
+        },
+        recent_feedback: [],
+      });
+    }
+
     // Calculate NPS
     const scores = (data as any[]).map((item) => item.nps_score);
     const promoters = scores.filter((s) => s >= 9).length;
     const detractors = scores.filter((s) => s <= 6).length;
-    const nps = ((promoters - detractors) / scores.length) * 100;
+    const nps = scores.length > 0 ? ((promoters - detractors) / scores.length) * 100 : 0;
 
     return NextResponse.json({
       total_responses: scores.length,
-      average_score: (
+      average_score: scores.length > 0 ? (
         scores.reduce((a, b) => a + b, 0) / scores.length
-      ).toFixed(1),
+      ).toFixed(1) : '0.0',
       nps_score: nps.toFixed(1),
       distribution: {
         promoters,

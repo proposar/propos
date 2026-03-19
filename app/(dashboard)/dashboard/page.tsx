@@ -51,9 +51,9 @@ export default function DashboardPage() {
     async function load() {
       try {
         const [proposalRes, teamRes, invoiceRes] = await Promise.all([
-          fetch("/api/proposals?summary=1"),
+          fetch("/api/proposals?summary=1&limit=50"),
           fetch("/api/team"),
-          fetch("/api/invoices?limit=200"),
+          fetch("/api/invoices?limit=100"),
         ]);
 
         const data = await proposalRes.json();

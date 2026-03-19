@@ -226,6 +226,51 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Failed to save proposal" }, { status: 500 });
     }
 
+    // Auto-create client if not already exists (only for new clients)
+    if (!clientId && clientName?.trim()) {
+      try {
+        const { data: existingClient, error: clientQueryError } = await supabase
+          .from("clients")
+          .select("id")
+          .eq("user_id", user.id)
+          .eq("name", clientName.trim())
+          .eq("email", clientEmail?.trim() || null)
+          .single();
+
+        if (!existingClient && !clientQueryError) {
+          const { data: newClient, error: clientError } = await supabase
+            .from("clients")
+            .insert({
+              user_id: user.id,
+              name: clientName.trim(),
+              company: clientCompany?.trim() || null,
+              email: clientEmail?.trim() || null,
+            })
+            .select("id")
+            .single();
+
+          if (newClient) {
+            // Update proposal with the new client_id
+            await supabase
+              .from("proposals")
+              .update({ client_id: newClient.id })
+              .eq("id", proposal.id);
+          } else if (clientError) {
+            console.warn("[Generate API] Failed to auto-create client (but proposal created):", clientError);
+          }
+        } else if (existingClient?.id) {
+          // Update proposal with existing client_id
+          await supabase
+            .from("proposals")
+            .update({ client_id: existingClient.id })
+            .eq("id", proposal.id);
+        }
+      } catch (err) {
+        console.warn("[Generate API] Auto-client creation error:", err);
+        // Don't fail the proposal creation if auto-client fails
+      }
+    }
+
     if (lineItemsEnabled && lineItems?.length) {
       const serializedLineItems = lineItems.map((item: any, i: number) => ({
         proposal_id: proposal.id,

@@ -58,7 +58,7 @@ export default function FeedbackDashboard() {
     );
   }
 
-  if (!stats) {
+  if (!stats || stats.total_responses === 0) {
     return (
       <div className="min-h-screen bg-[#0a0a14] p-6">
         <div className="max-w-6xl mx-auto">

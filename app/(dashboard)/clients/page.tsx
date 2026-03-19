@@ -33,8 +33,15 @@ export default function ClientsPage() {
     const params = new URLSearchParams({ sort, order });
     if (search) params.set("search", search);
     fetch(`/api/clients?${params}`)
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error("Failed to load clients");
+        return r.json();
+      })
       .then((d) => { setClients(Array.isArray(d) ? d : []); })
+      .catch((err) => {
+         console.error("[Clients Page] Load error:", err);
+        setClients([]);
+      })
       .finally(() => setLoading(false));
   }, [sort, order, search]);
 
