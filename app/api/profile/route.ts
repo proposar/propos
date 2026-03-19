@@ -27,7 +27,7 @@ const PROFILE_FIELDS = [
   "default_sections", "auto_follow_up_enabled", "auto_follow_up_days",
   "notify_proposal_viewed", "notify_proposal_accepted", "notify_proposal_declined",
   "notify_proposal_expired", "notify_weekly_summary", "notify_product_updates",
-  "gdpr_compliant_mode",
+  "gdpr_compliant_mode", "locale",
 ];
 
 export async function PATCH(request: Request): Promise<NextResponse<Profile | { error: string }>> {

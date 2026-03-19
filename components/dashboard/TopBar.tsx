@@ -7,6 +7,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/contexts/ProfileContext";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { LanguageSwitcher } from "./LanguageSwitcher";
 
 function getPageTitle(pathname: string, t: any): string {
   if (pathname === "/proposals/new") return t.dashboard.topbar.newProposal;
@@ -110,6 +111,8 @@ export function TopBar() {
             0
           </span>
         </button>
+
+        <LanguageSwitcher />
 
         <div className="relative" ref={userMenuRef}>
           <button

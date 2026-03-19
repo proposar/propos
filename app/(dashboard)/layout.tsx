@@ -4,6 +4,7 @@ import { BottomNav } from "@/components/dashboard/BottomNav";
 import { OnboardingGuard } from "@/components/OnboardingGuard";
 import { ProfileProvider } from "@/contexts/ProfileContext";
 import { WhatsAppWidget } from "@/components/WhatsAppButton";
+import { LocaleSync } from "@/components/dashboard/LocaleSync";
 
 export default function DashboardLayout({
   children,
@@ -13,6 +14,7 @@ export default function DashboardLayout({
   return (
     <OnboardingGuard>
       <ProfileProvider>
+        <LocaleSync />
         <div className="min-h-screen bg-[#0a0a14] flex">
           <Sidebar />
           <div className="flex-1 flex flex-col min-w-0 md:ml-60 pb-20 md:pb-0">

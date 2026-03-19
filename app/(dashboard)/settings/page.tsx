@@ -49,6 +49,7 @@ type ProfileData = {
   stripe_subscription_id?: string | null;
   stripe_customer_id?: string | null;
   gdpr_compliant_mode?: boolean | null;
+  locale?: string | null;
 };
 
 export default function SettingsPage() {
@@ -104,6 +105,7 @@ export default function SettingsPage() {
           notify_weekly_summary: d?.notify_weekly_summary ?? true,
           notify_product_updates: d?.notify_product_updates ?? false,
           gdpr_compliant_mode: d?.gdpr_compliant_mode ?? false,
+          locale: d?.locale ?? "en",
         });
       })
       .catch(() => setProfile(null))
@@ -251,6 +253,21 @@ export default function SettingsPage() {
             <div>
               <label className="block text-sm text-[#888890] mb-1">{t.dashboard.settingsPage.profile.country}</label>
               <input value={form.country ?? ""} onChange={(e) => setForm((f) => ({ ...f, country: e.target.value }))} placeholder={t.dashboard.settingsPage.profile.countryPlaceholder} className="w-full rounded-lg border border-[#1e1e2e] bg-[#0a0a14] px-3 py-2 text-[#faf8f4]" />
+            </div>
+            <div>
+              <label className="block text-sm text-[#888890] mb-1">Language / Idioma / اللغة / हिंदी / Français</label>
+              <select 
+                value={form.locale ?? "en"} 
+                onChange={(e) => setForm((f) => ({ ...f, locale: e.target.value }))}
+                className="w-full rounded-lg border border-[#1e1e2e] bg-[#0a0a14] px-3 py-2 text-[#faf8f4]"
+              >
+                <option value="en">🇺🇸 English</option>
+                <option value="pt">🇧🇷 Português</option>
+                <option value="es">🇪🇸 Español</option>
+                <option value="ar">🇦🇪 العربية</option>
+                <option value="hi">🇮🇳 हिंदी</option>
+                <option value="fr">🇫🇷 Français</option>
+              </select>
             </div>
           </div>
           <div className="pt-4 border-t border-[#1e1e2e]">

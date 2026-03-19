@@ -62,6 +62,7 @@ export interface Profile {
   referral_code: string | null;
   referral_earnings: number;
   referral_count: number;
+  locale: string | null;
   created_at: string;
   updated_at: string;
 }

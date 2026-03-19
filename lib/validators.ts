@@ -32,6 +32,7 @@ export const profileUpdateSchema = z.object({
   notify_weekly_summary: z.boolean().optional(),
   notify_product_updates: z.boolean().optional(),
   gdpr_compliant_mode: z.boolean().optional(),
+  locale: z.string().optional(),
 });
 
 export type ProfileUpdate = z.infer<typeof profileUpdateSchema>;
