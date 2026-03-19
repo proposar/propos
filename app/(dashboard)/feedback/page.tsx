@@ -27,15 +27,45 @@ interface FeedbackStats {
 export default function FeedbackDashboard() {
   const [stats, setStats] = useState<FeedbackStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [apiError, setApiError] = useState<string | null>(null);
+
+  function isFeedbackStats(value: unknown): value is FeedbackStats {
+    if (!value || typeof value !== 'object') return false;
+    const v = value as Partial<FeedbackStats>;
+    return (
+      typeof v.total_responses === 'number' &&
+      typeof v.average_score === 'string' &&
+      typeof v.nps_score === 'string' &&
+      !!v.distribution &&
+      typeof v.distribution.promoters === 'number' &&
+      typeof v.distribution.passives === 'number' &&
+      typeof v.distribution.detractors === 'number' &&
+      Array.isArray(v.recent_feedback)
+    );
+  }
 
   useEffect(() => {
     const fetchFeedback = async () => {
       try {
         const response = await fetch('/api/feedback');
+        if (!response.ok) {
+          const errBody = await response.json().catch(() => ({}));
+          setApiError((errBody as { error?: string })?.error ?? 'Failed to load feedback');
+          setStats(null);
+          return;
+        }
         const data = await response.json();
+        if (!isFeedbackStats(data)) {
+          setApiError('Invalid feedback response');
+          setStats(null);
+          return;
+        }
+        setApiError(null);
         setStats(data);
       } catch (error) {
         console.error('Error fetching feedback:', error);
+        setApiError('Failed to load feedback');
+        setStats(null);
       } finally {
         setLoading(false);
       }
@@ -63,7 +93,7 @@ export default function FeedbackDashboard() {
           <h1 className="text-3xl font-bold text-[#faf8f4] mb-6">User Feedback</h1>
           <div className="rounded-lg border border-[#1e1e2e] bg-[#12121e] p-8 text-center">
             <AlertCircle className="h-12 w-12 text-[#666672] mx-auto mb-3" />
-            <p className="text-[#888890]">No feedback yet. Check back later.</p>
+            <p className="text-[#888890]">{apiError ? `Unable to load feedback: ${apiError}` : 'No feedback yet. Check back later.'}</p>
           </div>
         </div>
       </div>

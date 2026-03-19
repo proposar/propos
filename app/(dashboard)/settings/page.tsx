@@ -11,6 +11,7 @@ import {
 } from "@/lib/constants";
 import { PLANS, PLAN_LIMITS } from "@/lib/config";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useProfile } from "@/contexts/ProfileContext";
 
 // TABS moved inside SettingsPage to access translations
 
@@ -54,6 +55,7 @@ type ProfileData = {
 
 export default function SettingsPage() {
   const { t } = useLanguage();
+  const { profile: cachedProfile, loading: cachedProfileLoading } = useProfile();
   const TABS = [
     { id: "profile", label: t.dashboard.settingsPage.tabs.profile },
     { id: "branding", label: t.dashboard.settingsPage.tabs.branding },
@@ -74,43 +76,55 @@ export default function SettingsPage() {
   const [deleteConfirm, setDeleteConfirm] = useState("");
   const [deleteError, setDeleteError] = useState("");
 
+  const hydrateForm = (d: ProfileData | null) => {
+    setProfile(d);
+    setForm({
+      full_name: d?.full_name ?? "",
+      business_name: d?.business_name ?? "",
+      business_type: d?.business_type ?? "",
+      website: d?.website ?? "",
+      phone: d?.phone ?? "",
+      bio: d?.bio ?? "",
+      city: d?.city ?? "",
+      country: d?.country ?? "",
+      address: d?.address ?? "",
+      signature_text: d?.signature_text ?? "",
+      currency: d?.currency ?? "USD",
+      brand_color: d?.brand_color ?? "#D4AF37",
+      default_payment_terms: d?.default_payment_terms ?? "",
+      default_tone: d?.default_tone ?? "professional",
+      default_expiry_days: d?.default_expiry_days ?? 30,
+      default_sections: d?.default_sections ?? PROPOSAL_SECTIONS.slice(0, 8),
+      auto_follow_up_enabled: d?.auto_follow_up_enabled ?? true,
+      auto_follow_up_days: d?.auto_follow_up_days ?? 7,
+      notify_proposal_viewed: d?.notify_proposal_viewed ?? true,
+      notify_proposal_accepted: d?.notify_proposal_accepted ?? true,
+      notify_proposal_declined: d?.notify_proposal_declined ?? true,
+      notify_proposal_expired: d?.notify_proposal_expired ?? true,
+      notify_weekly_summary: d?.notify_weekly_summary ?? true,
+      notify_product_updates: d?.notify_product_updates ?? false,
+      gdpr_compliant_mode: d?.gdpr_compliant_mode ?? false,
+      locale: d?.locale ?? "en",
+    });
+  };
+
   useEffect(() => {
+    if (cachedProfile) {
+      hydrateForm(cachedProfile as ProfileData);
+      setLoading(false);
+      return;
+    }
+
+    if (cachedProfileLoading) return;
+
     fetch("/api/profile")
-      .then((r) => r.json())
+      .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
-        setProfile(d);
-        setForm({
-          full_name: d?.full_name ?? "",
-          business_name: d?.business_name ?? "",
-          business_type: d?.business_type ?? "",
-          website: d?.website ?? "",
-          phone: d?.phone ?? "",
-          bio: d?.bio ?? "",
-          city: d?.city ?? "",
-          country: d?.country ?? "",
-          address: d?.address ?? "",
-          signature_text: d?.signature_text ?? "",
-          currency: d?.currency ?? "USD",
-          brand_color: d?.brand_color ?? "#D4AF37",
-          default_payment_terms: d?.default_payment_terms ?? "",
-          default_tone: d?.default_tone ?? "professional",
-          default_expiry_days: d?.default_expiry_days ?? 30,
-          default_sections: d?.default_sections ?? PROPOSAL_SECTIONS.slice(0, 8),
-          auto_follow_up_enabled: d?.auto_follow_up_enabled ?? true,
-          auto_follow_up_days: d?.auto_follow_up_days ?? 7,
-          notify_proposal_viewed: d?.notify_proposal_viewed ?? true,
-          notify_proposal_accepted: d?.notify_proposal_accepted ?? true,
-          notify_proposal_declined: d?.notify_proposal_declined ?? true,
-          notify_proposal_expired: d?.notify_proposal_expired ?? true,
-          notify_weekly_summary: d?.notify_weekly_summary ?? true,
-          notify_product_updates: d?.notify_product_updates ?? false,
-          gdpr_compliant_mode: d?.gdpr_compliant_mode ?? false,
-          locale: d?.locale ?? "en",
-        });
+        hydrateForm(d);
       })
       .catch(() => setProfile(null))
       .finally(() => setLoading(false));
-  }, []);
+  }, [cachedProfile, cachedProfileLoading]);
 
   async function saveProfile(updates: Partial<ProfileData>) {
     setSaving(true);

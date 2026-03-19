@@ -12,15 +12,13 @@ export async function GET(request: Request) {
   }
 
   try {
-    // Limit to last 500 proposals for performance (metrics remain representative)
     const { data: proposals } = await supabase
       .from("proposals")
       .select(
         "id, status, budget_amount, created_at, sent_at, accepted_at, declined_at, viewed_at, project_type, template_id"
       )
       .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
-      .limit(500);
+      .order("created_at", { ascending: false });
 
     if (!proposals || proposals.length === 0) {
       return NextResponse.json({
@@ -41,10 +39,15 @@ export async function GET(request: Request) {
     // Calculations
     const now = new Date();
     const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const thisWeek = new Date(now);
+    thisWeek.setDate(now.getDate() - 7);
 
     const total_proposals = proposals.length;
     const proposals_this_month = proposals.filter(
       (p) => new Date(p.created_at) >= thisMonth
+    ).length;
+    const proposals_this_week = proposals.filter(
+      (p) => new Date(p.created_at) >= thisWeek
     ).length;
 
     const accepted_count = proposals.filter(
@@ -56,6 +59,9 @@ export async function GET(request: Request) {
     const pending_count = proposals.filter(
       (p) => p.status === "sent" || p.status === "viewed"
     ).length;
+    const viewed_count = proposals.filter(
+      (p) => p.status === "viewed" || p.status === "accepted"
+    ).length;
 
     const sent_count =
       accepted_count + declined_count + pending_count;
@@ -66,6 +72,9 @@ export async function GET(request: Request) {
       (sum, p) => sum + (p.budget_amount ?? 0),
       0
     );
+    const accepted_value = proposals
+      .filter((p) => p.status === "accepted")
+      .reduce((sum, p) => sum + (p.budget_amount ?? 0), 0);
 
     // Average response time (from sent to accept/decline)
     const responseTimes: number[] = [];
@@ -147,11 +156,14 @@ export async function GET(request: Request) {
     return NextResponse.json({
       total_proposals,
       proposals_this_month,
+      proposals_this_week,
       accepted_count,
       declined_count,
       pending_count,
+      viewed_count,
       acceptance_rate,
       total_value,
+      accepted_value,
       avg_response_time,
       top_template,
       revenue_pipeline,

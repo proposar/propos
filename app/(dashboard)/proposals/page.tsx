@@ -18,6 +18,22 @@ const statusStyles: Record<ProposalStatus, string> = {
   declined: "bg-red-500/20 text-red-400",
 };
 
+let proposalsCache: Array<{
+  id: string;
+  share_id: string | null;
+  title: string;
+  client_name: string;
+  project_type: string;
+  status: ProposalStatus;
+  budget_amount: number | null;
+  budget_currency: string;
+  deliverables: string[] | null;
+  sent_at: string | null;
+  created_at: string;
+}> | null = null;
+let proposalsCacheTime = 0;
+const PROPOSALS_CACHE_TTL = 30_000;
+
 export default function ProposalsPage() {
   const { locale } = useLanguage();
   const t = getTranslations(locale);
@@ -47,9 +63,21 @@ export default function ProposalsPage() {
   } | null>(null);
 
   useEffect(() => {
-    fetch("/api/proposals?summary=1")
+    const now = Date.now();
+    if (proposalsCache && now - proposalsCacheTime < PROPOSALS_CACHE_TTL) {
+      setProposals(proposalsCache);
+      setLoading(false);
+      return;
+    }
+
+    fetch("/api/proposals?summary=1&limit=200")
       .then((r) => r.json())
-      .then((d) => { setProposals(Array.isArray(d) ? d : []); })
+      .then((d) => {
+        const rows = Array.isArray(d) ? d : [];
+        proposalsCache = rows;
+        proposalsCacheTime = Date.now();
+        setProposals(rows);
+      })
       .finally(() => setLoading(false));
   }, []);
 

@@ -16,6 +16,10 @@ interface Client {
   updated_at: string;
 }
 
+let clientsCache: Client[] | null = null;
+let clientsCacheTime = 0;
+const CLIENTS_CACHE_TTL = 30_000;
+
 export default function ClientsPage() {
   const { t } = useLanguage();
   const [clients, setClients] = useState<Client[]>([]);
@@ -29,6 +33,13 @@ export default function ClientsPage() {
   const [form, setForm] = useState({ name: "", company: "", email: "", phone: "", website: "", industry: "", country: "", notes: "" });
 
   const load = useCallback(() => {
+    const now = Date.now();
+    if (!search && sort === "updated_at" && order === "desc" && clientsCache && now - clientsCacheTime < CLIENTS_CACHE_TTL) {
+      setClients(clientsCache);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     const params = new URLSearchParams({ sort, order });
     if (search) params.set("search", search);
@@ -37,7 +48,14 @@ export default function ClientsPage() {
         if (!r.ok) throw new Error("Failed to load clients");
         return r.json();
       })
-      .then((d) => { setClients(Array.isArray(d) ? d : []); })
+      .then((d) => {
+        const rows = Array.isArray(d) ? d : [];
+        setClients(rows);
+        if (!search && sort === "updated_at" && order === "desc") {
+          clientsCache = rows;
+          clientsCacheTime = Date.now();
+        }
+      })
       .catch((err) => {
          console.error("[Clients Page] Load error:", err);
         setClients([]);

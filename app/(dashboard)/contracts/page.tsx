@@ -11,6 +11,10 @@ const statusStyles: Record<string, string> = {
   declined: "bg-red-500/20 text-red-400",
 };
 
+let contractsCache: Array<{ id: string; title: string; status: string; client_name: string; created_at: string }> | null = null;
+let contractsCacheTime = 0;
+const CONTRACTS_CACHE_TTL = 30_000;
+
 export default function ContractsPage() {
   const { t } = useLanguage();
   const [contracts, setContracts] = useState<Array<{ id: string; title: string; status: string; client_name: string; created_at: string }>>([]);
@@ -18,6 +22,13 @@ export default function ContractsPage() {
   const [error, setError] = useState<string | null>(null);
 
   const loadContracts = () => {
+    const now = Date.now();
+    if (contractsCache && now - contractsCacheTime < CONTRACTS_CACHE_TTL) {
+      setContracts(contractsCache);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     setError(null);
     fetch("/api/contracts?limit=200")
@@ -26,7 +37,10 @@ export default function ContractsPage() {
         if (!r.ok) {
           throw new Error(d?.error ?? "Unable to load contracts");
         }
-        setContracts(Array.isArray(d) ? d : []);
+        const rows = Array.isArray(d) ? d : [];
+        contractsCache = rows;
+        contractsCacheTime = Date.now();
+        setContracts(rows);
       })
       .catch((e) => {
         setContracts([]);

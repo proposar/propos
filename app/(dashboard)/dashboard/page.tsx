@@ -50,26 +50,27 @@ export default function DashboardPage() {
   useEffect(() => {
     async function load() {
       try {
-        const [proposalRes, teamRes, invoiceRes] = await Promise.all([
-          fetch("/api/proposals?summary=1&limit=50"),
+        const [proposalRes, analyticsRes, teamRes, invoiceRes, attentionRes] = await Promise.all([
+          fetch("/api/proposals?summary=1&limit=5"),
+          fetch("/api/analytics/dashboard"),
           fetch("/api/team"),
           fetch("/api/invoices?limit=100"),
+          fetch("/api/proposals?summary=1&limit=200"),
         ]);
 
         const data = await proposalRes.json();
+        const analyticsData = await analyticsRes.json().catch(() => null);
         const teamData = await teamRes.json().catch(() => null);
         const invoiceData = await invoiceRes.json().catch(() => []);
+        const attentionData = await attentionRes.json().catch(() => []);
 
         if (Array.isArray(data)) {
-          setProposals(data.slice(0, 5));
-          const accepted = data.filter((p: { status: string }) => p.status === "accepted").length;
-          const total = data.filter((p: { status: string }) => ["accepted", "declined"].includes(p.status)).length;
-          const valueWon = data
-            .filter((p: { status: string }) => p.status === "accepted")
-            .reduce((s: number, p: { budget_amount?: number }) => s + (p.budget_amount || 0), 0);
+          setProposals(data);
+        }
 
+        if (Array.isArray(attentionData)) {
           const now = Date.now();
-          const attention = data
+          const attention = attentionData
             .filter((p: { status: string; sent_at?: string | null; client_name: string }) => ["sent", "viewed"].includes(p.status) && p.sent_at)
             .map((p: { id: string; client_name: string; sent_at: string }) => ({
               id: p.id,
@@ -81,13 +82,15 @@ export default function DashboardPage() {
             .slice(0, 5);
 
           setNeedingAttention(attention);
+        }
 
+        if (analyticsData && typeof analyticsData === "object") {
           setStats({
-            total: data.length,
-            thisWeek: 0,
-            winRate: total > 0 ? Math.round((accepted / total) * 100) : 0,
-            viewed: data.filter((p: { status: string }) => p.status === "viewed" || p.status === "accepted").length,
-            valueWon,
+            total: Number((analyticsData as { total_proposals?: number }).total_proposals ?? 0),
+            thisWeek: Number((analyticsData as { proposals_this_week?: number }).proposals_this_week ?? 0),
+            winRate: Number((analyticsData as { acceptance_rate?: number }).acceptance_rate ?? 0),
+            viewed: Number((analyticsData as { viewed_count?: number }).viewed_count ?? 0),
+            valueWon: Number((analyticsData as { accepted_value?: number }).accepted_value ?? 0),
             valueChange: 0,
           });
         }

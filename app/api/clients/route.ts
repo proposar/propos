@@ -46,11 +46,51 @@ export async function GET(request: Request): Promise<NextResponse<Client[] | { e
 
   // Only sort by allowed fields
   const sortField = SORTABLE_FIELDS.includes(sort) ? sort : DEFAULT_SORT;
-  const { data: clients, error } = await query
+  let { data: clients, error } = await query
     .order(sortField, { ascending: order === "asc" })
     .range(offset, offset + limit - 1); // Add pagination
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  if ((!clients || clients.length === 0) && !search?.trim()) {
+    const { data: proposalClients } = await supabase
+      .from("proposals")
+      .select("client_name, client_company, client_email")
+      .eq("user_id", user.id)
+      .not("client_name", "is", null)
+      .order("created_at", { ascending: false })
+      .limit(1000);
+
+    const seen = new Set<string>();
+    const seedRows: Array<{ user_id: string; name: string; company: string | null; email: string | null }> = [];
+
+    for (const proposal of proposalClients ?? []) {
+      const name = proposal.client_name?.trim();
+      if (!name) continue;
+      const company = proposal.client_company?.trim() || null;
+      const email = proposal.client_email?.trim() || null;
+      const key = `${name.toLowerCase()}|${(email ?? "").toLowerCase()}|${(company ?? "").toLowerCase()}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      seedRows.push({ user_id: user.id, name, company, email });
+    }
+
+    if (seedRows.length > 0) {
+      await supabase.from("clients").insert(seedRows);
+
+      const refetch = await supabase
+        .from("clients")
+        .select("*")
+        .eq("user_id", user.id)
+        .order(sortField, { ascending: order === "asc" })
+        .range(offset, offset + limit - 1);
+
+      clients = refetch.data ?? [];
+      error = refetch.error ?? null;
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+  }
+
   if (!clients?.length) return NextResponse.json<Client[]>([]);
 
   const clientIds = clients.map((c: { id: string }) => c.id);
