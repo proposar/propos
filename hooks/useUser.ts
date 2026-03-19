@@ -7,7 +7,8 @@ import type { Profile } from "@/types";
 export function useUser() {
   const [user, setUser] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
-  const supabase = createClient();
+  // Create a single Supabase client instance for the lifetime of this hook.
+  const [supabase] = useState(() => createClient());
 
   useEffect(() => {
     const fetchUser = async () => {

@@ -4,14 +4,8 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { useProfile } from "@/contexts/ProfileContext";
-import type { Paddle } from "@paddle/paddle-js";
+import { openCheckout, type PaddlePlan } from "@/lib/paddle-client";
 import Link from "next/link";
-
-const PADDLE_PRICE_IDS: Record<string, string> = {
-  starter: process.env.NEXT_PUBLIC_PADDLE_STARTER_PRICE_ID ?? "pri_01kkb4b6emz06m4e04r88781d1",
-  pro:     process.env.NEXT_PUBLIC_PADDLE_PRO_PRICE_ID     ?? "pri_01kkb4nc7avgf32vvav6neaerc",
-  agency:  process.env.NEXT_PUBLIC_PADDLE_AGENCY_PRICE_ID  ?? "pri_01kkb4r14m0n6v88w20tf6hwjz",
-};
 
 const PLANS = {
   free: {
@@ -100,12 +94,12 @@ export default function BillingPage() {
   const router = useRouter();
   const { profile, loading: profileLoading } = useProfile();
   const plan = (profile?.subscription_plan as "free" | "starter" | "pro" | "agency") || "free";
+  const hasBillingSubscription =
+    !!profile?.stripe_subscription_id || !!profile?.stripe_customer_id;
   const [billing, setBilling] = useState<"monthly" | "annual">("monthly");
   const [upgradeLoading, setUpgradeLoading] = useState<string | null>(null);
   const [portalLoading, setPortalLoading] = useState(false);
-  const paddleRef = useRef<Paddle | null>(null);
-
-  // Paddle loads lazily on first Upgrade or Manage click (see handleUpgrade / openPortal)
+  const autoCheckoutAttemptedRef = useRef(false);
 
   useEffect(() => {
     if (!profileLoading && !profile) {
@@ -117,41 +111,23 @@ export default function BillingPage() {
     if (targetPlan === plan) return;
     if (!["starter", "pro", "agency"].includes(targetPlan)) return;
 
-    const priceId = PADDLE_PRICE_IDS[targetPlan];
-    if (!priceId) { alert("Plan not configured"); return; }
-
     setUpgradeLoading(targetPlan);
     try {
-      let paddle = paddleRef.current;
-      if (!paddle) {
-        const { initializePaddle } = await import("@paddle/paddle-js");
-        const token = process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN ?? "";
-        paddle = (await initializePaddle({ token, environment: "production" })) ?? null;
-        paddleRef.current = paddle;
-      }
-      if (!paddle) {
-        alert("Payment system is loading. Please try again.");
-        return;
-      }
-      paddle.Checkout.open({
-        items: [{ priceId, quantity: 1 }],
-        customData: { user_id: profile?.id ?? "" },
-        settings: {
-          successUrl: `${window.location.origin}/billing`,
-          displayMode: "overlay",
-          theme: "dark",
-          locale: "en",
-        },
+      const result = await openCheckout(targetPlan as PaddlePlan, {
+        successUrl: `${window.location.origin}/billing`,
       });
+      if (!result.ok) {
+        alert(result.error || "Failed to start checkout");
+      }
     } catch (err) {
       console.error("[Billing] Checkout error:", err);
       alert("Failed to start checkout. Please try again.");
     } finally {
       setUpgradeLoading(null);
     }
-  }, [plan, profile?.id]);
+  }, [plan]);
 
-  const openPortal = async () => {
+  const openPortal = useCallback(async () => {
     setPortalLoading(true);
     try {
       const res = await fetch("/api/paddle/portal", { method: "POST" });
@@ -167,7 +143,27 @@ export default function BillingPage() {
     } finally {
       setPortalLoading(false);
     }
-  };
+  }, []);
+
+  // Support links like `/billing?plan=pro` by auto-triggering checkout once.
+  useEffect(() => {
+    if (autoCheckoutAttemptedRef.current) return;
+    if (profileLoading || !profile) return;
+
+    const planParam = new URLSearchParams(window.location.search).get("plan");
+    if (!planParam) return;
+    if (!["starter", "pro", "agency"].includes(planParam)) return;
+    if (planParam === plan) return;
+
+    autoCheckoutAttemptedRef.current = true;
+
+    const shouldUsePortal = hasBillingSubscription && planParam !== "free";
+    if (shouldUsePortal) {
+      void openPortal();
+    } else {
+      void handleUpgrade(planParam);
+    }
+  }, [profileLoading, profile, plan, hasBillingSubscription, openPortal, handleUpgrade]);
 
   if (profileLoading) {
     return (
@@ -181,8 +177,6 @@ export default function BillingPage() {
   const limit = currentPlan.proposalsPerMonth;
   const used = profile?.proposals_used_this_month ?? 0;
   const limitLabel = limit === -1 ? "Unlimited" : limit;
-  const hasBillingSubscription =
-    !!profile?.stripe_subscription_id || !!profile?.stripe_customer_id;
 
   return (
     <div className="min-h-screen bg-[#0a0a14] text-[#faf8f4] py-16 px-4">

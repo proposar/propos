@@ -7,7 +7,8 @@ import type { SubscriptionPlan } from "@/types";
 export function useSubscription() {
   const [plan, setPlan] = useState<SubscriptionPlan>("free");
   const [loading, setLoading] = useState(true);
-  const supabase = createClient();
+  // Create a single Supabase client instance for the lifetime of this hook.
+  const [supabase] = useState(() => createClient());
 
   useEffect(() => {
     const fetchSubscription = async () => {
