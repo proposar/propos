@@ -15,6 +15,11 @@ export async function middleware(request: NextRequest) {
   const url = request.nextUrl;
   const { pathname, searchParams } = url;
 
+  // Feedback feature removed. Avoid 404 confusion by always redirecting.
+  if (pathname === "/feedback") {
+    return NextResponse.redirect(new URL("/dashboard", request.url));
+  }
+
   const hasAuthCookie = request.cookies
     .getAll()
     .some((c) => c.name.startsWith("sb-") && c.name.includes("-auth-token"));
@@ -37,7 +42,6 @@ export async function middleware(request: NextRequest) {
     "/contracts",
     "/invoices",
     "/billing",
-    "/feedback",
   ];
   const isProtected = protectedPaths.some((p) => pathname === p || pathname.startsWith(p + "/"));
 
