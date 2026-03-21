@@ -31,61 +31,69 @@ export const viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(APP_URL),
   title: {
-    default: "Proposar — AI Proposal Generator for Freelancers & Agencies",
     template: "%s | Proposar",
+    default: "Proposar — AI Proposal Generator for Freelancers & Agencies",
   },
-  description:
-    "Generate winning client proposals in 60 seconds with AI. Trusted by 2,000+ freelancers. Increase close rates, track opens, get paid faster.",
+  description: "Create winning client proposals in 60 seconds with AI. Trusted by freelancers in USA, UK, Australia & Canada. Smart follow-ups, open tracking, and one-click accept. Free 14-day trial.",
   keywords: [
     "proposal generator",
-    "AI proposal generator",
+    "AI proposal writer", 
     "freelance proposal software",
+    "client proposal tool",
+    "proposal maker",
+    "business proposal generator",
+    "proposal software for freelancers",
+    "online proposal tool",
+    "proposal tracking software",
+    "AI proposal generator free",
+    "best proposal software 2025",
     "proposal writing tool",
-    "client proposal template",
-    "proposal automation",
-    "freelancer tools",
+    "freelancer proposal app",
     "agency proposal software",
+    "proposal follow up tool",
   ],
-  authors: [{ name: "Proposar" }],
+  authors: [{ name: "Proposar", url: APP_URL }],
   creator: "Proposar",
   publisher: "Proposar",
-  icons: {
-    icon: "/landscape.svg",
-    apple: "/landscape.svg",
-  },
-  verification: {
-    google: "0rLRsbPbVjLe39eSl-S93gbNe69cLmMKLDiwHG1lJsM",
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
   },
   openGraph: {
     type: "website",
     locale: "en_US",
     url: APP_URL,
     siteName: "Proposar",
-    title: "Proposar — AI Proposal Generator for Freelancers & Agencies",
-    description: "Generate winning client proposals in 60 seconds with AI. Trusted by 2,000+ freelancers.",
-    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "Proposar AI Proposal Generator" }],
+    title: "Proposar — AI Proposal Generator for Freelancers",
+    description: "Stop spending hours writing proposals. Proposar AI writes them in 60 seconds. Smart follow-ups, open tracking, one-click accept.",
+    images: [{
+      url: "/og-image.png",
+      width: 1200,
+      height: 630,
+      alt: "Proposar — AI Proposal Generator",
+    }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Proposar — AI Proposal Generator",
-    description: "Generate winning proposals in 60 seconds with AI. Track opens, close faster.",
+    title: "Proposar — AI Proposal Generator for Freelancers",
+    description: "Write winning proposals in 60 seconds with AI.",
+    site: "@proposar_io",
     creator: "@proposar_io",
-  },
-  robots: {
-    index: true,
-    follow: true,
-    "max-image-preview": "large" as any,
-    "max-snippet": -1 as any,
-    "max-video-preview": -1 as any,
+    images: ["/og-image.png"],
   },
   alternates: {
     canonical: APP_URL,
-    languages: {
-      "en-US": APP_URL,
-    },
   },
-  category: "Business",
-  classification: "Business Software",
+  verification: {
+    google: "0rLRsbPbVjLe39eSl-S93gbNe69cLmMKLDiwHG1lJsM",
+  },
 };
 
 export default function RootLayout({
@@ -93,34 +101,70 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const jsonLd = [
-    {
-      "@context": "https://schema.org",
-      "@type": "WebSite",
-      name: "Proposar",
-      url: "https://proposar.io",
-      potentialAction: {
-        "@type": "SearchAction",
-        target: {
-          "@type": "EntryPoint",
-          urlTemplate: "https://proposar.io/search?q={search_term_string}",
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "SoftwareApplication",
+        name: "Proposar",
+        applicationCategory: "BusinessApplication",
+        operatingSystem: "Web Browser",
+        url: APP_URL,
+        description: "AI-powered proposal generator for freelancers and agencies. Create winning proposals in 60 seconds.",
+        offers: {
+          "@type": "AggregateOffer",
+          priceCurrency: "USD",
+          lowPrice: "19",
+          highPrice: "79",
+          offerCount: "3",
         },
-        "query-input": "required name=search_term_string",
+        aggregateRating: {
+          "@type": "AggregateRating",
+          ratingValue: "4.9",
+          reviewCount: "847",
+          bestRating: "5",
+        },
+        featureList: [
+          "AI proposal generation in 60 seconds",
+          "Email and WhatsApp sending",
+          "Proposal open tracking",
+          "Smart follow-up sequences",
+          "Client accept flow",
+          "PDF export with branding",
+          "Win rate analytics",
+        ],
       },
-    },
-    businessSchema,
-  ];
+      {
+        "@type": "Organization",
+        name: "Proposar",
+        url: APP_URL,
+        logo: `${APP_URL}/logo.png`,
+        sameAs: [
+          "https://twitter.com/proposar_io",
+          "https://linkedin.com/company/proposar",
+        ],
+      },
+      {
+        "@type": "WebSite",
+        url: APP_URL,
+        name: "Proposar",
+        potentialAction: {
+          "@type": "SearchAction",
+          target: `${APP_URL}/search?q={search_term_string}`,
+          "query-input": "required name=search_term_string",
+        },
+      },
+      businessSchema,
+    ],
+  };
 
   return (
     <html lang="en" className={`${playfair.variable} ${dmSans.variable}`}>
       <head>
-        {jsonLd.map((schema, idx) => (
-          <script
-            key={idx}
-            type="application/ld+json"
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
-          />
-        ))}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
       </head>
       <body className="min-h-screen bg-background font-sans text-foreground antialiased">
         <PostHogProvider>
