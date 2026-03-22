@@ -24,9 +24,6 @@ export default function WinRateCalculatorPage() {
 
   return (
     <main className="min-h-screen bg-[#0a0a14] pt-24 text-[#faf8f4]">
-      <title>Freelance Proposal Win Rate Calculator | Proposar</title>
-      <meta name="description" content="Calculate your freelance proposal win rate and discover how much revenue you are losing by using static PDFs instead of tracked, interactive proposals." />
-      
       <Navbar />
 
       <section className="px-6 py-20 max-w-5xl mx-auto">

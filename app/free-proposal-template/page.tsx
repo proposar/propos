@@ -15,16 +15,16 @@ export const metadata: Metadata = {
 
 export default function FreeProposalTemplatePage() {
   const templates = [
-    { title: 'Web Design Proposal', slug: 'web-design-proposal' },
-    { title: 'Digital Marketing Proposal', slug: 'digital-marketing-proposal' },
-    { title: 'SEO Proposal', slug: 'seo-proposal' },
-    { title: 'Consulting Proposal', slug: 'consulting-proposal' },
-    { title: 'Social Media Management', slug: 'social-media-proposal' },
-    { title: 'App Development Proposal', slug: 'app-development-proposal' },
-    { title: 'Brand Identity Proposal', slug: 'brand-identity-proposal' },
-    { title: 'Copywriting Proposal', slug: 'copywriting-proposal' },
-    { title: 'Video Production Proposal', slug: 'video-production-proposal' },
-    { title: 'Freelance Design Proposal', slug: 'freelance-design-proposal' },
+    { title: 'Web Design Proposal', slug: 'web-design', href: '/proposal-templates/web-design' },
+    { title: 'Digital Marketing Proposal', slug: 'marketing', href: '/proposal-templates/marketing' },
+    { title: 'SEO Proposal', slug: 'seo', href: '/proposal-templates/seo' },
+    { title: 'Consulting Proposal', slug: 'consulting', href: '/proposal-templates/consulting' },
+    { title: 'Social Media Management', slug: 'social-media', href: '/proposal-templates/social-media' },
+    { title: 'App Development Proposal', slug: 'developer', href: '/proposal-templates/developer' },
+    { title: 'Brand Identity Proposal', slug: 'branding', href: '/proposal-templates/branding' },
+    { title: 'Copywriting Proposal', slug: 'copywriting', href: '/proposal-templates/copywriting' },
+    { title: 'Video Production Proposal', slug: 'videography', href: '/proposal-templates/videography' },
+    { title: 'Freelance Design Proposal', slug: 'graphic-design', href: '/proposal-templates/graphic-design' },
   ];
 
   return (
@@ -69,7 +69,7 @@ export default function FreeProposalTemplatePage() {
                   <p className="text-sm text-[#888890] mt-2">Includes: Executive Summary, Timeline, Pricing Table, and Terms.</p>
                 </div>
                 <div className="flex flex-col gap-3">
-                  <Link href={`/templates/${template.slug}`} className="text-center w-full py-3 rounded-lg bg-[#1e1e2e] text-[#faf8f4] font-medium hover:bg-[#2a2a3a] transition-colors text-sm">
+                  <Link href={template.href} className="text-center w-full py-3 rounded-lg bg-[#1e1e2e] text-[#faf8f4] font-medium hover:bg-[#2a2a3a] transition-colors text-sm">
                     View & Download PDF
                   </Link>
                   <AuthAwareLink unauthenticatedHref="/signup" className="text-center w-full py-3 rounded-lg border border-gold/30 text-gold font-medium hover:bg-gold hover:text-[#0a0a14] transition-colors text-sm">

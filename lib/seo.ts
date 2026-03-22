@@ -1,8 +1,8 @@
 export const seoConfig = {
   siteName: "Proposar",
-  siteUrl: "https://proposar.io",
+  siteUrl: "https://proposar.com",
   description: "AI-powered proposal generator for freelancers and agencies. Create winning proposals in 60 seconds. Track opens, close faster, earn more.",
-  twitterHandle: "@proposar_io",
+  twitterHandle: "@ProposarHQ",
 };
 
 export const generateMetadata = (

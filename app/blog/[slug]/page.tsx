@@ -35,10 +35,13 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: BlogPostPageProps) {
   const post = await getBlogPost(params.slug);
   if (!post) return { title: "Post not found", description: "This blog post could not be found." };
+  const baseUrl = "https://proposar.com";
+  const url = `${baseUrl}/blog/${params.slug}`;
   return {
     title: `${post.title} | Proposar Blog`,
     description: post.description,
-    openGraph: { title: post.title, description: post.description, images: post.image ? [post.image] : [] },
+    alternates: { canonical: url },
+    openGraph: { title: post.title, description: post.description, url, images: post.image ? [post.image] : [] },
   };
 }
 
@@ -62,8 +65,20 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     .filter((p) => p.slug !== params.slug && p.tags.some((tag) => post.tags.includes(tag)))
     .slice(0, 3);
 
+  const baseUrl = "https://proposar.com";
+  const articleSchema = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: post.title,
+    description: post.description,
+    author: { "@type": "Organization", name: post.author || "Proposar Team" },
+    datePublished: post.date,
+    url: `${baseUrl}/blog/${params.slug}`,
+  };
+
   return (
     <div className="min-h-screen bg-[#0f0f1e]">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }} />
       <Navbar />
       <article className="max-w-4xl mx-auto px-4 py-32">
         <Link href="/blog" className="text-gold hover:text-gold/80 mb-6 inline-block">← Back to all posts</Link>
@@ -87,14 +102,14 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           <MDXRemote source={post.content} components={mdxComponents} />
         </div>
         <div className="bg-[#1e1e2e] border border-gold/30 rounded-lg p-8 md:p-12 text-center mb-16">
-          <h3 className="text-2xl font-bold text-white mb-4">Ready to win more proposals?</h3>
-          <p className="text-gray-400 mb-8 max-w-2xl mx-auto">Try Proposar free for 14 days. No credit card required.</p>
+          <h3 className="text-2xl font-bold text-white mb-4">Create proposals like this — Try Proposar Free</h3>
+          <p className="text-gray-400 mb-8 max-w-2xl mx-auto">Generate winning proposals in 60 seconds with AI. No credit card required.</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <AuthAwareLink
               unauthenticatedHref="/signup"
               className="px-8 py-3 bg-gradient-to-r from-gold to-gold/80 text-[#0f0f1e] font-semibold rounded-lg"
             >
-              Start Free Trial
+              Try Proposar Free →
             </AuthAwareLink>
             <Link href="/blog" className="px-8 py-3 border border-gold/30 text-gold rounded-lg hover:bg-gold/5">More Articles</Link>
           </div>

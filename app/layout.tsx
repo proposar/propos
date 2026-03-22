@@ -20,7 +20,7 @@ const dmSans = DM_Sans({
   variable: "--font-dm-sans",
 });
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://proposar.io";
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://proposar.com";
 
 export const viewport = {
   width: "device-width",
@@ -84,15 +84,15 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Proposar — AI Proposal Generator for Freelancers",
     description: "Write winning proposals in 60 seconds with AI.",
-    site: "@proposar_io",
-    creator: "@proposar_io",
+    site: "@ProposarHQ",
+    creator: "@ProposarHQ",
     images: ["/og-image.png"],
   },
   alternates: {
     canonical: APP_URL,
   },
   verification: {
-    google: "0rLRsbPbVjLe39eSl-S93gbNe69cLmMKLDiwHG1lJsM",
+    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION ?? "hIRaA0SZL0vCOvWzVqYNhtNxwMYBnzShcihekS76wjc",
   },
 };
 

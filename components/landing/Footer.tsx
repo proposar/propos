@@ -32,7 +32,7 @@ export function Footer() {
             <ul className="space-y-3 text-sm text-[#888890]">
               <li><Link href="/#how-it-works" className="hover:text-gold hover:translate-x-1 transition-all inline-block">Features</Link></li>
               <li><Link href="/#pricing" className="hover:text-gold hover:translate-x-1 transition-all inline-block">Pricing</Link></li>
-              <li><Link href="/templates" className="hover:text-gold hover:translate-x-1 transition-all inline-block">Templates</Link></li>
+              <li><Link href="/proposal-templates" className="hover:text-gold hover:translate-x-1 transition-all inline-block">Templates</Link></li>
               <li><Link href="/changelog" className="hover:text-gold hover:translate-x-1 transition-all inline-block">Changelog</Link></li>
               <li><Link href="/roadmap" className="hover:text-gold hover:translate-x-1 transition-all inline-block">Roadmap</Link></li>
             </ul>
@@ -41,9 +41,10 @@ export function Footer() {
             <p className="font-semibold text-[#faf8f4] mb-4">Resources</p>
             <ul className="space-y-3 text-sm text-[#888890]">
               <li><Link href="/blog" className="hover:text-gold hover:translate-x-1 transition-all inline-block">Blog</Link></li>
+              <li><Link href="/ai-proposal-generator" className="hover:text-gold hover:translate-x-1 transition-all inline-block">AI Proposal Generator</Link></li>
+              <li><Link href="/proposal-generator-for-freelancers" className="hover:text-gold hover:translate-x-1 transition-all inline-block">Proposal Generator</Link></li>
+              <li><Link href="/free-proposal-template" className="hover:text-gold hover:translate-x-1 transition-all inline-block">Free Templates</Link></li>
               <li><Link href="/help" className="hover:text-gold hover:translate-x-1 transition-all inline-block">Help Center</Link></li>
-              <li><Link href="/video-tutorials" className="hover:text-gold hover:translate-x-1 transition-all inline-block">Video Tutorials</Link></li>
-              <li><Link href="/api-docs" className="hover:text-gold hover:translate-x-1 transition-all inline-block">API Docs</Link></li>
             </ul>
           </div>
           <div>

@@ -23,9 +23,6 @@ export default function WordCountToolPage() {
 
   return (
     <main className="min-h-screen bg-[#0a0a14] pt-24 text-[#faf8f4]">
-      <title>Free Proposal Word Count Checker | Proposar</title>
-      <meta name="description" content="Is your business proposal too long? Paste your text into our free word count checker to see reading times and optimization suggestions." />
-      
       <Navbar />
 
       <section className="px-6 py-20 max-w-4xl mx-auto">

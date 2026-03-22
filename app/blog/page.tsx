@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { Navbar } from '@/components/landing/Navbar';
 import { Footer } from '@/components/landing/Footer';
+import { getAllBlogPosts } from '@/lib/blog';
 
 export const metadata: Metadata = {
   title: 'Proposar Blog | Resources for Freelancers & Agencies',
@@ -11,30 +12,19 @@ export const metadata: Metadata = {
   },
 };
 
-const BLOG_POSTS = [
-  { title: "How to Write a Freelance Proposal That Actually Wins", slug: "how-to-write-a-freelance-proposal", category: "Freelance Business" },
-  { title: "5 Proposal Follow-Up Email Templates That Get Replies", slug: "proposal-follow-up-email-templates", category: "Client Management" },
-  { title: "How to Win More Freelance Clients", slug: "how-to-win-more-freelance-clients", category: "Freelance Business" },
-  { title: "Freelance Proposal Template", slug: "freelance-proposal-template", category: "Proposal Tips" },
-  { title: "Web Design Proposal Template", slug: "web-design-proposal-template", category: "Proposal Tips" },
-  { title: "How to Price Freelance Projects", slug: "how-to-price-freelance-projects", category: "Freelance Business" },
-  { title: "How to Increase Proposal Acceptance Rate", slug: "proposal-acceptance-rate", category: "Proposal Tips" },
-  { title: "30 Client Proposal Email Subject Lines", slug: "client-proposal-email-subject-lines", category: "Client Management" },
-  { title: "Consulting Proposal Template", slug: "consulting-proposal-template", category: "Proposal Tips" },
-  { title: "Marketing Proposal Template", slug: "marketing-proposal-template", category: "Proposal Tips" },
-  { title: "How to Send a Business Proposal on WhatsApp", slug: "how-to-send-proposal-whatsapp", category: "Proposal Tips" },
-  { title: "Proposal vs Quote: What's the Difference?", slug: "proposal-vs-quote-difference", category: "Freelance Business" },
-  { title: "Freelance Proposal Statistics & Win Rates", slug: "freelance-win-rate-statistics", category: "Freelance Business" },
-  { title: "The Best Time to Send a Proposal", slug: "best-time-to-send-proposal", category: "Proposal Tips" },
-  { title: "How to Follow Up on a Proposal Without Being Annoying", slug: "how-to-follow-up-without-being-annoying", category: "Client Management" },
-  { title: "SEO Proposal Template", slug: "seo-proposal-template", category: "Proposal Tips" },
-  { title: "App Development Proposal Template", slug: "app-development-proposal-template", category: "Proposal Tips" },
-  { title: "How AI is Changing Freelancing in 2025", slug: "how-ai-is-changing-freelancing", category: "AI Tools" },
-  { title: "Proposal Rejected: What to Do Next", slug: "proposal-rejected-what-to-do", category: "Client Management" },
-  { title: "The Best Proposify Alternatives for Freelancers", slug: "proposify-alternatives", category: "AI Tools" },
-];
+function getCategory(tags: string[]): string {
+  for (const tag of tags) {
+    const lower = tag.toLowerCase();
+    if (lower.includes('proposal')) return 'Proposal Tips';
+    if (lower.includes('freelance') || lower.includes('business')) return 'Freelance Business';
+    if (lower.includes('client') || lower.includes('sales')) return 'Client Management';
+    if (lower.includes('ai')) return 'AI Tools';
+  }
+  return 'Proposal Tips';
+}
 
-export default function BlogIndexPage() {
+export default async function BlogIndexPage() {
+  const posts = await getAllBlogPosts();
   return (
     <main className="min-h-screen bg-[#0a0a14] pt-24 text-[#faf8f4]">
       <Navbar />
@@ -60,10 +50,9 @@ export default function BlogIndexPage() {
 
         {/* Blog Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {BLOG_POSTS.map((post, idx) => (
-             <Link key={idx} href={`/blog/${post.slug}`} className="group flex flex-col rounded-2xl border border-[#1e1e2e] bg-[#12121e] overflow-hidden hover:border-gold/30 transition-all">
+          {posts.map((post) => (
+             <Link key={post.slug} href={`/blog/${post.slug}`} className="group flex flex-col rounded-2xl border border-[#1e1e2e] bg-[#12121e] overflow-hidden hover:border-gold/30 transition-all">
                 <div className="h-48 bg-[#1e1e2e] relative overflow-hidden flex items-center justify-center">
-                   {/* Decorative placeholder for blog image */}
                    <div className="absolute inset-0 bg-gradient-to-br from-[#12121e] to-[#0a0a14]" />
                    <div className="z-10 text-gold/20 group-hover:scale-110 transition-transform duration-500">
                      <svg className="w-16 h-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -73,13 +62,13 @@ export default function BlogIndexPage() {
                 </div>
                 <div className="p-6 flex flex-col flex-1">
                    <div className="text-xs font-bold text-gold uppercase tracking-wider mb-3">
-                     {post.category}
+                     {getCategory(post.tags)}
                    </div>
                    <h2 className="text-xl font-bold text-[#faf8f4] mb-4 group-hover:text-gold transition-colors">
                      {post.title}
                    </h2>
                    <div className="mt-auto flex items-center justify-between text-sm text-[#888890]">
-                      <span>By Proposar Team</span>
+                      <span>By {post.author || 'Proposar Team'}</span>
                       <span className="flex items-center gap-1 group-hover:text-gold transition-colors">Read article →</span>
                    </div>
                 </div>
