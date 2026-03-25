@@ -53,6 +53,7 @@ export function Footer() {
               <li><Link href="/about" className="hover:text-gold hover:translate-x-1 transition-all inline-block">About</Link></li>
               <li><Link href="/careers" className="hover:text-gold hover:translate-x-1 transition-all inline-block">Careers <span className="text-xs bg-gold/20 text-gold px-2 py-1 rounded ml-1">We&apos;re hiring</span></Link></li>
               <li><Link href="/privacy" className="hover:text-gold hover:translate-x-1 transition-all inline-block">Privacy Policy</Link></li>
+              <li><Link href="/security" className="hover:text-gold hover:translate-x-1 transition-all inline-block text-gold">Security & Compliance</Link></li>
               <li><Link href="/terms" className="hover:text-gold hover:translate-x-1 transition-all inline-block">Terms of Service</Link></li>
               <li><Link href="/contact" className="hover:text-gold hover:translate-x-1 transition-all inline-block">Contact</Link></li>
             </ul>

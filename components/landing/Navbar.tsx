@@ -43,6 +43,7 @@ export function Navbar() {
     { label: t.nav.howItWorks, href: "/#how-it-works" },
     { label: t.nav.features, href: "/#features" },
     { label: t.nav.pricing, href: "/#pricing" },
+    { label: "Security", href: "/security" },
     { label: t.nav.blog, href: "/blog" },
     { label: t.nav.help, href: "/help" },
   ];
