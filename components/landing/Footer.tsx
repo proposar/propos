@@ -48,12 +48,30 @@ export function Footer() {
             </ul>
           </div>
           <div>
+            <p className="font-semibold text-[#faf8f4] mb-4">Solutions</p>
+            <ul className="space-y-3 text-sm text-[#888890]">
+              <li><Link href="/for/developers" className="hover:text-gold hover:translate-x-1 transition-all inline-block">For Developers</Link></li>
+              <li><Link href="/for/web-designers" className="hover:text-gold hover:translate-x-1 transition-all inline-block">For Web Designers</Link></li>
+              <li><Link href="/for/marketing-agencies" className="hover:text-gold hover:translate-x-1 transition-all inline-block">For Agencies</Link></li>
+              <li><Link href="/for/consultants" className="hover:text-gold hover:translate-x-1 transition-all inline-block">For Consultants</Link></li>
+              <li><Link href="/for/copywriters" className="hover:text-gold hover:translate-x-1 transition-all inline-block">For Copywriters</Link></li>
+            </ul>
+          </div>
+          <div>
+            <p className="font-semibold text-[#faf8f4] mb-4">Regions</p>
+            <ul className="space-y-3 text-sm text-[#888890]">
+              <li><Link href="/for/freelancers-usa" className="hover:text-gold hover:translate-x-1 transition-all inline-block">Freelancers in USA</Link></li>
+              <li><Link href="/for/freelancers-uk" className="hover:text-gold hover:translate-x-1 transition-all inline-block">Freelancers in UK</Link></li>
+              <li><Link href="/for/freelancers-australia" className="hover:text-gold hover:translate-x-1 transition-all inline-block">Australia & NZ</Link></li>
+              <li><Link href="/for/freelancers-canada" className="hover:text-gold hover:translate-x-1 transition-all inline-block">Canada Hub</Link></li>
+              <li><Link href="/about" className="hover:text-gold hover:translate-x-1 transition-all inline-block">Our Story</Link></li>
+            </ul>
+          </div>
+          <div>
             <p className="font-semibold text-[#faf8f4] mb-4">Company</p>
             <ul className="space-y-3 text-sm text-[#888890]">
-              <li><Link href="/about" className="hover:text-gold hover:translate-x-1 transition-all inline-block">About</Link></li>
-              <li><Link href="/careers" className="hover:text-gold hover:translate-x-1 transition-all inline-block">Careers <span className="text-xs bg-gold/20 text-gold px-2 py-1 rounded ml-1">We&apos;re hiring</span></Link></li>
               <li><Link href="/privacy" className="hover:text-gold hover:translate-x-1 transition-all inline-block">Privacy Policy</Link></li>
-              <li><Link href="/security" className="hover:text-gold hover:translate-x-1 transition-all inline-block text-gold">Security & Compliance</Link></li>
+              <li><Link href="/security" className="hover:text-gold hover:translate-x-1 transition-all inline-block">Security & Compliance</Link></li>
               <li><Link href="/terms" className="hover:text-gold hover:translate-x-1 transition-all inline-block">Terms of Service</Link></li>
               <li><Link href="/contact" className="hover:text-gold hover:translate-x-1 transition-all inline-block">Contact</Link></li>
             </ul>

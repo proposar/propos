@@ -3,6 +3,7 @@ import { AuthAwareLink } from '@/components/auth/AuthAwareLink';
 import { FAQ } from '@/components/landing/FAQ';
 import { Navbar } from '@/components/landing/Navbar';
 import { Footer } from '@/components/landing/Footer';
+import { InternalLinks } from '@/components/seo/InternalLinks';
 
 interface IndustryPageProps {
   industry: string;
@@ -103,6 +104,15 @@ export function IndustryPage({
         <AuthAwareLink unauthenticatedHref="/signup" className="inline-block rounded-lg bg-gold px-12 py-5 font-bold text-[#0a0a14] hover:bg-[#e8c76a] transition-all hover:scale-105 text-lg shadow-[0_0_40px_rgba(212,175,71,0.3)]">
           Start Your Free 14-Day Trial →
         </AuthAwareLink>
+      </section>
+
+      {/* Internal Links Directory */}
+      <section className="px-6 py-12 bg-[#0a0a14] border-t border-[#1e1e2e]">
+        <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-12">
+           <InternalLinks category="industries" />
+           <InternalLinks category="locations" />
+           <InternalLinks category="templates" />
+        </div>
       </section>
 
       <Footer />

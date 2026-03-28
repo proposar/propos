@@ -4,6 +4,7 @@ import { AuthAwareLink } from '@/components/auth/AuthAwareLink';
 import { FAQ } from '@/components/landing/FAQ';
 import { Navbar } from '@/components/landing/Navbar';
 import { Footer } from '@/components/landing/Footer';
+import { InternalLinks } from '@/components/seo/InternalLinks';
 
 interface BlogPostLayoutProps {
   title: string;
@@ -92,6 +93,15 @@ export function BlogPostLayout({
               Try Proposar Free →
             </AuthAwareLink>
          </div>
+      </section>
+
+      {/* SEO Internal Linking */}
+      <section className="px-6 py-12 bg-[#0a0a14] border-t border-[#1e1e2e]">
+        <div className="max-w-4xl mx-auto grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+           <InternalLinks category="industries" />
+           <InternalLinks category="templates" />
+           <InternalLinks category="tools" />
+        </div>
       </section>
 
       <Footer />
